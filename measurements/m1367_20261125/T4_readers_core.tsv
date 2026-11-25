@@ -1,0 +1,160 @@
+節点	ファイル:行	メソッド	AI	流れ込む書き手(右辺か局所の展開)
+Pop.Militancy	Colonial.cs:56	Step		
+Pop.Militancy	Crime.cs:23	Step		Region.CrimeRate@Crime.cs:26 World.CrimeRate@Crime.cs:51
+Pop.Militancy	Crime.cs:43	Step		
+Pop.Militancy	Diplomacy.cs:2019	Subjugate		
+Pop.Militancy	Diplomacy.cs:2967	CedeRegion		
+Pop.Militancy	Discovery.cs:191	IdeaBoardOf		
+Pop.Militancy	Discovery.cs:191	IdeaBoardOf		
+Pop.Militancy	Discovery.cs:191	IdeaBoardOf		
+Pop.Militancy	Discovery.cs:483	Score		
+Pop.Militancy	Discovery.cs:483	Score		
+Pop.Militancy	Discovery.cs:483	Score		
+Pop.Militancy	FactionSnapshot.cs:38	?		
+Pop.Militancy	FactionSnapshot.cs:39	?		
+Pop.Militancy	FactionSnapshot.cs:67	Participation		
+Pop.Militancy	Fiscal.cs:127	Step		
+Pop.Militancy	Ideology.cs:37	UpdateShares		
+Pop.Militancy	Military.cs:246	DrawFromPool		
+Pop.Militancy	Military.cs:246	DrawFromPool		
+Pop.Militancy	Military.cs:249	DrawFromPool		
+Pop.Militancy	Military.cs:250	DrawFromPool		
+Pop.Militancy	Military.cs:252	DrawFromPool		
+Pop.Militancy	Military.cs:252	DrawFromPool		
+Pop.Militancy	Model.cs:244	Blend		
+Pop.Militancy	Model.cs:244	Blend		
+Pop.Militancy	MultiNationSim.cs:307	SpawnNation		
+Pop.Militancy	Politics.cs:186	Step		
+Pop.Militancy	Politics.cs:315	MeasureMobilization		World.ReformistPower@Politics.cs:328
+Pop.Militancy	Politics.cs:316	MeasureMobilization		World.RadicalPower@Politics.cs:329
+Pop.Militancy	Politics.cs:320	MeasureMobilization		World.RadicalPower@Politics.cs:329
+Pop.Militancy	Politics.cs:1013	RegionMilitancy		
+Pop.Militancy	Politics.cs:1169	AvgMassMilitancy		
+Pop.Militancy	PowerAffinity.cs:56	Detail		
+Pop.Militancy	Privileges.cs:92	StepMonth		
+Pop.Militancy	Simulation.cs:2567	Snapshot		
+Pop.Militancy	UnionBargaining.cs:68	Transfer		
+Pop.Militancy	World.cs:1700	TechProductivity		
+Pop.Militancy	World.cs:1991	CanSellFactory		
+Colony.Militancy	Diplomacy.cs:2010	Subjugate		
+Colony.Militancy	Diplomacy.cs:2661	ResolvePeace		
+Colony.Militancy	Simulation.cs:1327	PromoteColonyToRegion		Pop.Militancy@Simulation.cs:1327
+World.Legitimacy	ArmyShape.cs:173	Unrest		
+World.Legitimacy	CrownParliament.cs:27	Step		
+World.Legitimacy	CrownParliament.cs:53	Step		
+World.Legitimacy	CrownParliament.cs:61	Step		World.ParliamentControl@CrownParliament.cs:61
+World.Legitimacy	CrownParliament.cs:67	Step		
+World.Legitimacy	Diplomacy.cs:1412	TriggerWars		
+World.Legitimacy	Diplomacy.cs:1620	JoinAllies		
+World.Legitimacy	Diplomacy.cs:1859	PreviewTensionPolitics		
+World.Legitimacy	Diplomacy.cs:1861	PreviewTensionPolitics		
+World.Legitimacy	Diplomacy.cs:1957	ResolvePendingWar		
+World.Legitimacy	Diplomacy.cs:2803	ResolvePeace		
+World.Legitimacy	Diplomacy.cs:2804	ResolvePeace		
+World.Legitimacy	Diplomacy.cs:2805	ResolvePeace		
+World.Legitimacy	Diplomacy.cs:2806	ResolvePeace		
+World.Legitimacy	Diplomacy.cs:2854	OutcomeShocks		
+World.Legitimacy	Diplomacy.cs:2855	OutcomeShocks		
+World.Legitimacy	Diplomacy.cs:2856	OutcomeShocks		
+World.Legitimacy	Fiscal.cs:131	Step		
+World.Legitimacy	Fiscal.cs:132	Step		
+World.Legitimacy	Fiscal.cs:133	Step		
+World.Legitimacy	Fiscal.cs:204	Step		
+World.Legitimacy	Fiscal.cs:205	Step		
+World.Legitimacy	Fiscal.cs:206	Step		
+World.Legitimacy	GovernanceSnapshot.cs:28	Capture		
+World.Legitimacy	Government.cs:281	PoliticalCapitalAffords		
+World.Legitimacy	MultiNationSim.cs:426	SpawnNation		
+World.Legitimacy	PoliticalQuantities.cs:85	CivilianValve		
+World.Legitimacy	PoliticalQuantities.cs:133	PoliticalCapitalMax		
+World.Legitimacy	Politics.cs:123	CoercionNow		
+World.Legitimacy	Politics.cs:242	Step		
+World.Legitimacy	Politics.cs:243	Step		
+World.Legitimacy	Politics.cs:263	Step		
+World.Legitimacy	Politics.cs:264	Step		
+World.Legitimacy	Politics.cs:264	Step		
+World.Legitimacy	Politics.cs:278	Step		
+World.Legitimacy	Politics.cs:280	Step		
+World.Legitimacy	Politics.cs:283	Step		
+World.Legitimacy	Politics.cs:355	Transition		
+World.Legitimacy	Politics.cs:365	Transition		
+World.Legitimacy	Politics.cs:536	CheckFactionRevolt		
+World.Legitimacy	Politics.cs:824	CheckRegionalRevolt		
+World.Legitimacy	Politics.cs:825	CheckRegionalRevolt		
+World.Legitimacy	Politics.cs:826	CheckRegionalRevolt		
+World.Legitimacy	Politics.cs:889	CheckSecession		World.SecessionHold@Politics.cs:977
+World.Legitimacy	PowerShares.cs:69	CivilianInstitutions		
+World.Legitimacy	SelfPlay.cs:466	ChooseStance	AI	
+World.Legitimacy	SelfPlay.cs:1305	Run	AI	
+World.Legitimacy	World.cs:516	ElectionMargin		
+World.Legitimacy	World.cs:536	ResolveElection		
+World.Legitimacy	World.cs:652	World		
+Power.WarExhaustion	Diplomacy.cs:856	Step		
+Power.WarExhaustion	Diplomacy.cs:1368	WarGateOpen		
+Power.WarExhaustion	Diplomacy.cs:1368	WarGateOpen		
+Power.WarExhaustion	Diplomacy.cs:1552	DefendDependent		
+Power.WarExhaustion	Diplomacy.cs:1613	JoinAllies		
+Power.WarExhaustion	Diplomacy.cs:1616	JoinAllies		
+Power.WarExhaustion	Diplomacy.cs:2091	ExecuteMediation		
+Power.WarExhaustion	Diplomacy.cs:2142	CanOfferPeace		
+Power.WarExhaustion	Diplomacy.cs:2263	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2273	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2285	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2346	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2346	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2349	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2349	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2349	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2349	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2400	StepWars		?.Score@Diplomacy.cs:2414
+Power.WarExhaustion	Diplomacy.cs:2400	StepWars		?.Score@Diplomacy.cs:2414
+Power.WarExhaustion	Diplomacy.cs:2407	StepWars		?.Score@Diplomacy.cs:2414
+Power.WarExhaustion	Diplomacy.cs:2407	StepWars		?.Score@Diplomacy.cs:2414
+Power.WarExhaustion	Diplomacy.cs:2407	StepWars		?.Score@Diplomacy.cs:2414
+Power.WarExhaustion	Diplomacy.cs:2407	StepWars		?.Score@Diplomacy.cs:2414
+Power.WarExhaustion	Diplomacy.cs:2418	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2418	StepWars		
+Power.WarExhaustion	Diplomacy.cs:2524	WarCasualties		
+Power.WarExhaustion	Diplomacy.cs:2525	WarCasualties		
+Power.WarExhaustion	Diplomacy.cs:2529	WarCasualties		
+Power.WarExhaustion	Formations.cs:401	UnificationWarBlock		
+Power.WarExhaustion	Military.cs:120	Step		
+Power.WarExhaustion	MultiNationSim.cs:415	SpawnNation		World.SelfPower@MultiNationSim.cs:419
+Power.WarExhaustion	Politics.cs:119	CoercionNow		
+Power.WarExhaustion	Politics.cs:162	Step		Pop.MilWar@Politics.cs:180 Pop.Militancy@Politics.cs:186
+Power.WarExhaustion	Politics.cs:208	Step		World.DynasticMandate@Politics.cs:211
+Pop.Consciousness	Factions.cs:114	BlocConsciousness		
+Pop.Consciousness	Ideology.cs:37	UpdateShares		
+Pop.Consciousness	Ideology.cs:249	Aggregate		
+Pop.Consciousness	Model.cs:245	Blend		
+Pop.Consciousness	Model.cs:245	Blend		
+Pop.Consciousness	Politics.cs:113	LawDistance		
+Pop.Consciousness	Politics.cs:159	Step		
+Pop.Consciousness	Politics.cs:314	MeasureMobilization		
+Pop.Consciousness	Politics.cs:315	MeasureMobilization		World.ReformistPower@Politics.cs:328
+Pop.Consciousness	Politics.cs:316	MeasureMobilization		World.RadicalPower@Politics.cs:329
+Pop.Consciousness	Politics.cs:318	MeasureMobilization		World.ReformistPower@Politics.cs:328
+Pop.Consciousness	Politics.cs:319	MeasureMobilization		World.RadicalPower@Politics.cs:329
+Pop.Consciousness	Politics.cs:321	MeasureMobilization		
+Pop.Consciousness	Simulation.cs:2566	Snapshot		
+Pop.Satisfaction	Crime.cs:23	Step		Region.CrimeRate@Crime.cs:26 World.CrimeRate@Crime.cs:51
+Pop.Satisfaction	Crime.cs:43	Step		
+Pop.Satisfaction	Invariants.cs:53	Check		
+Pop.Satisfaction	Invariants.cs:53	Check		
+Pop.Satisfaction	PoliticalQuantities.cs:23	MandateBase		
+Pop.Satisfaction	Politics.cs:60	LivingWant		
+Pop.Satisfaction	Politics.cs:61	LivingWant		
+Pop.Satisfaction	Politics.cs:168	Step		Pop.LivingRef@Politics.cs:168
+Pop.Satisfaction	Politics.cs:188	Step		Pop.LivingRef@Politics.cs:188
+Pop.Satisfaction	SelfPlay.cs:161	MeanSatisfaction	AI	
+Pop.Satisfaction	Simulation.cs:2559	Snapshot		
+Pop.Satisfaction	Simulation.cs:2560	Snapshot		
+Politics.Discontent()	FactionSnapshot.cs:63	?		
+Politics.Discontent()	FactionSnapshot.cs:67	?		
+Politics.Discontent()	Ideology.cs:35	?		
+Politics.Discontent()	Politics.cs:1180	?		
+World.DynasticMandate	Politics.cs:203	Step		
+World.DynasticMandate	Politics.cs:204	Step		
+World.DynasticMandate	Politics.cs:211	Step		
+World.DynasticMandate	Politics.cs:224	Step		World.Legitimacy@Politics.cs:275
+World.DynasticMandate	World.cs:846	World		

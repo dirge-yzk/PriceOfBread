@@ -1,0 +1,9 @@
+# (1369) suite 木=/d/PoB_work/wt_m1369 HEAD=6d3b04a0f 2026-11-26 00:50:18
+list-tests Tests(Category!=FullLength)=3001 Tests.Ui=232 和=3233 FullLength=3
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   786、スキップ:     1、合計:   787、期間: 15 m 53 s - PriceOfBread.Tests.dll (net10.0)
+Tests(Category!=FullLength) rc=0 成功!   -失敗:     0、合格:  2999、スキップ:     2、合計:  3001、期間: 22 m 55 s - PriceOfBread.Tests.dll (net10.0)
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 13 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 36 s - PriceOfBread.Tests.dll (net10.0)
+savetest: 
+leakhunt: 
+SUITEDONE 2026-11-26 01:34:52

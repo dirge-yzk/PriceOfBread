@@ -1,0 +1,33 @@
+(1367) 次の波の事前登録の素案（AI の案・確証なし）＝ gr の一覧から起こす最初の 2 本
+
+■ 素案 1：F7 手書きの寄りを Toward へ（恒等の線）
+- 形：Simulation.cs:2119 `World.FoodFill += c.FoodFillSmoothing * (rawFill - prevFood);` → `World.FoodFill = PoliticalQuantities.Toward(World.FoodFill, rawFill, c.FoodFillSmoothing);`
+       TechEducation.cs:65 `w.TechLevel += adoptRate * (catchupTarget - w.TechLevel);` → Toward。
+- 段0 の予言：x += k*(t−x) と Toward(x,t,k)=x + k*(t−x) は同じ演算の順＝ビットが同じ。Simulation.cs:2110〜:2119 の間に World.FoodFill の書き手は無い（grep で確かめた）＝prevFood は今の値。
+- 門：ident（10 種・5 種・計器つき 10 種の全行バイト一致）。一致しなければ外して報告（直さない）。
+- 突然変異の赤の表：①Toward の第 3 引数を 0 に→ident で非恒等（赤）②引数の順を (t, x) に→非恒等（赤）。
+- 計器：無し。計算量 0 秒。
+
+■ 素案 2：F1 LawDistance の min から識字の腕を外す（挙動の線・旗 LawDistanceConscOnly 既定 0）
+- 形：Politics.cs:113 `Math.Min(p.Consciousness, p.Literacy) * …` → 旗 1 で `p.Consciousness * …`。
+- 置く順：rd の③（闘争度 3 項）が voice の項を置き換えるなら、この線は要らない＝③の設計が決まってから起こすか決める（③の後に残る時だけ⑦の 1 本目）。
+- 段0 の予言（腕の前にコミット）：動くのは識字＜意識の pop だけ。基線の生（keep_1362/base_ins）で、識字＜意識の pop の人口の割合を国×十年で数えて書く（要る列が無ければ下の計器）。
+- 門（〈作者 2026-11-16 の決まり〉①）：止める線（破綻・発散・空洞化 1/10・計算量 ≤248.5 秒・機構の試験と走査の番人）＋史実の桁（10 倍）＋単体の機構の試験。ヌル腕の幅は記録だけ。
+- 単体の機構の試験（両側＝動く側と動かない側）：
+  T1 盤面に識字 0.8・意識 0.3 の pop を置く → 旗 0 と 1 で LawDistance が同じ（min が意識を選ぶ側＝動かない側）。
+  T2 盤面に識字 0.2・意識 0.6 の pop を置く → 旗 1 の LawDistance が旗 0 の 3 倍（0.6÷0.2）＝期待値は手のリテラル（同語反復にしない）。
+  T3 旗 0 で T2 の 3 倍が出ない（旗 0 で赤）。
+- 突然変異の赤の表（腕の前に紙の台本で 1 本ずつ）：
+  M1 min を戻す（旗 1 でも min）→ T2 赤。
+  M2 識字の腕を 0 に（意識×0）→ T2 赤・T1 赤。
+  M3 意識の腕を識字に入れ替え → T1 は緑・T2 赤。
+  M4 不満度の側だけ直して闘争度の側を残す（PoliticalTerm と LawDistance を分けた場合）→ 闘争度の T2 の版で赤。
+- 旗 0 で落ちる確かめ：T2・T3 を旗 0 の盤面で回して赤を記録（紙の台本の出力を measurements/ へ）。
+- 要る計器（[System.NonSerialized] の欄を作らず計器が自分で数える・旗 0 で全行一致）：dcont_s に 2 列
+  litBelowConscShare＝識字＜意識の pop の人口の割合（国×四半期）
+  voiceOldNewRatio＝同じ盤面で旧の規則（min）と新の規則（意識だけ）の LawDistance の人口加重の比
+- 狙いの数字（機構の観測量だけ）：voiceOldNewRatio が 1 を超える国×四半期があること（旗 1 で動いた証拠）・識字≧意識の pop で比が 1（動かない側）。史実の大きさと年は記録。
+
+■ 足すべき計器の仕様（この線では作らない）
+- 上の 2 列（dcont_s）。
+- 書き手→読み手の図を毎回作り直す走査（wr の番人の表と同じ数え方）は、この台本（graph.py・report.py）を scripts/instruments/r1367/ に置けば足りる＝新しい計器の列は要らない。

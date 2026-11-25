@@ -1,0 +1,44 @@
+A	B	C	3 辺とも直接か	A→C の道（消す候補）	A→B の道	B→C の道	C の出力の数	C の出力のうち AI
+World.FiscalFundingRatio	World.CumulativeDevaluation	Pop.Militancy	直接	制御@Fiscal.cs:127	制御@Fiscal.cs:130	直接@Fiscal.cs:127	37	0
+World.FiscalFundingRatio	World.CumulativeDevaluation	World.Legitimacy	直接	制御@Fiscal.cs:132	制御@Fiscal.cs:130	直接@Fiscal.cs:132	50	2
+Pop.Consciousness	Pop.Militancy	World.Legitimacy	経由を含む〈推〉	経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	経由:PoliticalTerm@Politics.cs:186	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	50	2
+Pop.Consciousness	Pop.Militancy	World.MeanSatisfactionPol	経由を含む〈推〉	経由:MeasureMobilization@Politics.cs:198	経由:PoliticalTerm@Politics.cs:186	経由:MeasureMobilization@Politics.cs:198	5	0
+Pop.Consciousness	Pop.Militancy	World.RadicalPower	経由を含む〈推〉	直接@Politics.cs:329	経由:PoliticalTerm@Politics.cs:186	直接@Politics.cs:329	5	0
+Pop.Consciousness	Pop.Militancy	World.ReformistPower	経由を含む〈推〉	直接@Politics.cs:328	経由:PoliticalTerm@Politics.cs:186	直接@Politics.cs:328	6	0
+Pop.Literacy	Pop.Consciousness	Politics.Discontent()	経由を含む〈推〉	経由:DiscontentRaw@Politics.cs:Discontent	直接@Politics.cs:159	経由:DiscontentRaw@Politics.cs:Discontent	4	0
+Pop.Literacy	Pop.Consciousness	Pop.Militancy	経由を含む〈推〉	経由:PoliticalTerm@Politics.cs:186	直接@Politics.cs:159	経由:PoliticalTerm@Politics.cs:186	37	0
+Pop.Literacy	Pop.Consciousness	World.Legitimacy	経由を含む〈推〉	経由:MandateBase@Politics.cs:275 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880	直接@Politics.cs:159	経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	50	2
+Pop.Literacy	Pop.Militancy	World.Legitimacy	経由を含む〈推〉	経由:MandateBase@Politics.cs:275 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880	経由:PoliticalTerm@Politics.cs:186	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	50	2
+Pop.Literacy	Power.Military	Pop.Militancy	経由を含む〈推〉	経由:PoliticalTerm@Politics.cs:186	経由:Quality@Diplomacy.cs:785	制御経由:ColonizeForce@Diplomacy.cs:2019 | 制御経由:SubmitLine@Diplomacy.cs:2019	37	0
+Pop.Literacy	Power.Military	World.Legitimacy	経由を含む〈推〉	経由:MandateBase@Politics.cs:275 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880	経由:Quality@Diplomacy.cs:785	制御経由:SideMilitary@Diplomacy.cs:1414 | 制御経由:WarGateOpen@Diplomacy.cs:1414 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880	50	2
+Pop.Literacy	Region.AdminFill	Pop.Militancy	経由を含む〈推〉	経由:PoliticalTerm@Politics.cs:186	制御@Simulation.cs:1375	経由:Of@Fiscal.cs:127	37	0
+Pop.Literacy	World.DynasticMandate	World.Legitimacy	経由を含む〈推〉	経由:MandateBase@Politics.cs:275 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880	経由:MandateBase@Politics.cs:211	直接@Politics.cs:275	50	2
+Pop.Militancy	World.Legitimacy	Power.NeedSea	経由を含む〈推〉	経由:Unrest@ArmyShape.cs:66 | 経由:Unrest@ArmyShape.cs:69	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	経由:Unrest@ArmyShape.cs:66 | 経由:Unrest@ArmyShape.cs:69	6	0
+Pop.Militancy	World.Legitimacy	World.ParliamentControl	経由を含む〈推〉	制御経由:AvgMassMilitancy@CrownParliament.cs:87	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	制御@CrownParliament.cs:28 | 制御@CrownParliament.cs:56 | 制御@Politics.cs:383	25	0
+Pop.Militancy	World.ParliamentControl	World.Legitimacy	経由を含む〈推〉	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880	制御経由:AvgMassMilitancy@CrownParliament.cs:87	経由:NetSupport@World.cs:536	50	2
+Pop.Militancy	World.RadicalPower	World.ParliamentControl	経由を含む〈推〉	制御経由:AvgMassMilitancy@CrownParliament.cs:87	直接@Politics.cs:329	制御@CrownParliament.cs:56	25	0
+Pop.Militancy	World.ReformistPower	World.ParliamentControl	経由を含む〈推〉	制御経由:AvgMassMilitancy@CrownParliament.cs:87	直接@Politics.cs:328	制御@CrownParliament.cs:56	25	0
+Pop.Satisfaction	Pop.LivingRef	Politics.Discontent()	経由を含む〈推〉	経由:DiscontentRaw@Politics.cs:Discontent	直接@Politics.cs:168 | 直接@Politics.cs:188	経由:DiscontentRaw@Politics.cs:Discontent	4	0
+Pop.Satisfaction	World.DynasticMandate	World.Legitimacy	経由を含む〈推〉	経由:MandateBase@Politics.cs:275	経由:MandateBase@Politics.cs:211	直接@Politics.cs:275	50	2
+Pop.Satisfaction	World.MeanSatisfactionPol	World.DynasticMandate	経由を含む〈推〉	経由:MandateBase@Politics.cs:211	経由:MeanSatisfaction@Politics.cs:198	直接@Politics.cs:211	5	0
+Power.Military	Colony.Militancy	Pop.Militancy	経由を含む〈推〉	制御経由:ColonizeForce@Diplomacy.cs:2019 | 制御経由:SubmitLine@Diplomacy.cs:2019	制御経由:ColonizeForce@Diplomacy.cs:2010 | 制御経由:NavalPower@Diplomacy.cs:2661 | 制御経由:SubmitLine@Diplomacy.cs:2010	直接@Simulation.cs:1327	37	0
+Power.Military	Pop.Militancy	Power.NeedSea	経由を含む〈推〉	経由:NavalPower@ArmyShape.cs:69	制御経由:ColonizeForce@Diplomacy.cs:2019 | 制御経由:SubmitLine@Diplomacy.cs:2019	経由:Unrest@ArmyShape.cs:66 | 経由:Unrest@ArmyShape.cs:69	6	0
+Power.Military	Pop.Militancy	World.Legitimacy	経由を含む〈推〉	制御経由:SideMilitary@Diplomacy.cs:1414 | 制御経由:WarGateOpen@Diplomacy.cs:1414 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880	制御経由:ColonizeForce@Diplomacy.cs:2019 | 制御経由:SubmitLine@Diplomacy.cs:2019	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	50	2
+Power.Military	Power.WarExhaustion	Pop.Militancy	経由を含む〈推〉	制御経由:ColonizeForce@Diplomacy.cs:2019 | 制御経由:SubmitLine@Diplomacy.cs:2019	直接@Diplomacy.cs:2525	直接@Politics.cs:186	37	0
+Power.Military	Power.WarExhaustion	World.Legitimacy	経由を含む〈推〉	制御経由:SideMilitary@Diplomacy.cs:1414 | 制御経由:WarGateOpen@Diplomacy.cs:1414 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880	直接@Diplomacy.cs:2525	制御経由:WarGateOpen@Diplomacy.cs:1414	50	2
+Power.Military	World.Legitimacy	Power.NeedSea	経由を含む〈推〉	経由:NavalPower@ArmyShape.cs:69	制御経由:SideMilitary@Diplomacy.cs:1414 | 制御経由:WarGateOpen@Diplomacy.cs:1414 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880	経由:Unrest@ArmyShape.cs:66 | 経由:Unrest@ArmyShape.cs:69	6	0
+Power.WarExhaustion	Pop.Militancy	World.Legitimacy	経由を含む〈推〉	制御経由:WarGateOpen@Diplomacy.cs:1414	直接@Politics.cs:186	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	50	2
+Power.WarExhaustion	World.DynasticMandate	World.Legitimacy	経由を含む〈推〉	制御経由:WarGateOpen@Diplomacy.cs:1414	直接@Politics.cs:211	直接@Politics.cs:275	50	2
+Power.WarExhaustion	World.Legitimacy	World.Coercion	経由を含む〈推〉	経由:CoercionNow@Politics.cs:288	制御経由:WarGateOpen@Diplomacy.cs:1414	経由:CoercionNow@Politics.cs:288	6	0
+World.CumulativeDevaluation	Pop.Militancy	World.Legitimacy	経由を含む〈推〉	直接@Fiscal.cs:132	直接@Fiscal.cs:127	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	50	2
+World.FiscalFundingRatio	Pop.Militancy	World.Legitimacy	経由を含む〈推〉	制御@Fiscal.cs:132	制御@Fiscal.cs:127	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	50	2
+World.Legitimacy	World.Coercion	World.ParliamentControl	経由を含む〈推〉	制御@CrownParliament.cs:28 | 制御@CrownParliament.cs:56 | 制御@Politics.cs:383 | 直接@CrownParliament.cs:61	経由:CoercionNow@Politics.cs:288	制御経由:EffectiveCoerce@CrownParliament.cs:56	25	0
+World.PriceLevel	Pop.Militancy	World.Legitimacy	経由を含む〈推〉	経由:NominalOf@Fiscal.cs:132	制御経由:NominalOf@Fiscal.cs:127 | 直接@Fiscal.cs:127	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281	50	2
+World.PriceLevel	Pop.Militancy	World.ParliamentControl	経由を含む〈推〉	経由:DebtGrip@CrownParliament.cs:22	制御経由:NominalOf@Fiscal.cs:127 | 直接@Fiscal.cs:127	制御経由:AvgMassMilitancy@CrownParliament.cs:87	25	0
+World.PriceLevel	World.CumulativeDevaluation	Pop.Militancy	経由を含む〈推〉	制御経由:NominalOf@Fiscal.cs:127 | 直接@Fiscal.cs:127	制御経由:NominalOf@Fiscal.cs:130 | 経由:Borrow@Simulation.cs:1963	直接@Fiscal.cs:127	37	0
+World.PriceLevel	World.CumulativeDevaluation	World.Legitimacy	経由を含む〈推〉	経由:NominalOf@Fiscal.cs:132	制御経由:NominalOf@Fiscal.cs:130 | 経由:Borrow@Simulation.cs:1963	直接@Fiscal.cs:132	50	2
+World.PriceLevel	World.FiscalFundingRatio	Pop.Militancy	経由を含む〈推〉	制御経由:NominalOf@Fiscal.cs:127 | 直接@Fiscal.cs:127	経由:Borrow@Simulation.cs:1976	制御@Fiscal.cs:127	37	0
+World.PriceLevel	World.FiscalFundingRatio	World.CumulativeDevaluation	経由を含む〈推〉	制御経由:NominalOf@Fiscal.cs:130 | 経由:Borrow@Simulation.cs:1963	経由:Borrow@Simulation.cs:1976	制御@Fiscal.cs:130	6	1
+World.PriceLevel	World.FiscalFundingRatio	World.Legitimacy	経由を含む〈推〉	経由:NominalOf@Fiscal.cs:132	経由:Borrow@Simulation.cs:1976	制御@Fiscal.cs:132	50	2
+World.PriceLevel	World.Legitimacy	World.ParliamentControl	経由を含む〈推〉	経由:DebtGrip@CrownParliament.cs:22	経由:NominalOf@Fiscal.cs:132	制御@CrownParliament.cs:28 | 制御@CrownParliament.cs:56 | 制御@Politics.cs:383	25	0
+World.PriceLevel	World.ParliamentControl	World.Legitimacy	経由を含む〈推〉	経由:NominalOf@Fiscal.cs:132	経由:DebtGrip@CrownParliament.cs:22	経由:NetSupport@World.cs:536	50	2

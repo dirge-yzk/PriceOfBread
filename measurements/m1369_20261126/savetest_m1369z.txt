@@ -1,0 +1,34 @@
+保存 47.2MB（1011ms）／300四半期＋0日の点
+savetest 保存の点 0日・印前（眠り 1590・失敗 22150・覚え 3717）
+保存 47.3MB（782ms）／300四半期＋45日の点
+savetest 保存の点 45日・印前（眠り 1596・失敗 22712・覚え 3698）
+保存 47.3MB（718ms）／300四半期＋75日の点
+savetest 保存の点 75日・印前（眠り 1592・失敗 22127・覚え 3698）
+savetest 状態 0日の点 値の違い 303・順だけ 0・比べた対象 6239112（読込 1049ms）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+savetest 状態 45日の点 値の違い 303・順だけ 0・比べた対象 6239112（読込 603ms）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+savetest 状態 75日の点 値の違い 303・順だけ 0・比べた対象 6239112（読込 726ms）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Regions>k__BackingField[0].Region.Markets[5].Market.ClearPartners[0].Region.Markets[12].Market.ClearPartners[0].Region.Markets[4].Market.ClearPartne
+savetest 乖離 0（2量）・状態の違いのある点 3/3（最大相対差 0.0E+000）

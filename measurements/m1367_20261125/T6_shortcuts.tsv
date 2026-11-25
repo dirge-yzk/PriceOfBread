@@ -1,0 +1,44 @@
+近道 A→C	最長の代わりの道	代わりの道の本数	A→C の道の種類(直接/経由)	代わりの道の辺が全て直接か	A→C の書き手の行
+Pop.Literacy→Politics.Discontent()	Pop.Literacy→Region.AdminFill→Pop.Militancy→World.RadicalPower→Pop.Consciousness→Politics.Discontent()	12	経由	経由を含む〈推〉	Politics.cs:Discontent
+Pop.Literacy→Pop.Consciousness	Pop.Literacy→Region.AdminFill→Pop.Militancy→World.Legitimacy→World.Coercion→Pop.Consciousness	19	直接	経由を含む〈推〉	Politics.cs:159
+Pop.Literacy→Pop.Militancy	Pop.Literacy→World.DynasticMandate→World.Legitimacy→World.Coercion→Pop.Consciousness→Pop.Militancy	9	経由	経由を含む〈推〉	Politics.cs:186
+Pop.Literacy→World.DynasticMandate	Pop.Literacy→Power.Military→Colony.Militancy→Pop.Militancy→World.MeanSatisfactionPol→World.DynasticMandate	11	経由	経由を含む〈推〉	Politics.cs:211
+Pop.Literacy→World.Legitimacy	Pop.Literacy→Region.AdminFill→Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.Legitimacy	40	経由	経由を含む〈推〉	Diplomacy.cs:1880 Politics.cs:275
+Pop.Militancy→Pop.RemainingBudget	Pop.Militancy→World.Legitimacy→World.Coercion→Pop.Consciousness→Politics.Discontent()→Pop.RemainingBudget	3	経由	経由を含む〈推〉	EconomyStep.cs:1262
+Pop.Militancy→World.Legitimacy	Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.ReformistPower→World.ParliamentControl→World.Legitimacy	10	制御経由,経由	経由を含む〈推〉	Diplomacy.cs:1880 Politics.cs:275 Politics.cs:281 Politics.cs:825
+Pop.Militancy→World.MeanSatisfactionPol	Pop.Militancy→World.ParliamentControl→World.Legitimacy→World.Coercion→Pop.Consciousness→World.MeanSatisfactionPol	4	経由	経由を含む〈推〉	Politics.cs:198
+Pop.Militancy→World.ParliamentControl	Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.Legitimacy→World.Coercion→World.ParliamentControl	14	制御経由	経由を含む〈推〉	CrownParliament.cs:87
+Pop.Militancy→World.RadicalPower	Pop.Militancy→World.ParliamentControl→World.Legitimacy→World.Coercion→Pop.Consciousness→World.RadicalPower	3	直接	経由を含む〈推〉	Politics.cs:329
+Pop.Militancy→World.ReformistPower	Pop.Militancy→World.ParliamentControl→World.Legitimacy→World.Coercion→Pop.Consciousness→World.ReformistPower	3	直接	経由を含む〈推〉	Politics.cs:328
+Pop.Satisfaction→Politics.Discontent()	Pop.Satisfaction→Region.AdminFill→Pop.Militancy→World.RadicalPower→Pop.Consciousness→Politics.Discontent()	5	経由	経由を含む〈推〉	Politics.cs:Discontent
+Pop.Satisfaction→World.DynasticMandate	Pop.Satisfaction→World.Legitimacy→World.Coercion→Pop.Consciousness→World.MeanSatisfactionPol→World.DynasticMandate	3	経由	経由を含む〈推〉	Politics.cs:211
+Pop.Satisfaction→World.Legitimacy	Pop.Satisfaction→Region.AdminFill→Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.Legitimacy	9	経由	経由を含む〈推〉	Politics.cs:275
+Pop.Satisfaction→World.MeanSatisfactionPol	Pop.Satisfaction→Region.AdminFill→Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.MeanSatisfactionPol	6	経由	経由を含む〈推〉	Politics.cs:198
+Power.Military→Pop.Militancy	Power.Military→Power.WarExhaustion→World.Legitimacy→World.Coercion→Pop.Consciousness→Pop.Militancy	5	制御経由	経由を含む〈推〉	Diplomacy.cs:2019
+Power.Military→Power.NeedSea	Power.Military→Colony.Militancy→Pop.Militancy→World.ParliamentControl→World.Legitimacy→Power.NeedSea	21	経由	経由を含む〈推〉	ArmyShape.cs:69
+Power.Military→World.Legitimacy	Power.Military→Colony.Militancy→Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.Legitimacy	26	制御経由,経由	経由を含む〈推〉	Diplomacy.cs:1414 Diplomacy.cs:1880
+Power.WarExhaustion→Pop.Militancy	Power.WarExhaustion→World.DynasticMandate→World.Legitimacy→World.Coercion→Pop.Consciousness→Pop.Militancy	3	直接	経由を含む〈推〉	Politics.cs:186
+Power.WarExhaustion→World.Coercion	Power.WarExhaustion→Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.Legitimacy→World.Coercion	9	経由	経由を含む〈推〉	Politics.cs:288
+Power.WarExhaustion→World.DynasticMandate	Power.WarExhaustion→World.Coercion→Pop.Consciousness→Pop.Militancy→World.MeanSatisfactionPol→World.DynasticMandate	6	直接	経由を含む〈推〉	Politics.cs:211
+Power.WarExhaustion→World.Legitimacy	Power.WarExhaustion→World.Coercion→Pop.Consciousness→World.RadicalPower→World.ParliamentControl→World.Legitimacy	15	制御経由	経由を含む〈推〉	Diplomacy.cs:1414
+War.Score→World.Legitimacy	War.Score→Colony.Militancy→Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.Legitimacy	7	制御	経由を含む〈推〉	Diplomacy.cs:2804
+World.Coercion→World.ParliamentControl	World.Coercion→Pop.Consciousness→World.MeanSatisfactionPol→World.DynasticMandate→World.Legitimacy→World.ParliamentControl	8	制御経由	経由を含む〈推〉	CrownParliament.cs:56
+World.FiscalFundingRatio→Pop.Militancy	World.FiscalFundingRatio→World.CumulativeDevaluation→World.Legitimacy→World.Coercion→Pop.Consciousness→Pop.Militancy	3	制御	経由を含む〈推〉	Fiscal.cs:127
+World.FiscalFundingRatio→World.Legitimacy	World.FiscalFundingRatio→World.CumulativeDevaluation→Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.Legitimacy	15	制御	経由を含む〈推〉	Fiscal.cs:132
+World.Legitimacy→World.ParliamentControl	World.Legitimacy→World.Coercion→Pop.Consciousness→Pop.Militancy→World.RadicalPower→World.ParliamentControl	6	制御,直接	経由を含む〈推〉	CrownParliament.cs:28 CrownParliament.cs:56 CrownParliament.cs:61 Politics.cs:383
+World.PriceLevel→Pop.Militancy	World.PriceLevel→World.ParliamentControl→World.Legitimacy→World.Coercion→Pop.Consciousness→Pop.Militancy	7	制御経由,直接	経由を含む〈推〉	Fiscal.cs:127
+World.PriceLevel→World.Legitimacy	World.PriceLevel→World.FiscalFundingRatio→World.CumulativeDevaluation→Pop.Militancy→World.ParliamentControl→World.Legitimacy	27	経由	経由を含む〈推〉	Fiscal.cs:132
+World.PriceLevel→World.ParliamentControl	World.PriceLevel→World.Legitimacy→World.Coercion→Pop.Consciousness→World.RadicalPower→World.ParliamentControl	35	経由	経由を含む〈推〉	CrownParliament.cs:22
+World.RadicalPower→World.ParliamentControl	World.RadicalPower→Pop.Consciousness→Pop.Militancy→World.Legitimacy→World.Coercion→World.ParliamentControl	8	制御	経由を含む〈推〉	CrownParliament.cs:56
+World.ReformistPower→World.ParliamentControl	World.ReformistPower→Pop.Consciousness→Pop.Militancy→World.Legitimacy→World.Coercion→World.ParliamentControl	8	制御	経由を含む〈推〉	CrownParliament.cs:56
+Pop.Consciousness→World.Legitimacy	Pop.Consciousness→Pop.Militancy→World.RadicalPower→World.ParliamentControl→World.Legitimacy	8	経由	経由を含む〈推〉	Politics.cs:275 Politics.cs:281
+Pop.Militancy→Power.NeedSea	Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.Legitimacy→Power.NeedSea	7	経由	経由を含む〈推〉	ArmyShape.cs:66 ArmyShape.cs:69
+World.CumulativeDevaluation→Pop.Militancy	World.CumulativeDevaluation→World.Legitimacy→World.Coercion→Pop.Consciousness→Pop.Militancy	1	直接	経由を含む〈推〉	Fiscal.cs:127
+World.CumulativeDevaluation→World.Legitimacy	World.CumulativeDevaluation→Pop.Militancy→World.RadicalPower→Pop.Consciousness→World.Legitimacy	7	直接	経由を含む〈推〉	Fiscal.cs:132
+World.Legitimacy→Power.NeedSea	World.Legitimacy→World.Coercion→Pop.Consciousness→Pop.Militancy→Power.NeedSea	1	経由	経由を含む〈推〉	ArmyShape.cs:66 ArmyShape.cs:69
+World.RadicalPower→Pop.Consciousness	World.RadicalPower→World.ParliamentControl→World.Legitimacy→World.Coercion→Pop.Consciousness	1	直接	経由を含む〈推〉	Politics.cs:159
+World.ReformistPower→Pop.Consciousness	World.ReformistPower→World.ParliamentControl→World.Legitimacy→World.Coercion→Pop.Consciousness	1	直接	経由を含む〈推〉	Politics.cs:159
+Pop.Consciousness→World.MeanSatisfactionPol	Pop.Consciousness→Pop.Militancy→World.MeanSatisfactionPol	1	経由	経由を含む〈推〉	Politics.cs:198
+Pop.Consciousness→World.RadicalPower	Pop.Consciousness→Pop.Militancy→World.RadicalPower	1	直接	経由を含む〈推〉	Politics.cs:329
+Pop.Consciousness→World.ReformistPower	Pop.Consciousness→Pop.Militancy→World.ReformistPower	1	直接	経由を含む〈推〉	Politics.cs:328
+World.PriceLevel→World.CumulativeDevaluation	World.PriceLevel→World.FiscalFundingRatio→World.CumulativeDevaluation	1	制御経由,経由	経由を含む〈推〉	Fiscal.cs:130 Simulation.cs:1963

@@ -1,0 +1,22 @@
+# keepsum (728)	D:/PoB_work/ident_c144lb	ファイル 20 本・合計 1425154 バイト
+name	sha256	bytes	newlines	header
+b10_ib_10.txt	1c262f354ee0a603f0202031d8f6a23137be92da80128109e5793bf9a9df07fd	23094	183	=== バッチ自己対戦 seeds 1..10（各668四半期）===
+b10_ib_10.txt.cost	e842a108b8a67b4e080e6eb74edf65ae96a62d19749a5963606992fbf7d34f59	6988	66	# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）
+b10_ib_10.txt.manifest	3d71745bf8ec181cd979b152ef9dbecc4459597952e7c7eddb705238d89c2672	81836	735	SOURCE-HASH: 83334565b8479ded
+b5_ia_5.txt	16799d14824d1f5a4c5169de979afa6009f5304aaab98d691d0b1a8580469f88	21698	183	=== バッチ自己対戦 seeds 1..5（各668四半期）===
+b5_ia_5.txt.cost	6e8ea7e7e1f20f6605405a88f2230ed32579d26646afa5aee65144479d700627	6841	61	# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）
+b5_ia_5.txt.manifest	6c137585250da0fd8c495b4bcd0ba1eff73dfbc5270da1e4f8f6f6df276dce37	81651	735	SOURCE-HASH: 83334565b8479ded
+fid_ia_5.tsv	ec379292e4458ba309921aacdabc504ce94147e640dbe652dc02a3bdcfd29748	408	11	#条件	seeds=1..5・四半期=668・上書き=なし	SOURCE-HASH=83334565b8479ded
+fid_ib_10.tsv	737ba0bd380e93667d496842875264bd56451c96018dd716a32106a94947154f	427	11	#条件	seeds=1..10・四半期=668・上書き=なし	SOURCE-HASH=83334565b8479ded
+ident_run.sh	82285722237bab45ad2e134663bbcc9aceedadb0c931f67082547b190230ef83	13747	116	#!/usr/bin/env bash
+leakhunt.txt	fcd071b842593dcd7c2983f97536489e53ce53030a4b4eed93bd131f732157f3	65122	467	[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→イギリス海峡東（同じ組は以後省略）
+leakhunt.txt.manifest	a0d1e8656f1a7cb4b52332ac6c8d63be24198c0467fbd87952f27402423a2606	81633	735	SOURCE-HASH: 83334565b8479ded
+mon_ib_10.txt	90790e8249155262c29927bc2f88e39f04d12cfe3166ebd9ba298f1f8925c0f6	502897	4680	MONHEAD	読み手 an_mon.py (651+660)・タグ=ib_10・入力=out_ib_10/ins・種=1,2,3,4,5,6,7,8,9,10
+ms_ia_5.log	16086e5eb993d0dda2d16a548b2f2aeda6572564004a805349aebce18241e830	1052	14	START 21:47:00 selfplay-batch N=5 SRC=D:/PoB_work/ident_c144lb/src_ia
+ms_ib_10.log	3762215b9a1bebb8a67d89833b9f50b150e6a51d4debd9ac5463c221ed0e3031	1429	14	START 21:47:00 selfplay-batch N=10 SRC=D:/PoB_work/ident_c144lb/src_ib
+saveleak.log	d615627791112aa6cd5049813baabeb5305d0075f12218b2e7464cd86a0c0994	1067	19	[1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist/measurements/uishot を除く）
+savetest.txt	b40fbe5871449f45c9bae6826b0c254f711fa210c5b6745820dcd8212abe219a	49468	34	保存 47.2MB（1581ms）／300四半期＋0日の点
+savetest.txt.manifest	02a0475dae733ed17f80779ee17fac6d2c24ffd5cdb39a2a1e5aaa684395be5f	81650	735	SOURCE-HASH: 83334565b8479ded
+tests_build.txt	61e61030bab11c2da98bf23d4ff36149cbe521bde2a300a1cad155ce9b525c11	12670	69	  復元対象のプロジェクトを決定しています...
+tests_list_full.txt	fee0a6b62bf763f2339f9ff0a90cb28ca60a972937946d6d964599b7ce7b997b	869	8	D:\PoB_work\ident_c144lb\art_it\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+tests_list_nonfull.txt	4b3be04c507247e74223c0411c25c88d7c4c513a51b4e68d6a5a8de0848c0b11	390607	3216	D:\PoB_work\ident_c144lb\art_it\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行

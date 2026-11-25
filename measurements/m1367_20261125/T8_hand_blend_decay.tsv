@@ -1,0 +1,174 @@
+欄	ファイル:行	メソッド	形	演算	核か候補か	右辺
+World.ForeignBondClaims	CapitalMarket.cs:242	AdjustClaims	hand-leaky(x=x*keep+in)	=		new MoneyStock(System.Math.Max(0, (wj.ForeignBondClaims * (1.0 + g / basis)).Value))
+World.RegimeTrackRecord	CrownParliament.cs:110	Step	hand-decay(x*=k)	*=		1.0 - c.RegimeRecordDecay
+World.RecentRegimeChanges	CrownParliament.cs:111	Step	hand-decay(x*=k)	*=		1.0 - w.ReplacementRate(Calendar.MonthsPerQuarter)
+Power.WarExhaustion	Diplomacy.cs:856	Step	hand-decay(x=x*k)	=	核	p.WarExhaustion * c.WarWearinessKeepPerMonth
+World.Legitimacy	Diplomacy.cs:1414	TriggerWars	hand-decay(x-=x*k)	-=	核	actualCost
+World.Legitimacy	Diplomacy.cs:1959	ResolvePendingWar	hand-decay(x-=x*k)	-=	核	actual
+Pop.SubsistenceBasis	EconomyStep.cs:122	SubsistenceHead	hand-decay(x=x*k)	=		p.SubsistenceBasis * need * p.Size / (u * t)
+Pop.RemainingBudget	EconomyStep.cs:773	Run	hand-decay(x*=k)	*=	候補	1.0 - coef.IndInvestmentFrac.Value
+Producer.ElecFill	EconomyStep.cs:1917	Run	hand-blend(x+=k*(t-x))	+=		elecStep0
+Producer.ElecFill	EconomyStep.cs:1957	Run	hand-blend(x+=k*(t-x))	+=		elecStep
+Region.GridCapacity	EconomyStep.cs:2111	Run	hand-decay(x*=k)	*=		1.0 - coef.GridReplaceRate
+Region.MilitaryAirFill	EconomyStep.cs:2212	Run	hand-decay(x*=k)	*=		fuelFill
+FactionState.Cohesion	Factions.cs:75	Step	hand-decay(x*=k)	*=		1.0 - c.FactionCohesionDecay
+Producer.Scale	FactoryEquipment.cs:99	Renormalize	hand-decay(x*=k)	*=		k
+World.GovAvgCouponPerYear	Fiscal.cs:83	Step	hand-blend(x=x*(1-k)+t*k)	=		(1.0 - rollover) * w.GovAvgCouponPerYear + rollover * w.GovBondRatePerYear
+World.CumulativeDevaluation	Fiscal.cs:130	Step	hand-decay(x*=k)	*=	候補	1.0 - PoliticalQuantities.Clamp01(c.CurrencyReformForgiveShare.Value)
+Pop.BondHoldings	Fiscal.cs:161	Step	hand-decay(x*=k)	*=		grow
+Pop.BondHoldings	Fiscal.cs:186	Step	hand-decay(x*=k)	*=		keep
+World.GovAvgCouponPerYear	Fiscal.cs:390	Borrow	hand-leaky(x=x*keep+in)	=		(debtBefore * w.GovAvgCouponPerYear + added * w.GovBondRatePerYear) / System.Math.Max(1e-9, w.GovDebt.Value)
+World.NavalFuelFillEma	Military.cs:233	NavalFuelStep	hand-blend(x=x*(1-k)+t*k)	=		(1.0 - a) * w.NavalFuelFillEma + a * fill
+Pop.Literacy	Model.cs:242	Blend	hand-leaky(x=x*keep+in)	=	候補	PoliticalQuantities.Clamp01((from.Literacy * s0 - cLit * n) / rest)
+Pop.Literacy	Model.cs:243	Blend	hand-leaky(x=x*keep+in)	=	候補	PoliticalQuantities.Clamp01((to.Literacy * t0 + cLit * n) / t1)
+Pop.Militancy	Model.cs:244	Blend	hand-leaky(x=x*keep+in)	=	核	PoliticalQuantities.Clamp01((to.Militancy * t0 + from.Militancy * n) / t1)
+Pop.Consciousness	Model.cs:245	Blend	hand-leaky(x=x*keep+in)	=	核	PoliticalQuantities.Clamp01((to.Consciousness * t0 + from.Consciousness * n) / t1)
+Pop.Size	Model.cs:251	Blend	hand-decay(x-=x*k)	-=		n
+Bank.Loans	MultiNationSim.cs:1004	DissolveNation	hand-blend(x+=k*(t-x))	+=		loansIn
+Bank.HouseholdLoans	MultiNationSim.cs:1004	DissolveNation	hand-blend(x+=k*(t-x))	+=		hhIn
+World.GovAvgCouponPerYear	MultiNationSim.cs:1031	DissolveNation	hand-leaky(x=x*keep+in)	=		(debt0 * pw.GovAvgCouponPerYear + rwDebt.Value * rw.GovAvgCouponPerYear) / pw.GovDebt.Value
+Region.PortCapacity	MultiNationSim.cs:1226	StepPorts	hand-blend(x=x*(1-k)+t*k)	=		Math.Max(0, r.PortCapacity * (1 - _coef.PortDecay))
+World.ManifestoCredit	Parliament.cs:335	StepManifesto	hand-decay(x*=k)	*=		1.0 - c.ManifestoCreditDecay
+World.LostRegionsCumulative	Politics.cs:132	Step	hand-decay(x*=k)	*=		1.0 - w.ReplacementRate(Calendar.MonthsPerQuarter)
+Pop.Militancy	Politics.cs:141	Step	hand-decay(x*=k)	*=	核	c.ReformMilitancyRelief
+World.Legitimacy	Politics.cs:275	Step	hand-approach(x+k*(1-x))	=	核	legClamped
+World.DefeatShock	Politics.cs:284	Step	hand-decay(x*=k)	*=	候補	c.DefeatShockKeepPerQuarter
+World.VictoryShock	Politics.cs:285	Step	hand-decay(x*=k)	*=		c.DefeatShockKeepPerQuarter
+World.FamineMemory	Politics.cs:286	Step	hand-leaky(x=x*keep+in)	=	候補	w.FamineMemory * c.FamineMemoryKeepPerQuarter + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill)
+Pop.Militancy	Politics.cs:491	SettleRevolt	hand-decay(x*=k)	*=	核	c.ReformMilitancyRelief
+Pop.Militancy	Politics.cs:708	ConcedeToFaction	hand-decay(x*=k)	*=	核	c.ReformMilitancyRelief
+Pop.BondHoldings	Politics.cs:1204	ResolveRevolt	hand-decay(x-=x*k)	-=		seizedBonds
+?.IncomeTaxTarget	SelfPlay.cs:684	RelieveOpulence	hand-decay(x*=k)	*=		mul
+NationPolicy.PollTaxTarget	SelfPlay.cs:684	RelieveOpulence	hand-decay(x*=k)	*=		mul
+NationPolicy.LandTaxTarget	SelfPlay.cs:685	RelieveOpulence	hand-decay(x*=k)	*=		mul
+NationPolicy.ProgressiveTaxTarget	SelfPlay.cs:685	RelieveOpulence	hand-decay(x*=k)	*=		mul
+NationPolicy.TariffTarget	SelfPlay.cs:685	RelieveOpulence	hand-decay(x*=k)	*=		mul
+NationPolicy.SocialSecurityTarget	SelfPlay.cs:1026	Apply	hand-decay(x*=k)	*=		ease
+Producer.Productivity	Simulation.cs:669	ApplyEndowment	hand-decay(x*=k)	*=		capMul
+Region.WagePremium	Simulation.cs:1567	UpdateRegionalPriceLevels	hand-leaky(x=x*keep+in)	=		0.75 * r.WagePremium + 0.25 * prem
+Producer.Scale	Simulation.cs:1996	MonthSettle	hand-blend(x=x*(1-k)+t*k)	=		Math.Max(0, lpr.Scale * (1.0 - World.Coef.WarLivestockRequisition * Math.Min(1.0, r.LastWarIntensity)))
+Region.Industrialization	Simulation.cs:2000	MonthSettle	hand-decay(x*=k)	*=		scrapKeep
+Region.OldVintageCapital	Simulation.cs:2001	MonthSettle	hand-decay(x*=k)	*=		scrapKeep
+Region.StrandedVintage	Simulation.cs:2002	MonthSettle	hand-decay(x*=k)	*=		scrapKeep
+World.FoodFill	Simulation.cs:2119	DemographicStep	hand-blend(x+=k*(t-x))	+=	候補	c.FoodFillSmoothing * (rawFill - prevFood)
+Pop.Size	Simulation.cs:2288	DemographicStep	hand-decay(x-=x*k)	-=		d
+Market.Stock	Simulation.cs:2436	MintGold	hand-decay(x-=x*k)	-=		qty
+World.SilverReserveQty	Simulation.cs:2455	SellDemonetizedReserves	hand-decay(x-=x*k)	-=		SellReserve(World.Region, Catalog.SilverId, World.SilverReserveQty * rate)
+World.GoldReserveQty	Simulation.cs:2457	SellDemonetizedReserves	hand-decay(x-=x*k)	-=		SellReserve(World.Region, Catalog.GoldOreId, World.GoldReserveQty * rate)
+World.TechLevel	TechEducation.cs:65	GrowTech	hand-blend(x+=k*(t-x))	+=		adoptRate * (catchupTarget - w.TechLevel)
+World.TechLevel	TechEducation.cs:69	GrowTech	hand-blend(x+=k*(t-x))	+=		Math.Min(c.TechGrowthRate * w.Elite, baseTarget - w.TechLevel)
+World.ShipCapacity	Territory.cs:206	TransferRegion	hand-decay(x-=x*k)	-=		ship
+Region.RailTrack	Transport.cs:10	Step	hand-blend(x=x*(1-k)+t*k)	=		System.Math.Max(0, r.RailTrack * (1 - c.TransportDecay))
+World.ShipCapacity	Transport.cs:13	Step	hand-blend(x=x*(1-k)+t*k)	=		System.Math.Max(0, w.ShipCapacity * (1 - c.TransportDecay))
+Pop.Size	World.cs:980	KillPops	hand-decay(x-=x*k)	-=		d
+World.PriceLevel	World.cs:1338	UpdatePriceLevel	hand-decay(x*=k)	*=	候補	1.0 + c.FiatInflationWeight * FiatInflationPressure
+Region.SeizureChill	World.cs:2138	StepStateTargets	hand-blend(x=x*(1-k)+t*k)	=		Math.Max(0, r.SeizureChill * (1.0 - Coef.SeizureChillDecay))
+
+# Toward を通る書き手（参考）
+#	Bank.Confidence	Credit.cs:36
+#	Producer.LaborWeight	EconomyStep.cs:822
+#	Producer.SteamFill	EconomyStep.cs:1918
+#	Producer.EffFill	EconomyStep.cs:1919
+#	Producer.SteamFill	EconomyStep.cs:1959
+#	Producer.EffFill	EconomyStep.cs:1969
+#	Producer.Scale	EconomyStep.cs:2400
+#	Producer.SmoothedMargin	EconomyStep.cs:2411
+#	FactionState.Cohesion	Factions.cs:45
+#	World.InterestRate	Government.cs:178
+#	World.AdminSpending	Government.cs:179
+#	World.TradeValueSmoothed	MultiNationSim.cs:1351
+#	Pop.Consciousness	Politics.cs:159
+#	Pop.Militancy	Politics.cs:186
+#	Pop.LivingRef	Politics.cs:188
+#	Pop.FoodRef	Politics.cs:190
+#	World.DynasticMandate	Politics.cs:211
+#	World.ScoreStanding	SelfPlay.cs:18
+#	World.WorkHoursValue	Simulation.cs:1711
+#	World.WomenWageRetention	Simulation.cs:1714
+#	World.ChildLaborLegal	Simulation.cs:1721
+#	World.FoodRatioProductionSmoothed	Simulation.cs:2161
+#	Region.FoodFill	Simulation.cs:2318
+#	Pop.Literacy	TechEducation.cs:34
+#	World.GdpTrend	World.cs:1250
+#	World.GdpPcTrend	World.cs:1252
+#	World.GdpPcPeak	World.cs:1254
+#	World.GdpPeak	World.cs:1258
+#	World.PriceLevel	World.cs:1335
+#	World.CostPriceLevel	World.cs:1342
+#	World.ExchangeRate	World.cs:1364
+
+# 寄りか減衰かを機械で決められなかった自己参照（self-other）と定数倍（scale）の書き手（参考・目で読む）
+#	self-other	World.ParliamentControl	CrownParliament.cs:25	PoliticalQuantities.Clamp01(w.ParliamentControl + c.SummonParliamentRate * (w.AusterityIntensity - 0.5) * 2.0)
+#	self-other	World.ParliamentControl	CrownParliament.cs:56	PoliticalQuantities.Clamp01(w.ParliamentControl + c.ParliamentPressureRate * (rep - cur))
+#	self-other	World.RegimeTrackRecord	CrownParliament.cs:116	PoliticalQuantities.ClampOr(w.RegimeTrackRecord[fam] + c.RegimeRecordAccumRate * record, -1, 1, 0)
+#	scale(x*=lit)	Region.Industrialization	Diplomacy.cs:2302	1.0 - wear
+#	scale(x*=lit)	Region.OldVintageCapital	Diplomacy.cs:2302	1.0 - wear
+#	scale(x*=lit)	Region.PortCapacity	Diplomacy.cs:2302	1.0 - wear
+#	scale(x*=lit)	Region.GridCapacity	Diplomacy.cs:2303	1.0 - wear
+#	scale(x*=lit)	World.ShipCapacity	Diplomacy.cs:2306	1.0 - wear
+#	self-other	?.Score	Diplomacy.cs:2379	Math.Clamp(war.Score + c.WarPushSpeed * pushShare + luck, -CollapseScore, CollapseScore)
+#	self-other	Market.SpoilIdx	EconomyStep.cs:794	(spm.SpoilIdx + 1) % 12
+#	scale(x*=lit)	Market.Stock	EconomyStep.cs:795	1.0 - spoil
+#	scale(x*=lit)	Region.Industrialization	EconomyStep.cs:834	1.0 - dep
+#	scale(x*=lit)	Region.OldVintageCapital	EconomyStep.cs:835	1.0 - dep
+#	self-other	Region.OpiumAddiction	EconomyStep.cs:1645	Habit.NextStock(habit, region.OpiumAddiction, perCapita)
+#	self-other	Producer.SubsidyDependence	EconomyStep.cs:2368	PoliticalQuantities.Clamp01(s.SubsidyDependence + (propped ? coef.SubsidyDependenceRatePerMonth : -coef.SubsidyDependenc
+#	self-other	Producer.MothballFrac	EconomyStep.cs:2394	new Share(Math.Clamp(s.MothballFrac.Value + mbDir * coef.FactoryMothballRate, 0, coef.FactoryMothballCap.Value * (1.0 - 
+#	self-other	Pop.UnemploymentEma	EconomyStep.cs:2482	new Share(p.UnemploymentEma.Value + coef.JobSearchUsesEma * (p.UnemploymentRate.Value - p.UnemploymentEma.Value))
+#	self-other	FactionState.Cohesion	Factions.cs:94	PoliticalQuantities.Clamp01(big.Cohesion + c.FactionMergeCohesionGain.Value * small.Cohesion)
+#	self-other	World.FiscalCapacityPerMonth	Fiscal.cs:101	new MoneyPerMonth(w.FiscalCapacityPerMonth.Value < 1e-9 ? surplus : w.FiscalCapacityPerMonth.Value + c.FiscalCapacitySmo
+#	self-other	World.MonetaryLaw	Government.cs:37	(MonetaryStandardLaw)StepLevel((int)w.MonetaryLaw, t, w, PolicyAxis.MonetaryStandard)
+#	self-other	World.SocialSecurityLaw	Government.cs:51	(SocialSecurityLaw)StepLevel((int)w.SocialSecurityLaw, t, w, PolicyAxis.SocialSecurity)
+#	self-other	World.StateReligion	Government.cs:61	w.Polity == Polity.ProletarianDictatorship ? StateReligionLaw.StateAtheism : (StateReligionLaw)StepLevel((int)w.StateRel
+#	self-other	World.BaseCoercion	Government.cs:155	Move(w.BaseCoercion, p.CoercionTarget, c, w, PolicyAxis.Coercion, c.CoercionMax, mandate: !w.CoercionFollowsForce)
+#	self-other	World.Tariff	Government.cs:167	Move(w.Tariff, TariffTargetFloored(p, w, c), c, w, PolicyAxis.Tariff)
+#	self-other	World.LandTaxBasisPhi	Government.cs:423	Move(w.LandTaxBasisPhi, target, c, w, PolicyAxis.LandTax, mandate: true)
+#	self-other	World.ArmySkill	Military.cs:9	NextSkill(w.ArmySkill, train, fighting, c)
+#	scale(x*=lit)	World.ArmySkill	Military.cs:16	keep
+#	self-other	Pop.CoreEthnicShare	Model.cs:246	new Share(PoliticalQuantities.Clamp01((to.CoreEthnicShare.Value * t0 + cCore * n) / t1))
+#	self-other	Pop.Debt	Model.cs:294	-World.CrossFx(from, to, -Debt)
+#	self-other	MultiNationSim.DiplomacyFrozen	MultiNationSim.cs:570	prevDiplomacy
+#	self-other	World.RumpLowQuarters	MultiNationSim.cs:954	low ? rw2.RumpLowQuarters + 1 : 0
+#	self-other	Chokepoint.InvestorShares	MultiNationSim.cs:1141	cp.InvestorShares.TryGetValue(shp.Id, out double prev) ? prev + invG : invG
+#	self-other	Pop.CoreEthnicShare	MultiNationSim.cs:1383	new Share(PoliticalQuantities.Clamp01(p.CoreEthnicShare.Value + assim * resist * kernel))
+#	self-other	NationConfig.InitialMassMilitancy	NationConfig.cs:50	InitialMassMilitancy
+#	self-other	NationConfig.InitialInterestRate	NationConfig.cs:52	InitialInterestRate
+#	self-other	NationConfig.InitialTariff	NationConfig.cs:53	InitialTariff
+#	self-other	NationConfig.InitialSuffrage	NationConfig.cs:54	InitialSuffrage
+#	self-other	NationConfig.InitialCensorship	NationConfig.cs:54	InitialCensorship
+#	self-other	NationConfig.InitialCornLaws	NationConfig.cs:55	InitialCornLaws
+#	self-other	NationConfig.InitialSerfEmancipation	NationConfig.cs:55	InitialSerfEmancipation
+#	self-other	NationConfig.InitialImmigration	NationConfig.cs:55	InitialImmigration
+#	self-other	NationConfig.InitialConscription	NationConfig.cs:56	InitialConscription
+#	self-other	NationConfig.InitialMonetaryLaw	NationConfig.cs:57	InitialMonetaryLaw
+#	self-other	BuildSums.Wealth	PolicyPreferences.cs:113	(double[])Wealth.Clone()
+#	self-other	BuildSums.Old	PolicyPreferences.cs:114	(double[])Old.Clone()
+#	self-other	BuildSums.LandBase	PolicyPreferences.cs:115	(double[])LandBase.Clone()
+#	self-other	BuildSums.ClergyInc0	PolicyPreferences.cs:115	ClergyInc0
+#	self-other	Region.RuleStateHead	Politics.cs:972	(r4.RuleStateHead + 1) % r4.RuleStateYears.Length
+#	self-other	Region.ForeignRulers	Politics.cs:1107	names
+#	self-other	Region.ForeignShares	Politics.cs:1107	shares
+#	self-other	World.PrivilegeTakeYear	Privileges.cs:87	w.PrivilegeTakeYear[k] * (1.0 - dt) + take
+#	self-other	NationPolicy.ConscriptionLaw	SelfPlay.cs:499	ConscriptionLowerTarget(w.ConscriptionLaw, armyShare, p.ConscriptionLaw)
+#	self-other	?.OpiumPossession	SelfPlay.cs:1076	obAvg > thr * OpiumFullBanRatio ? ReformLevel.Full : obAvg > thr ? ReformLevel.Limited : obAvg < thr * OpiumBanHysteresi
+#	scale(x*=lit)	Producer.Productivity	Simulation.cs:933	k
+#	self-other	Producer.Inputs	Simulation.cs:936	scaled
+#	self-other	World.NoDevaluationMonths	Simulation.cs:1972	devalued > 0 ? 0 : World.NoDevaluationMonths + 1
+#	scale(x*=lit)	Region.MilitaryBudget	Simulation.cs:1981	payRate
+#	scale(x*=lit)	Region.MilitaryBudgetCeiling	Simulation.cs:1981	payRate
+#	scale(x*=lit)	Region.NavalBudget	Simulation.cs:1981	payRate
+#	scale(x*=lit)	Region.AdminBudget	Simulation.cs:1982	payRate
+#	scale(x*=lit)	Region.InfraBudget	Simulation.cs:1982	payRate
+#	scale(x*=lit)	Region.ElecInfraBudget	Simulation.cs:1982	payRate
+#	scale(x*=lit)	Region.SoldierPayBudget	Simulation.cs:1982	payRate
+#	scale(x*=lit)	Region.CompulsoryEduFunding	Simulation.cs:1986	payRate
+#	scale(x*=lit)	Region.InsuranceCoverage	Simulation.cs:1986	payRate
+#	scale(x*=lit)	Region.HigherEduFunding	Simulation.cs:1987	payRate
+#	self-other	Pop.CoreEthnicShare	Territory.cs:178	new Share(1.0 - p.CoreEthnicShare.Value)
+#	self-other	Pop.CoreEthnicShare	Territory.cs:183	new Share(1.0 - p.CoreEthnicShare.Value)
+#	self-other	Producer.StateTarget	Territory.cs:222	DroppedStateTarget(pr.StateTarget, World.StateUnits(pr, from.Coef))
+#	self-other	TradeReachDiag.PairValue	TradeReachDiag.cs:32	PairValue.TryGetValue(k, out double v) ? v + value : value
+#	scale(x*=lit)	Region.RailTrack	Transport.cs:64	1.0 - wear
+#	self-other	World.ShipCapacity	Transport.cs:112	tot
+#	self-other	World.Convertibility	World.cs:1325	PoliticalQuantities.Clamp01(Convertibility + (convTarget < Convertibility ? c.ConvertibilityDropSpeed : c.Convertibility
+#	self-other	Region.SeizureChill	World.cs:2199	PoliticalQuantities.Clamp01(r.SeizureChill + Coef.SeizureInvestmentChill * share)

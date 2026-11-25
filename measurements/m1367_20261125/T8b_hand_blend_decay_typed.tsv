@@ -1,0 +1,82 @@
+型（規則で決めた）	欄	ファイル:行	メソッド	形	演算	核か候補か	右辺
+増加の倍（減衰でない）	World.ForeignBondClaims	CapitalMarket.cs:242	AdjustClaims	hand-leaky(x=x*keep+in)	=		new MoneyStock(System.Math.Max(0, (wj.ForeignBondClaims * (1.0 + g / basis)).Value))
+時間の減衰（毎期の keep か率）	World.RegimeTrackRecord	CrownParliament.cs:110	Step	hand-decay(x*=k)	*=		1.0 - c.RegimeRecordDecay
+時間の減衰（毎期の keep か率）	World.RecentRegimeChanges	CrownParliament.cs:111	Step	hand-decay(x*=k)	*=		1.0 - w.ReplacementRate(Calendar.MonthsPerQuarter)
+時間の減衰（毎期の keep か率）	Power.WarExhaustion	Diplomacy.cs:856	Step	hand-decay(x=x*k)	=	核	p.WarExhaustion * c.WarWearinessKeepPerMonth
+一度きりの倍（事件・支払いの比・按分）	World.Legitimacy	Diplomacy.cs:1414	TriggerWars	hand-decay(x-=x*k)	-=	核	actualCost
+一度きりの倍（事件・支払いの比・按分）	World.Legitimacy	Diplomacy.cs:1959	ResolvePendingWar	hand-decay(x-=x*k)	-=	核	actual
+一度きりの倍（事件・支払いの比・按分）	Pop.SubsistenceBasis	EconomyStep.cs:122	SubsistenceHead	hand-decay(x=x*k)	=		p.SubsistenceBasis * need * p.Size / (u * t)
+一度きりの倍（事件・支払いの比・按分）	Pop.RemainingBudget	EconomyStep.cs:773	Run	hand-decay(x*=k)	*=	候補	1.0 - coef.IndInvestmentFrac.Value
+一度きりの倍（事件・支払いの比・按分）	Producer.ElecFill	EconomyStep.cs:1917	Run	hand-blend(x+=k*(t-x))	+=		elecStep0
+一度きりの倍（事件・支払いの比・按分）	Producer.ElecFill	EconomyStep.cs:1957	Run	hand-blend(x+=k*(t-x))	+=		elecStep
+時間の減衰（毎期の keep か率）	Region.GridCapacity	EconomyStep.cs:2111	Run	hand-decay(x*=k)	*=		1.0 - coef.GridReplaceRate
+一度きりの倍（事件・支払いの比・按分）	Region.MilitaryAirFill	EconomyStep.cs:2212	Run	hand-decay(x*=k)	*=		fuelFill
+時間の減衰（毎期の keep か率）	FactionState.Cohesion	Factions.cs:75	Step	hand-decay(x*=k)	*=		1.0 - c.FactionCohesionDecay
+一度きりの倍（事件・支払いの比・按分）	Producer.Scale	FactoryEquipment.cs:99	Renormalize	hand-decay(x*=k)	*=		k
+時間の寄り（Toward と同じ形を手で書いた）	World.GovAvgCouponPerYear	Fiscal.cs:83	Step	hand-blend(x=x*(1-k)+t*k)	=		(1.0 - rollover) * w.GovAvgCouponPerYear + rollover * w.GovBondRatePerYear
+一度きりの倍（事件・支払いの比・按分）	World.CumulativeDevaluation	Fiscal.cs:130	Step	hand-decay(x*=k)	*=	候補	1.0 - PoliticalQuantities.Clamp01(c.CurrencyReformForgiveShare.Value)
+一度きりの倍（事件・支払いの比・按分）	Pop.BondHoldings	Fiscal.cs:161	Step	hand-decay(x*=k)	*=		grow
+一度きりの倍（事件・支払いの比・按分）	Pop.BondHoldings	Fiscal.cs:186	Step	hand-decay(x*=k)	*=		keep
+加重平均（人や債務が移る時の構成の保存）	World.GovAvgCouponPerYear	Fiscal.cs:390	Borrow	hand-leaky(x=x*keep+in)	=		(debtBefore * w.GovAvgCouponPerYear + added * w.GovBondRatePerYear) / System.Math.Max(1e-9, w.GovDebt.Value)
+時間の寄り（Toward と同じ形を手で書いた）	World.NavalFuelFillEma	Military.cs:233	NavalFuelStep	hand-blend(x=x*(1-k)+t*k)	=		(1.0 - a) * w.NavalFuelFillEma + a * fill
+加重平均（人や債務が移る時の構成の保存）	Pop.Literacy	Model.cs:242	Blend	hand-leaky(x=x*keep+in)	=	候補	PoliticalQuantities.Clamp01((from.Literacy * s0 - cLit * n) / rest)
+加重平均（人や債務が移る時の構成の保存）	Pop.Literacy	Model.cs:243	Blend	hand-leaky(x=x*keep+in)	=	候補	PoliticalQuantities.Clamp01((to.Literacy * t0 + cLit * n) / t1)
+加重平均（人や債務が移る時の構成の保存）	Pop.Militancy	Model.cs:244	Blend	hand-leaky(x=x*keep+in)	=	核	PoliticalQuantities.Clamp01((to.Militancy * t0 + from.Militancy * n) / t1)
+加重平均（人や債務が移る時の構成の保存）	Pop.Consciousness	Model.cs:245	Blend	hand-leaky(x=x*keep+in)	=	核	PoliticalQuantities.Clamp01((to.Consciousness * t0 + from.Consciousness * n) / t1)
+加重平均（人や債務が移る時の構成の保存）	Pop.Size	Model.cs:251	Blend	hand-decay(x-=x*k)	-=		n
+一度きりの倍（事件・支払いの比・按分）	Bank.Loans	MultiNationSim.cs:1004	DissolveNation	hand-blend(x+=k*(t-x))	+=		loansIn
+一度きりの倍（事件・支払いの比・按分）	Bank.HouseholdLoans	MultiNationSim.cs:1004	DissolveNation	hand-blend(x+=k*(t-x))	+=		hhIn
+加重平均（人や債務が移る時の構成の保存）	World.GovAvgCouponPerYear	MultiNationSim.cs:1031	DissolveNation	hand-leaky(x=x*keep+in)	=		(debt0 * pw.GovAvgCouponPerYear + rwDebt.Value * rw.GovAvgCouponPerYear) / pw.GovDebt.Value
+時間の減衰（毎期の keep か率）	Region.PortCapacity	MultiNationSim.cs:1226	StepPorts	hand-blend(x=x*(1-k)+t*k)	=		Math.Max(0, r.PortCapacity * (1 - _coef.PortDecay))
+時間の減衰（毎期の keep か率）	World.ManifestoCredit	Parliament.cs:335	StepManifesto	hand-decay(x*=k)	*=		1.0 - c.ManifestoCreditDecay
+時間の減衰（毎期の keep か率）	World.LostRegionsCumulative	Politics.cs:132	Step	hand-decay(x*=k)	*=		1.0 - w.ReplacementRate(Calendar.MonthsPerQuarter)
+一度きりの倍（事件・支払いの比・按分）	Pop.Militancy	Politics.cs:141	Step	hand-decay(x*=k)	*=	核	c.ReformMilitancyRelief
+時間の寄り（Toward と同じ形を手で書いた）	World.Legitimacy	Politics.cs:275	Step	hand-approach(x+k*(1-x))	=	核	legClamped
+時間の減衰（毎期の keep か率）	World.DefeatShock	Politics.cs:284	Step	hand-decay(x*=k)	*=	候補	c.DefeatShockKeepPerQuarter
+時間の減衰（毎期の keep か率）	World.VictoryShock	Politics.cs:285	Step	hand-decay(x*=k)	*=		c.DefeatShockKeepPerQuarter
+漏れのある積み（keep×x＋入り）	World.FamineMemory	Politics.cs:286	Step	hand-leaky(x=x*keep+in)	=	候補	w.FamineMemory * c.FamineMemoryKeepPerQuarter + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill)
+一度きりの倍（事件・支払いの比・按分）	Pop.Militancy	Politics.cs:491	SettleRevolt	hand-decay(x*=k)	*=	核	c.ReformMilitancyRelief
+一度きりの倍（事件・支払いの比・按分）	Pop.Militancy	Politics.cs:708	ConcedeToFaction	hand-decay(x*=k)	*=	核	c.ReformMilitancyRelief
+一度きりの倍（事件・支払いの比・按分）	Pop.BondHoldings	Politics.cs:1204	ResolveRevolt	hand-decay(x-=x*k)	-=		seizedBonds
+一度きりの倍（事件・支払いの比・按分）	?.IncomeTaxTarget	SelfPlay.cs:684	RelieveOpulence	hand-decay(x*=k)	*=		mul
+一度きりの倍（事件・支払いの比・按分）	NationPolicy.PollTaxTarget	SelfPlay.cs:684	RelieveOpulence	hand-decay(x*=k)	*=		mul
+一度きりの倍（事件・支払いの比・按分）	NationPolicy.LandTaxTarget	SelfPlay.cs:685	RelieveOpulence	hand-decay(x*=k)	*=		mul
+一度きりの倍（事件・支払いの比・按分）	NationPolicy.ProgressiveTaxTarget	SelfPlay.cs:685	RelieveOpulence	hand-decay(x*=k)	*=		mul
+一度きりの倍（事件・支払いの比・按分）	NationPolicy.TariffTarget	SelfPlay.cs:685	RelieveOpulence	hand-decay(x*=k)	*=		mul
+一度きりの倍（事件・支払いの比・按分）	NationPolicy.SocialSecurityTarget	SelfPlay.cs:1026	Apply	hand-decay(x*=k)	*=		ease
+一度きりの倍（事件・支払いの比・按分）	Producer.Productivity	Simulation.cs:669	ApplyEndowment	hand-decay(x*=k)	*=		capMul
+時間の寄り（Toward と同じ形を手で書いた）	Region.WagePremium	Simulation.cs:1567	UpdateRegionalPriceLevels	hand-leaky(x=x*keep+in)	=		0.75 * r.WagePremium + 0.25 * prem
+一度きりの倍（事件・支払いの比・按分）	Producer.Scale	Simulation.cs:1996	MonthSettle	hand-blend(x=x*(1-k)+t*k)	=		Math.Max(0, lpr.Scale * (1.0 - World.Coef.WarLivestockRequisition * Math.Min(1.0, r.LastWarIntensity)))
+時間の減衰（毎期の keep か率）	Region.Industrialization	Simulation.cs:2000	MonthSettle	hand-decay(x*=k)	*=		scrapKeep
+時間の減衰（毎期の keep か率）	Region.OldVintageCapital	Simulation.cs:2001	MonthSettle	hand-decay(x*=k)	*=		scrapKeep
+時間の減衰（毎期の keep か率）	Region.StrandedVintage	Simulation.cs:2002	MonthSettle	hand-decay(x*=k)	*=		scrapKeep
+時間の寄り（Toward と同じ形を手で書いた）	World.FoodFill	Simulation.cs:2119	DemographicStep	hand-blend(x+=k*(t-x))	+=	候補	c.FoodFillSmoothing * (rawFill - prevFood)
+一度きりの倍（事件・支払いの比・按分）	Pop.Size	Simulation.cs:2288	DemographicStep	hand-decay(x-=x*k)	-=		d
+一度きりの倍（事件・支払いの比・按分）	Market.Stock	Simulation.cs:2436	MintGold	hand-decay(x-=x*k)	-=		qty
+時間の減衰（毎期の keep か率）	World.SilverReserveQty	Simulation.cs:2455	SellDemonetizedReserves	hand-decay(x-=x*k)	-=		SellReserve(World.Region, Catalog.SilverId, World.SilverReserveQty * rate)
+時間の減衰（毎期の keep か率）	World.GoldReserveQty	Simulation.cs:2457	SellDemonetizedReserves	hand-decay(x-=x*k)	-=		SellReserve(World.Region, Catalog.GoldOreId, World.GoldReserveQty * rate)
+時間の寄り（Toward と同じ形を手で書いた）	World.TechLevel	TechEducation.cs:65	GrowTech	hand-blend(x+=k*(t-x))	+=		adoptRate * (catchupTarget - w.TechLevel)
+時間の寄り（Toward と同じ形を手で書いた）	World.TechLevel	TechEducation.cs:69	GrowTech	hand-blend(x+=k*(t-x))	+=		Math.Min(c.TechGrowthRate * w.Elite, baseTarget - w.TechLevel)
+一度きりの倍（事件・支払いの比・按分）	World.ShipCapacity	Territory.cs:206	TransferRegion	hand-decay(x-=x*k)	-=		ship
+時間の減衰（毎期の keep か率）	Region.RailTrack	Transport.cs:10	Step	hand-blend(x=x*(1-k)+t*k)	=		System.Math.Max(0, r.RailTrack * (1 - c.TransportDecay))
+時間の減衰（毎期の keep か率）	World.ShipCapacity	Transport.cs:13	Step	hand-blend(x=x*(1-k)+t*k)	=		System.Math.Max(0, w.ShipCapacity * (1 - c.TransportDecay))
+一度きりの倍（事件・支払いの比・按分）	Pop.Size	World.cs:980	KillPops	hand-decay(x-=x*k)	-=		d
+増加の倍（減衰でない）	World.PriceLevel	World.cs:1338	UpdatePriceLevel	hand-decay(x*=k)	*=	候補	1.0 + c.FiatInflationWeight * FiatInflationPressure
+時間の減衰（毎期の keep か率）	Region.SeizureChill	World.cs:2138	StepStateTargets	hand-blend(x=x*(1-k)+t*k)	=		Math.Max(0, r.SeizureChill * (1.0 - Coef.SeizureChillDecay))
+
+# 型ごとの数（核・候補・その他）
+#	一度きりの倍（事件・支払いの比・按分）	その他	22
+#	一度きりの倍（事件・支払いの比・按分）	候補	2
+#	一度きりの倍（事件・支払いの比・按分）	核	5
+#	加重平均（人や債務が移る時の構成の保存）	その他	3
+#	加重平均（人や債務が移る時の構成の保存）	候補	2
+#	加重平均（人や債務が移る時の構成の保存）	核	2
+#	増加の倍（減衰でない）	その他	1
+#	増加の倍（減衰でない）	候補	1
+#	時間の寄り（Toward と同じ形を手で書いた）	その他	5
+#	時間の寄り（Toward と同じ形を手で書いた）	候補	1
+#	時間の寄り（Toward と同じ形を手で書いた）	核	1
+#	時間の減衰（毎期の keep か率）	その他	16
+#	時間の減衰（毎期の keep か率）	候補	1
+#	時間の減衰（毎期の keep か率）	核	1
+#	漏れのある積み（keep×x＋入り）	候補	1

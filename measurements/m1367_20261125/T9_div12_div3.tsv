@@ -1,0 +1,36 @@
+種類	ファイル:行	メソッド	行
+*12.0	AgeLayout.cs:24	AgeLayout	for (int b = 0; b < Bands - 1; b++) { Upper[b] = lower[b] + width[b]; MonthsPerBand[b] = width[b] * 12.0; }
+*3	Simulation.cs:1534	UpdateRegionalPriceLevels	var regSums = new double[World.Regions.Count * 3];
+*3	Simulation.cs:1545	UpdateRegionalPriceLevels	regSums[ri * 3] = rSav; regSums[ri * 3 + 1] = rEarn; regSums[ri * 3 + 2] = rPop;
+*3	Simulation.cs:1545	UpdateRegionalPriceLevels	regSums[ri * 3] = rSav; regSums[ri * 3 + 1] = rEarn; regSums[ri * 3 + 2] = rPop;
+*3	Simulation.cs:1545	UpdateRegionalPriceLevels	regSums[ri * 3] = rSav; regSums[ri * 3 + 1] = rEarn; regSums[ri * 3 + 2] = rPop;
+*3	Simulation.cs:1554	UpdateRegionalPriceLevels	double rSav = regSums[ri * 3], rEarn = regSums[ri * 3 + 1], rPop = regSums[ri * 3 + 2];
+*3	Simulation.cs:1554	UpdateRegionalPriceLevels	double rSav = regSums[ri * 3], rEarn = regSums[ri * 3 + 1], rPop = regSums[ri * 3 + 2];
+*3	Simulation.cs:1554	UpdateRegionalPriceLevels	double rSav = regSums[ri * 3], rEarn = regSums[ri * 3 + 1], rPop = regSums[ri * 3 + 2];
+*4.0	EconomyStep.cs:1585	Run	if (scarcity > 0.75) desired *= 1.0 + coef.PanicBuyWeight * (scarcity - 0.75) * 4.0;
+/3	PowerShares.cs:12	PrivilegeIntact	double v = (serf + taxExempt + estate) / 3.0;
+/3	PowerShares.cs:21	StatePatronage	return (tariff + orders + order) / 3.0;
+/3	SelfPlay.cs:196	?	internal const double AntitrustUrbanLine = 1.0 / 3.0;
+/3	SelfPlay.cs:201	?	internal const double MinimumWageBindRaiseMax = 1.0 / 3.0;
+/3	SelfPlay.cs:406	?	internal const double ConscriptionLowerMargin = 1.0 / 3.0;
+/4.0	NationBrief.cs:87	Terms	double resource = PoliticalQuantities.Clamp01(Math.Log10(Math.Max(1.0, TreasuryMonths(c, coef))) / 4.0);
+/4.0	PowerShares.cs:70	CivilianInstitutions	double v = (parliament + bureau + parties + legitimacy) / 4.0;
+cal%:MonthsPerQuarter	Diplomacy.cs:491	TreatyPortLapse	if (month % Calendar.MonthsPerQuarter != 0) return;
+cal%:MonthsPerQuarter	Diplomacy.cs:848	Step	if (month % Calendar.MonthsPerQuarter == 0) Formations.Check(this, c);
+cal%:MonthsPerQuarter	Diplomacy.cs:871	Step	if (month % Calendar.MonthsPerQuarter == 0) DiplomacyAI(c, rng);
+cal%:MonthsPerQuarter	Diplomacy.cs:872	Step	if (month % Calendar.MonthsPerQuarter == 0) TryUnificationWars(c);   // P4 統一戦争のAI（候補が立たなければ不発）
+cal%:MonthsPerQuarter	Diplomacy.cs:876	Step	if (month % Calendar.MonthsPerQuarter == 0) PeaceInterventionAI(c);   // ★列強の介入と和平提案
+cal%:MonthsPerQuarter	Diplomacy.cs:881	Step	if (month % Calendar.MonthsPerQuarter == 0) ArmyShape.Compute(this, c);
+cal%:MonthsPerQuarter	Diplomacy.cs:1259	StepDependency	if (month % Calendar.MonthsPerQuarter == 0)
+cal%:MonthsPerQuarter	Diplomacy.cs:1272	StepDependency	if (month % Calendar.MonthsPerQuarter == 0)
+cal%:QuartersPerYear	SelfPlay.cs:1441	Run	if ((q + 1) % Calendar.QuartersPerYear == 0)
+cal*/:MonthsPerQuarter	Diplomacy.cs:861	Step	if (c.RankUpdateIntervalQuarters <= 1.001 || _rankClock >= (int)(c.RankUpdateIntervalQuarters * (double)Calendar.MonthsPerQuarter)) { ComputeRanks(c); _rankCloc
+cal*/:MonthsPerQuarter	EconomyStep.cs:2503	AccumulateFactoryBuild	double conMonths = Math.Max(1.0, fs.Quarters * (double)Calendar.MonthsPerQuarter);                              // 建設の月数（四半期×3）
+cal*/:MonthsPerQuarter	MultiNationSim.cs:682	StepDay	for (int m = 0; m < Calendar.MonthsPerQuarter; m++) { Diplomacy.Step(_coef, Rng, _quarter * Calendar.MonthsPerQuarter + m); ProbeDiff($"外交m{m}"); }   // 共有外交を月次
+cal*/:MonthsPerQuarter	World.cs:1506	ConstructionMaterialPerMonth	double conMonths = Math.Max(1.0, fs.Quarters * (double)Calendar.MonthsPerQuarter);
+cal*/:MonthsPerYear	Privileges.cs:83	StepMonth	double dt = 1.0 / Calendar.MonthsPerYear;
+cal*/:QuartersPerYear	BilateralMarket.cs:737	StepBilateral	idleQ = (uint)(nations[0].World.Year * Calendar.QuartersPerYear + nations[0].World.Quarter - 1);
+cal*/:QuartersPerYear	Coefficients.p07_wiring_prewarm.cs:133	?	public const int FidelityQuarters1950 = (1950 - Calendar.StartYear) * Calendar.QuartersPerYear;   // 政体と従属だけを見る（exact/near）
+cal*/:QuartersPerYear	CrownParliament.cs:114	Step	record *= PoliticalQuantities.Clamp01(w.RegimeTenureQuarters / (Calendar.QuartersPerYear * System.Math.Max(1.0, c.RegimeRecordSuccessTenureGate)));
+cal*/:QuartersPerYear	MultiNationSim.cs:955	ReabsorbNations	if (rw2.RumpLowQuarters >= (int)(_coef.RumpReabsorbYears * Calendar.QuartersPerYear)
+cal*/:QuartersPerYear	SelfPlay.cs:1436	Run	int within = 0; foreach (var fq in fl) if (q - fq <= Calendar.QuartersPerYear * 10) within++;

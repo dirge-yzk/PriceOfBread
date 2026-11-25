@@ -1,0 +1,68 @@
+元	先	道(直接@書き手の行 / 経由:メソッド@書き手の行)
+Colony.Militancy	Pop.Militancy	直接@Simulation.cs:1327
+Politics.Discontent()	Pop.RemainingBudget	経由:Participation@EconomyStep.cs:1262
+Pop.Consciousness	Politics.Discontent()	経由:DiscontentRaw@Politics.cs:Discontent
+Pop.Consciousness	Pop.Militancy	経由:PoliticalTerm@Politics.cs:186
+Pop.Consciousness	World.Legitimacy	経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281
+Pop.Consciousness	World.MeanSatisfactionPol	経由:MeasureMobilization@Politics.cs:198
+Pop.Consciousness	World.RadicalPower	直接@Politics.cs:329
+Pop.Consciousness	World.ReformistPower	直接@Politics.cs:328
+Pop.FoodRef	Pop.Militancy	経由:FamineDrive@Politics.cs:186
+Pop.Literacy	Politics.Discontent()	経由:DiscontentRaw@Politics.cs:Discontent
+Pop.Literacy	Pop.Consciousness	直接@Politics.cs:159
+Pop.Literacy	Pop.Militancy	経由:PoliticalTerm@Politics.cs:186
+Pop.Literacy	Power.Military	経由:Quality@Diplomacy.cs:785
+Pop.Literacy	Region.AdminFill	制御@Simulation.cs:1375
+Pop.Literacy	World.DynasticMandate	経由:MandateBase@Politics.cs:211
+Pop.Literacy	World.Legitimacy	経由:MandateBase@Politics.cs:275 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880
+Pop.LivingRef	Politics.Discontent()	経由:DiscontentRaw@Politics.cs:Discontent
+Pop.Militancy	Pop.RemainingBudget	経由:Participation@EconomyStep.cs:1262
+Pop.Militancy	Power.NeedSea	経由:Unrest@ArmyShape.cs:66 | 経由:Unrest@ArmyShape.cs:69
+Pop.Militancy	World.Legitimacy	制御経由:SelectRevoltRegion@Politics.cs:825 | 経由:MeasureMobilization@Politics.cs:275 | 経由:MeasureMobilization@Politics.cs:281 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880
+Pop.Militancy	World.MeanSatisfactionPol	経由:MeasureMobilization@Politics.cs:198
+Pop.Militancy	World.ParliamentControl	制御経由:AvgMassMilitancy@CrownParliament.cs:87
+Pop.Militancy	World.RadicalPower	直接@Politics.cs:329
+Pop.Militancy	World.ReformistPower	直接@Politics.cs:328
+Pop.Satisfaction	Politics.Discontent()	経由:DiscontentRaw@Politics.cs:Discontent
+Pop.Satisfaction	Pop.LivingRef	直接@Politics.cs:168 | 直接@Politics.cs:188
+Pop.Satisfaction	Region.AdminFill	制御@Simulation.cs:1375
+Pop.Satisfaction	World.DynasticMandate	経由:MandateBase@Politics.cs:211
+Pop.Satisfaction	World.Legitimacy	経由:MandateBase@Politics.cs:275
+Pop.Satisfaction	World.MeanSatisfactionPol	経由:MeanSatisfaction@Politics.cs:198
+Power.Military	Colony.Militancy	制御経由:ColonizeForce@Diplomacy.cs:2010 | 制御経由:NavalPower@Diplomacy.cs:2661 | 制御経由:SubmitLine@Diplomacy.cs:2010
+Power.Military	Pop.Militancy	制御経由:ColonizeForce@Diplomacy.cs:2019 | 制御経由:SubmitLine@Diplomacy.cs:2019
+Power.Military	Power.NeedSea	経由:NavalPower@ArmyShape.cs:69
+Power.Military	Power.WarExhaustion	直接@Diplomacy.cs:2525
+Power.Military	World.Legitimacy	制御経由:SideMilitary@Diplomacy.cs:1414 | 制御経由:WarGateOpen@Diplomacy.cs:1414 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880
+Power.WarExhaustion	Pop.Militancy	直接@Politics.cs:186
+Power.WarExhaustion	World.Coercion	経由:CoercionNow@Politics.cs:288
+Power.WarExhaustion	World.DynasticMandate	直接@Politics.cs:211
+Power.WarExhaustion	World.Legitimacy	制御経由:WarGateOpen@Diplomacy.cs:1414
+Region.AdminFill	Pop.Militancy	経由:Of@Fiscal.cs:127
+War.Score	Colony.Militancy	直接@Diplomacy.cs:2661
+War.Score	World.Legitimacy	制御@Diplomacy.cs:2804
+World.Coercion	Pop.Consciousness	経由:EffectiveCoerce@Politics.cs:159
+World.Coercion	World.ParliamentControl	制御経由:EffectiveCoerce@CrownParliament.cs:56
+World.CumulativeDevaluation	Pop.Militancy	直接@Fiscal.cs:127
+World.CumulativeDevaluation	World.Legitimacy	直接@Fiscal.cs:132
+World.DefeatShock	World.Legitimacy	直接@Politics.cs:275 | 直接@Politics.cs:281 | 経由:PreviewTensionPolitics@Diplomacy.cs:1880
+World.DynasticMandate	World.Legitimacy	直接@Politics.cs:275
+World.FiscalFundingRatio	Pop.Militancy	制御@Fiscal.cs:127
+World.FiscalFundingRatio	World.CumulativeDevaluation	制御@Fiscal.cs:130
+World.FiscalFundingRatio	World.Legitimacy	制御@Fiscal.cs:132
+World.FoodFill	World.DynasticMandate	直接@Politics.cs:211
+World.FoodFill	World.FamineMemory	直接@Politics.cs:286
+World.Legitimacy	Power.NeedSea	経由:Unrest@ArmyShape.cs:66 | 経由:Unrest@ArmyShape.cs:69
+World.Legitimacy	World.Coercion	経由:CoercionNow@Politics.cs:288
+World.Legitimacy	World.ParliamentControl	制御@CrownParliament.cs:28 | 制御@CrownParliament.cs:56 | 制御@Politics.cs:383 | 直接@CrownParliament.cs:61
+World.MeanSatisfactionPol	World.DynasticMandate	直接@Politics.cs:211
+World.ParliamentControl	World.Legitimacy	経由:NetSupport@World.cs:536
+World.PriceLevel	Pop.Militancy	制御経由:NominalOf@Fiscal.cs:127 | 直接@Fiscal.cs:127
+World.PriceLevel	World.CumulativeDevaluation	制御経由:NominalOf@Fiscal.cs:130 | 経由:Borrow@Simulation.cs:1963
+World.PriceLevel	World.FiscalFundingRatio	経由:Borrow@Simulation.cs:1976
+World.PriceLevel	World.Legitimacy	経由:NominalOf@Fiscal.cs:132
+World.PriceLevel	World.ParliamentControl	経由:DebtGrip@CrownParliament.cs:22
+World.RadicalPower	Pop.Consciousness	直接@Politics.cs:159
+World.RadicalPower	World.ParliamentControl	制御@CrownParliament.cs:56
+World.ReformistPower	Pop.Consciousness	直接@Politics.cs:159
+World.ReformistPower	World.ParliamentControl	制御@CrownParliament.cs:56

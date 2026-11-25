@@ -1,0 +1,5 @@
+核 8・候補 21：Power.Military Pop.Literacy World.MeanSatisfactionPol World.ParliamentControl World.ReformistPower World.Coercion World.RadicalPower World.PriceLevel Region.AdminFill Pop.RemainingBudget War.Score World.FiscalFundingRatio World.CumulativeDevaluation Power.NeedSea World.FoodFill Region.FoodFill Pop.FoodFill() Pop.LivingRef Pop.FoodRef World.FamineMemory World.DefeatShock
+辺 67・三角形 43・近道（代わりの道あり）43・輪 8
+手書きの寄り・減衰 64（核 9・候補 8）・Toward 31
+/12・/3 と暦の定数：Counter({'cal%:MonthsPerQuarter': 8, '*3': 7, '/3': 5, 'cal*/:QuartersPerYear': 5, 'cal*/:MonthsPerQuarter': 4, '/4.0': 2, '*12.0': 1, '*4.0': 1, 'cal*/:MonthsPerYear': 1, 'cal%:QuartersPerYear': 1})
+名前で引けず飛ばした呼び出し（同名の定義が 2 を超える）上位：[('Add', 41), ('PerMonthToPerYear', 18), ('PerYearToPerMonth', 14), ('(大)Pref', 11), ('Check', 10), ('Cost', 10), ('CompareTo', 8), ('(大)Simulation', 8), ('Gate', 4), ('Of', 4), ('Build', 4), ('Aggregate', 3), ('Move', 3), ('Carry', 2), ('(大)AddAlternateRecipes', 2), ('ToString', 1), ('(大)BuildProvince', 1)]

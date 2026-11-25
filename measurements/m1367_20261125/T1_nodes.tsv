@@ -1,0 +1,72 @@
+節点	区分	wr互換の書き手(直下+計器)	書き手(計器と初期化子を除く)	書き手の種類(初期化子を含む)	入力(状態の項・直接)の数	入力(直接)	係数の項の数	呼び出しの項	経由だけの入力の数	経由だけの入力	出力の数	うちAI	出力のファイル数
+Pop.Militancy	核	16	14	{'dot': 14}	25	Colony.Militancy Colony.PopSize Pop.ClassId Pop.IsSoldier Pop.Size Power.Nation Power.WarExhaustion Region.Id World.CumulativeDevaluation World.CurrencyReformCooldown World.EthnicEnabled World.FiscalFundingRatio World.MonetaryEnabled World.NoDevaluationMonths World.OnGoldStandard World.PendingCurrencyReform World.PendingRevoltDemand World.PendingRevoltDemandPos World.PendingRevoltRegion World.Polity World.PriceLevel World.PrivilegeHeldYears World.PrivilegeLastActive World.PrivilegeTakeMonth World.Suffrage	11	AxisDistance Clamp01 Colonies DriftedPolityCoord FamineDrive Of OutstandingLoans PoliticalTerm RegionAvgSuffrageInclusion RegionMilitancy Savings Strength TotalMoney Toward Transfer Value	52	Colony.Population Diplomacy.Chokepoints Diplomacy.DistanceNormKm Diplomacy.PanamaId Diplomacy.Powers Diplomacy.SuezId Diplomacy.Wars Pop.Ages Pop.Closed Pop.Consciousness Pop.FoodMet Pop.FoodNeed Pop.FoodRef Pop.IdeologyShares Pop.IsModernElite Pop.Literacy Power.ArmySkillMul Power.ColonyList Power.CrewFill Power.FleetGauge Power.Id Power.Military Power.NavalFuelMul Region.AdminFill Region.IsPort 	37	0	16
+Colony.Militancy	核	16	2	{'dot': 2}	11	Colony.Population Diplomacy.DistanceNormKm Diplomacy.PanamaId Diplomacy.SuezId Power.ColonyList Power.Nation War.A War.B War.Score World.Latitude World.Longitude	2	ClampOr	14	Diplomacy.Chokepoints Diplomacy.Powers Diplomacy.Wars Power.ArmySkillMul Power.CrewFill Power.FleetGauge Power.Id Power.Military Power.NavalFuelMul Region.IsPort Region.Name Region.Rule World.Diplomacy World.SelfPower	3	0	2
+World.Legitimacy	核	11	12	{'dot': 11, 'bare': 1}	22	Diplomacy.CollapseScore Diplomacy.Powers Power.IsPlayer Power.Nation War.A War.B War.Score World.Crown World.CumulativeDevaluation World.CurrencyReformCooldown World.DefeatShock World.DynasticMandate World.FiscalFundingRatio World.Freedom World.InsolvencyMonths World.MandateSpentNew World.MonetaryEnabled World.NoDevaluationMonths World.OnGoldStandard World.PartySeats World.PendingCurrencyReform World.StateReligion	14	Clamp01 ElectionPushEffectOf MandateBase MeasureMobilization NetSupport NominalOf PreviewTensionPolitics Value	53	Colony.Population Diplomacy.Chokepoints Diplomacy.ColonyUnitPop Diplomacy.DistanceNormKm Diplomacy.PanamaId Diplomacy.SuezId Diplomacy.ThreatColonyWeight Diplomacy.ThreatGdpWeight Diplomacy.ThreatMilitaryWeight Diplomacy.Wars Pop.Ages Pop.Closed Pop.Consciousness Pop.IsModernElite Pop.IsSoldier Pop.IsUrban Pop.Literacy Pop.Militancy Pop.Satisfaction Pop.Size Power.ColonyList Power.CrewFill Power.F	50	2	12
+Power.WarExhaustion	核	3	3	{'dot': 3}	6	Pop.Size Power.AirPower Power.Military Power.Nation Region.MilitaryAirFill World.LastBlockadeRisk	9	GdpPcDrawdown SoldierSizeK TotalPopulation Value	7	Colony.Population Pop.IsSoldier Region.Pops World.GdpPcPeak World.GdpPcTrend World.GdpPeak World.Regions	34	0	5
+Pop.Consciousness	核	2	2	{'dot': 2}	8	Pop.IsUrban Pop.Literacy Pop.NewsFill Pop.Size World.Censorship World.EducationLaw World.RadicalPower World.ReformistPower	5	Clamp01 ConsciousnessConversion EffectiveCoerce PressFreedom SchoolingConversion Toward	5	Pop.Ages Pop.SchoolingConvStock Region.Pops World.Coercion World.Regions	14	0	5
+Pop.Satisfaction	核	1	1	{'dot': 1, 'init': 31}	2	Pop.NeedMet Pop.NeedTotal	0	Clamp01	0		12	1	6
+Politics.Discontent()	核	-	2	{'method': 2}	1	World.Coef	0	AxisDistance BlocOf Clamp01 Discontent DiscontentRaw	10	Pop.Closed Pop.Consciousness Pop.IdeologyShares Pop.IsModernElite Pop.Literacy Pop.LivingRef Pop.Satisfaction World.Polity World.SecretBallot World.Suffrage	4	0	3
+World.DynasticMandate	核	2	2	{'dot': 2}	3	Power.WarExhaustion World.FoodFill World.MeanSatisfactionPol	6	Clamp01 MandateBase Toward	4	Pop.Literacy Pop.Satisfaction Pop.Size World.Regions	5	0	2
+Power.Military	候補	1	1	{'dot': 1, 'init': 3}	4	Region.MilitaryQualityFill Region.MilitaryTier3Fill World.MilitaryReadiness World.SelfPower	3	Coefficients MixSeed Quality Simulation SoldierSizeK ToScenario TotalPopulation	15	Colony.Population Pop.IsSoldier Pop.Literacy Pop.Size Power.Nation Region.Pops Region.Tier World.Bureaucracy World.ConscriptionLaw World.Discovered World.EthnicEnabled World.LandTax World.PollTax World.ProgressiveTax World.Regions	36	1	8
+Pop.Literacy	候補	5	5	{'dot': 5, 'init': 14}	12	Colony.Literacy Colony.PopSize Pop.ChildLaborRate Pop.ClassId Pop.EducationFill Pop.Size Pop.SubsistenceBasis Pop.SubsistenceBasisKind Producer.Productivity World.EducationLaw World.WarmupFrozen World.WomenWageRetention	2	ChildLaborRate Clamp01 ClassLiteracy GenerationalMix LiteracyRate MkPop MotherLiteracyRatio SupplyFill Toward	7	Pop.Ages Pop.FoodMet Pop.FoodNeed Pop.NeedMet Pop.NeedTotal Region.ChildLaborLegal World.WomenRights	33	0	9
+World.MeanSatisfactionPol	候補	1	1	{'dot': 1}	0		0	MeanSatisfaction MeasureMobilization	11	Pop.Closed Pop.Consciousness Pop.IsModernElite Pop.IsSoldier Pop.Militancy Pop.Satisfaction Pop.Size World.ExternalPressure World.LaborUnion World.RecentRegimeChanges World.Regions	5	0	3
+World.ParliamentControl	候補	11	11	{'dot': 11}	13	Diplomacy.TensionMax World.ArmyAllegiance World.AusterityIntensity World.CoopParliamentCrown World.Crown World.Diplomacy World.Legitimacy World.Polity World.RadicalPower World.ReformistPower World.Seizure World.SelfPower World.Suffrage	7	ArmyPower ChallengeRatio Clamp01 DebtGrip DriftedPolityCoord National ParliamentControlTarget SoldierCrownLean SoldierHoldShare SupportAt Value	14	Colony.Population Diplomacy.Powers Pop.Closed Pop.IdeologyShares Pop.IsModernElite Pop.IsSoldier Pop.Militancy Pop.Size Power.Id Region.Pops World.Coercion World.MonetaryEnabled World.PriceLevel World.Regions	25	0	12
+World.ReformistPower	候補	1	1	{'dot': 1}	6	Pop.Consciousness Pop.Militancy Pop.Size World.ExternalPressure World.LaborUnion World.RecentRegimeChanges	2	UnionLegality	3	Pop.Closed Pop.IsModernElite Pop.IsSoldier	6	0	4
+World.Coercion	候補	3	3	{'dot': 3}	0		0	CoercionNow	7	Colony.Population Diplomacy.Wars Power.WarExhaustion World.BaseCoercion World.Diplomacy World.Legitimacy World.SelfPower	6	0	5
+World.RadicalPower	候補	1	1	{'dot': 1}	4	Pop.Consciousness Pop.Militancy Pop.Size World.RecentRegimeChanges	3		0		5	0	3
+World.PriceLevel	候補	3	4	{'dot': 1, 'bare': 3}	2	World.Convertibility World.FiatInflationPressure	4	NationKey Toward Value	2	Colony.Population Power.BaseName	21	1	7
+Region.AdminFill	候補	4	4	{'dot': 4}	34	Colony.Name Colony.PopSize Colony.Resources FactionState.Region Pop.Ages Pop.ClassId Pop.ClassName Pop.IsSoldier Pop.IsUrban Pop.Literacy Pop.Satisfaction Pop.Size Pop.SubsistenceBasis Region.AdminBudget Region.ArableLand Region.ArtisanPopIndex Region.BureaucratPopIndex Region.CapitalEnabled Region.ClergyPopIndex Region.CriminalPopIndex Region.DoctorPopIndex Region.Dominance Region.EducationProducerIndex Region.InvestorPopIndex Region.IsPort Region.Markets Region.MerchantPopIndex Region.MeritFromIndex Region.MeritToIndex Region.Producers Region.RuleInit Region.ServantPopIndex Region.SoldierPopIndex Region.TeacherPopIndex	1	AdminDistanceMul RentScratch SettleStateProcure StateProcureFill StateProcureWant	8	Colony.Population Diplomacy.DistanceNormKm Pop.Layout Producer.Inputs Producer.Productivity Region.Name World.Latitude World.Longitude	14	0	7
+Pop.RemainingBudget	候補	9	9	{'dot': 9}	11	Market.Stock Market.TargetStock Pop.GoodDemand Pop.GoodNeed Pop.Size Pop.SubsistenceShare Region.CapitalEnabled Region.InvestorPopIndex Region.Markets Region.Pops Region.SocialSecurity	10	CrossSubstitution Participation RentScratch Savings Value	7	Colony.Population Politics.Discontent() Pop.Militancy Region.ElecInfraFill Region.InfraFill Region.OpiumAddiction Region.SoapFill	9	0	1
+War.Score	候補	4	1	{'dot': 1}	2	War.A War.B	0		0		9	0	1
+World.FiscalFundingRatio	候補	2	2	{'dot': 2}	20	Region.AdminBudget Region.ElecInfraBudget Region.HigherEduFunding Region.InfraBudget Region.MilitaryBudget Region.NavalBudget Region.SoldierPayBudget Region.StateSpent World.Coef World.Convertibility World.FiscalEnabled World.LastColonialUpkeepPerMonth World.LastExportValue World.LastInterestPerMonth World.LastPensionCostPerMonth World.LastTributeOutPerQuarter World.LastWelfareCostPerMonth World.MonetaryLaw World.RecruitBudget World.Tariff	1	BaseMoney Borrow BroadMoney DevaluationAllowed MonthsPerClearing PortStateRequest PortThroughputTotal Savings Share Transfer Value	25	Colony.Population Pop.IsModernElite Pop.IsSoldier Pop.Size Region.InvestorPopIndex Region.IsPort Region.LastPortThroughput Region.LastTradeThrottle World.AdminSpending World.Bank World.BorrowCooldownMonths World.CapitalControlLaw World.Diplomacy World.Discovered World.ExchangeRate World.FiscalCapacityPerMonth World.ForeignBondInvestorPool World.GovAvgCouponPerYear World.GovBondRatePerYear World.La	7	0	5
+World.CumulativeDevaluation	候補	2	2	{'dot': 2}	26	Region.AdminBudget Region.ElecInfraBudget Region.HigherEduFunding Region.InfraBudget Region.MilitaryBudget Region.NavalBudget Region.SoldierPayBudget Region.StateSpent World.Coef World.Convertibility World.CurrencyReformCooldown World.FiscalEnabled World.FiscalFundingRatio World.LastColonialUpkeepPerMonth World.LastExportValue World.LastInterestPerMonth World.LastPensionCostPerMonth World.LastTributeOutPerQuarter World.LastWelfareCostPerMonth World.MonetaryEnabled World.MonetaryLaw World.NoDevaluationMonths World.OnGoldStandard World.PendingCurrencyReform World.RecruitBudget World.Tariff	1	BaseMoney Borrow BroadMoney Clamp01 DevaluationAllowed MonthsPerClearing PortStateRequest PortThroughputTotal Savings Transfer Value	24	Colony.Population Pop.IsModernElite Pop.IsSoldier Pop.Size Region.InvestorPopIndex Region.IsPort Region.LastPortThroughput Region.LastTradeThrottle World.AdminSpending World.Bank World.BorrowCooldownMonths World.CapitalControlLaw World.Diplomacy World.Discovered World.ExchangeRate World.FiscalCapacityPerMonth World.ForeignBondInvestorPool World.GovAvgCouponPerYear World.GovBondRatePerYear World.La	6	1	4
+Power.NeedSea	候補	5	3	{'dot': 3}	0		0	NavalPower Unrest	13	Colony.Population Pop.Closed Pop.IsModernElite Pop.IsSoldier Pop.Militancy Pop.Size Power.CrewFill Power.FleetGauge Power.Military Power.Nation Power.NavalFuelMul World.Legitimacy World.Regions	6	0	3
+World.FoodFill	候補	2	1	{'dot': 1}	3	Pop.FoodMet Pop.FoodNeed World.Coef	1	Clamp01	0		10	2	6
+Region.FoodFill	候補	2	1	{'dot': 1}	2	Pop.FoodMet Pop.FoodNeed	1	Clamp01 Toward	0		9	0	5
+Pop.FoodFill()	候補	-	1	{'prop': 1}	2	Pop.FoodMet Pop.FoodNeed	0		0		2	0	2
+Pop.LivingRef	候補	2	2	{'dot': 2}	1	Pop.Satisfaction	1	Toward	0		4	0	1
+Pop.FoodRef	候補	2	2	{'dot': 2}	2	Pop.FoodMet Pop.FoodNeed	1	Toward	0		4	0	1
+World.FamineMemory	候補	1	1	{'dot': 1}	1	World.FoodFill	2		0		4	0	3
+World.DefeatShock	候補	2	2	{'dot': 2}	0		1		0		10	0	6
+
+# 候補の選び方の順位（上位 40・核と核の間＝deg 2 以上・deg・出力・入力の順）
+#	Pop.Literacy	deg5	出力33	入力12	核を読む:	核に読まれる:Politics.Discontent() Pop.Consciousness Pop.Militancy World.DynasticMandate World.Legitimacy
+#	Power.Military	deg4	出力36	入力4	核を読む:	核に読まれる:Colony.Militancy Pop.Militancy Power.WarExhaustion World.Legitimacy
+#	World.MeanSatisfactionPol	deg4	出力5	入力0	核を読む:Pop.Consciousness Pop.Militancy Pop.Satisfaction	核に読まれる:World.DynasticMandate
+#	World.ParliamentControl	deg3	出力25	入力13	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:World.Legitimacy
+#	World.ReformistPower	deg3	出力6	入力6	核を読む:Pop.Consciousness Pop.Militancy	核に読まれる:Pop.Consciousness
+#	World.Coercion	deg3	出力6	入力0	核を読む:Power.WarExhaustion World.Legitimacy	核に読まれる:Pop.Consciousness
+#	World.RadicalPower	deg3	出力5	入力4	核を読む:Pop.Consciousness Pop.Militancy	核に読まれる:Pop.Consciousness
+#	World.RecruitBudget	deg3	出力5	入力0	核を読む:Pop.Consciousness Pop.Militancy World.Legitimacy	核に読まれる:
+#	Power.FleetGauge	deg3	出力3	入力1	核を読む:	核に読まれる:Colony.Militancy Pop.Militancy World.Legitimacy
+#	Power.CrewFill	deg3	出力1	入力1	核を読む:	核に読まれる:Colony.Militancy Pop.Militancy World.Legitimacy
+#	Power.NavalFuelMul	deg3	出力1	入力1	核を読む:	核に読まれる:Colony.Militancy Pop.Militancy World.Legitimacy
+#	World.LandTax	deg2	出力26	入力0	核を読む:	核に読まれる:Pop.Militancy World.Legitimacy
+#	World.PollTax	deg2	出力23	入力0	核を読む:	核に読まれる:Pop.Militancy World.Legitimacy
+#	World.PriceLevel	deg2	出力21	入力2	核を読む:	核に読まれる:Pop.Militancy World.Legitimacy
+#	Region.AdminFill	deg2	出力14	入力34	核を読む:Pop.Satisfaction	核に読まれる:Pop.Militancy
+#	Pop.RemainingBudget	deg2	出力9	入力11	核を読む:Politics.Discontent() Pop.Militancy	核に読まれる:
+#	War.Score	deg2	出力9	入力2	核を読む:	核に読まれる:Colony.Militancy World.Legitimacy
+#	World.FiscalFundingRatio	deg2	出力7	入力20	核を読む:	核に読まれる:Pop.Militancy World.Legitimacy
+#	World.CumulativeDevaluation	deg2	出力6	入力26	核を読む:	核に読まれる:Pop.Militancy World.Legitimacy
+#	World.FiscalCapacityPerMonth	deg2	出力6	入力10	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	Power.NeedSea	deg2	出力6	入力0	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	World.ExpansionWill	deg2	出力5	入力1	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	World.LastRevenuePerMonth	deg2	出力4	入力5	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	Pop.LivingRef	deg2	出力4	入力1	核を読む:Pop.Satisfaction	核に読まれる:Politics.Discontent()
+#	Power.NeedLand	deg2	出力4	入力0	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	World.PopulationDelta	deg2	出力3	入力10	核を読む:Pop.Consciousness Pop.Militancy	核に読まれる:
+#	World.MandateSpentNew	deg2	出力3	入力1	核を読む:Pop.Militancy	核に読まれる:World.Legitimacy
+#	World.LastImmigration	deg2	出力3	入力0	核を読む:Pop.Consciousness Pop.Militancy	核に読まれる:
+#	World.PendingCurrencyReform	deg2	出力3	入力0	核を読む:	核に読まれる:Pop.Militancy World.Legitimacy
+#	World.LastAdminClaimPerMonth	deg2	出力2	入力6	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	World.LastRuleCut	deg2	出力2	入力3	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	World.LastSpecialistExit	deg2	出力2	入力0	核を読む:Pop.Consciousness Pop.Militancy	核に読まれる:
+#	FactionState.EquipFill	deg2	出力1	入力11	核を読む:Politics.Discontent() Pop.Militancy	核に読まれる:
+#	World.SecessionHold	deg2	出力1	入力8	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	World.CrimeRate	deg2	出力1	入力4	核を読む:Pop.Militancy Pop.Satisfaction	核に読まれる:
+#	Region.CrimeRate	deg2	出力1	入力3	核を読む:Pop.Militancy Pop.Satisfaction	核に読まれる:
+#	World.LastTaxIncomePerMonth	deg2	出力1	入力3	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	World.LastTaxLandPerMonth	deg2	出力1	入力3	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	World.LastTaxPollPerMonth	deg2	出力1	入力3	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:
+#	World.LastTaxProgressivePerMonth	deg2	出力1	入力3	核を読む:Pop.Militancy World.Legitimacy	核に読まれる:

@@ -1,0 +1,102 @@
+節点	ファイル:行	メソッド	種類	演算	形	入力(直接)	経由の呼び出し	右辺
+Pop.Militancy	Colonial.cs:56	Step	dot	=	self-clamp	Coefficients.ColonialUnrestHomeWeight Coefficients.ColoniesForFullColonial	経由:RegionMilitancy	Math.Min(1, pop.Militancy + homePressure)
+Pop.Militancy	Diplomacy.cs:2019	Subjugate	dot	=	self-clamp	Coefficients.ColonizeAnnexMilitancy		Math.Min(1, pop.Militancy + c.ColonizeAnnexMilitancy)
+Pop.Militancy	Diplomacy.cs:2967	CedeRegion	dot	=	self-clamp	Coefficients.CededColonyMilitancy		Math.Min(1, p.Militancy + c.CededColonyMilitancy)
+Pop.Militancy	Fiscal.cs:127	Step	dot	=	self-clamp	?.Pops Coefficients.GoldRejoinCoverMargin World.CumulativeDevaluation World.PendingCurrencyReform World.PriceLevel	経由:Of 経由:TotalMoney 経由:Transfer 経由:Value	Math.Min(1, p.Militancy + bite)
+Pop.Militancy	Military.cs:249	DrawFromPool	dot	=	self-clamp	Coefficients.ConscriptGrievanceRate Pop.Size		Math.Min(1, a.Militancy + c.ConscriptGrievanceRate * (da / sa))
+Pop.Militancy	Military.cs:250	DrawFromPool	dot	=	self-clamp	Coefficients.ConscriptGrievanceRate Pop.Size		Math.Min(1, b.Militancy + c.ConscriptGrievanceRate * (db / sb))
+Pop.Militancy	Model.cs:244	Blend	dot	=	hand-leaky(x=x*keep+in)	Pop.Size		PoliticalQuantities.Clamp01((to.Militancy * t0 + from.Militancy * n) / t1)
+Pop.Militancy	Politics.cs:141	Step	dot	*=	hand-decay(x*=k)	Coefficients.ReformMilitancyRelief		c.ReformMilitancyRelief
+Pop.Militancy	Politics.cs:186	Step	dot	=	Toward	Coefficients.MilitancySpeed Coefficients.MinorityMilitancy Coefficients.WarWearinessMilitancy Power.WarExhaustion World.EthnicEnabled World.Polity World.Suffrage	経由:AxisDistance 経由:FamineDrive 経由:PoliticalTerm 経由:RegionAvgSuffrageInclusion 経由:Value	PoliticalQuantities.Toward(p.Militancy, target, c.MilitancySpeed)
+Pop.Militancy	Politics.cs:491	SettleRevolt	dot	*=	hand-decay(x*=k)	Coefficients.ReformMilitancyRelief		c.ReformMilitancyRelief
+Pop.Militancy	Politics.cs:708	ConcedeToFaction	dot	*=	hand-decay(x*=k)	Coefficients.ReformMilitancyRelief		c.ReformMilitancyRelief
+Pop.Militancy	Privileges.cs:92	StepMonth	dot	=	self-clamp	Coefficients.PrivilegeStripMilitancy	経由:Strength	System.Math.Min(1.0, p.Militancy + anger)
+Pop.Militancy	Simulation.cs:206	Simulation	dot	=		Scenario.InitialMassMilitancy		scenario.InitialMassMilitancy
+Pop.Militancy	Simulation.cs:1327	PromoteColonyToRegion	dot	=		Colony.Militancy Colony.PopSize		col.Militancy * (natives / peasantSize)
+Colony.Militancy	Diplomacy.cs:2010	Subjugate	dot	=	self-clamp	Coefficients.ColonizeAnnexMilitancy		Math.Max(col.Militancy, c.ColonizeAnnexMilitancy)
+Colony.Militancy	Diplomacy.cs:2661	ResolvePeace	dot	=	self-clamp	Coefficients.ColonizeAnnexMilitancy Coefficients.ConquestColonyMilitancy Power.ColonyList War.A War.B War.Score		Math.Min(1.0, Math.Max(col.Militancy, c.ConquestColonyMilitancy * c.ColonizeAnnexMilitancy))
+World.Legitimacy	Diplomacy.cs:1414	TriggerWars	dot	-=	hand-decay(x-=x*k)	Coefficients.AISubmitLegitCost		actualCost
+World.Legitimacy	Diplomacy.cs:1880	TensionPolitics	dot	=			経由:PreviewTensionPolitics	pv.AfterLegitimacy
+World.Legitimacy	Diplomacy.cs:1959	ResolvePendingWar	dot	-=	hand-decay(x-=x*k)	Coefficients.AISubmitLegitCost		actual
+World.Legitimacy	Diplomacy.cs:2804	ResolvePeace	dot	=	self-clamp	Coefficients.ImposedRegimeLegitimacy		Math.Min(dw.Legitimacy, c.ImposedRegimeLegitimacy)
+World.Legitimacy	Diplomacy.cs:2855	OutcomeShocks	dot	=	self-clamp	Coefficients.VictoryLegitBoost Diplomacy.CollapseScore		Math.Min(1.0, vw.Legitimacy + c.VictoryLegitBoost * Math.Min(absScore, CollapseScore))
+World.Legitimacy	Fiscal.cs:132	Step	dot	=	self-clamp	Coefficients.CurrencyReformLegitimacyHit World.CumulativeDevaluation	経由:NominalOf 経由:Value	Math.Max(0, w.Legitimacy - c.CurrencyReformLegitimacyHit * forgiveRatio)
+World.Legitimacy	Fiscal.cs:205	Step	dot	=	self-clamp	Coefficients.DefaultLegitimacyHit		Math.Max(0, w.Legitimacy - c.DefaultLegitimacyHit)
+World.Legitimacy	GovernanceSnapshot.cs:47	RestoreTo	dot	=				_legitimacy
+World.Legitimacy	Politics.cs:275	Step	dot	=	hand-approach(x+k*(1-x))	Coefficients.ClergyMediationPerCapita Coefficients.ConstMonarchyErosion Coefficients.DefeatShockLegitWeight Coefficients.DominanceLegitimacyErosion Coefficients.DynMandateAmplify Coefficients.LegitimacyErosionRate Coefficients.LegitimacyRegenRate Coefficients.RepresentationThreshold World.DefeatShock World.DynasticMandate World.Freedom World.MandateSpentNew World.PartySeats World.StateReligion	経由:MandateBase 経由:MeasureMobilization 経由:Value	legClamped
+World.Legitimacy	Politics.cs:281	Step	dot	=		World.DefeatShock	経由:MeasureMobilization	legFloor
+World.Legitimacy	Politics.cs:825	CheckRegionalRevolt	dot	=	self-clamp	Coefficients.RevoltSuppressLegitCost		Math.Max(0, w.Legitimacy - c.RevoltSuppressLegitCost)
+World.Legitimacy	World.cs:536	ResolveElection	bare	=	self-clamp	ElectionEvent.AgendaAxes ElectionEvent.AgendaIdeologies ElectionEvent.AgendaIncrease	経由:ElectionPushEffectOf 経由:NetSupport	System.Math.Max(0, Legitimacy - (-net) * effect)
+Power.WarExhaustion	Diplomacy.cs:856	Step	dot	=	hand-decay(x=x*k)	Coefficients.WarWearinessKeepPerMonth		p.WarExhaustion * c.WarWearinessKeepPerMonth
+Power.WarExhaustion	Diplomacy.cs:2273	StepWars	dot	=	self-clamp	Coefficients.ChemExhaustionWeight Coefficients.FiscalExhaustionWarWeariness Coefficients.RationingBlockadeRelief Coefficients.WarExhaustionAirRaid Coefficients.WarExhaustionBlockade Coefficients.WarExhaustionEcon Military.WorkingMenStdShare Power.AirPower Profile.Power Region.MilitaryAirFill World.LastBlockadeRisk	経由:GdpPcDrawdown 経由:SoldierSizeK 経由:TotalPopulation 経由:Value	Math.Min(1, p.WarExhaustion + exBase + econEx + blockade + fiscal + airRaid + chem)
+Power.WarExhaustion	Diplomacy.cs:2525	WarCasualties	dot	=	self-clamp	Coefficients.AirCasualtyWeight Coefficients.WarExhaustionCasualty Pop.Size Power.Military	経由:Value	Math.Min(1, p.WarExhaustion + casTerm)
+Pop.Consciousness	Model.cs:245	Blend	dot	=	hand-leaky(x=x*keep+in)	Pop.Size		PoliticalQuantities.Clamp01((to.Consciousness * t0 + from.Consciousness * n) / t1)
+Pop.Consciousness	Politics.cs:159	Step	dot	=	Toward	Coefficients.BandwagonSensitivity Coefficients.BandwagonWeight Coefficients.ConsciousnessSpeed Coefficients.NewsConsciousnessFloor Coefficients.UrbanConsciousnessBoost Pop.IsUrban Pop.Literacy Pop.NewsFill World.Censorship World.EducationLaw World.RadicalPower World.ReformistPower	経由:EffectiveCoerce 経由:SchoolingConversion	PoliticalQuantities.Toward(p.Consciousness, target, c.ConsciousnessSpeed)
+Pop.Satisfaction	EconomyStep.cs:2440	Run	dot	=		EconomyStep.Eps Pop.NeedMet Pop.NeedTotal		p.NeedTotal > Eps ? PoliticalQuantities.Clamp01(p.NeedMet / p.NeedTotal) : 1.0
+Politics.Discontent()	FactionSnapshot.cs:None	DiscontentOf	method	def	method			(メソッドの本体)
+Politics.Discontent()	Politics.cs:None	Discontent	method	def	method			(メソッドの本体)
+World.DynasticMandate	Politics.cs:203	Step	dot	=				0.5
+World.DynasticMandate	Politics.cs:211	Step	dot	=	Toward	Coefficients.DynMandateEmaRate Coefficients.DynMandateFoodAnchor Coefficients.DynMandateFoodWeight Coefficients.DynMandateSatPivot Coefficients.DynMandateSatWeight Coefficients.DynMandateWarWeight Power.WarExhaustion World.FoodFill World.MeanSatisfactionPol	経由:MandateBase	PoliticalQuantities.Toward(w.DynasticMandate, dmTarget, c.DynMandateEmaRate)
+Power.Military	Diplomacy.cs:785	SyncPowers	dot	=		Coefficients.MilitaryQualityBonus Coefficients.MilitaryTier3Bonus Coefficients.SoldiersPerMilitary Region.MilitaryQualityFill Region.MilitaryTier3Fill World.MilitaryReadiness	経由:Quality 経由:SoldierSizeK	(soldiersNow / c.SoldiersPerMilitary) * nw.MilitaryReadiness * (1 + c.MilitaryQualityBonus * nw.Region.MilitaryQualityFill + c.MilitaryTier3Bonus * nw.Region.MilitaryTier3Fill) * cohesion * militarism
+Pop.Literacy	Model.cs:242	Blend	dot	=	hand-leaky(x=x*keep+in)	Pop.Size		PoliticalQuantities.Clamp01((from.Literacy * s0 - cLit * n) / rest)
+Pop.Literacy	Model.cs:243	Blend	dot	=	hand-leaky(x=x*keep+in)	Pop.Size		PoliticalQuantities.Clamp01((to.Literacy * t0 + cLit * n) / t1)
+Pop.Literacy	Simulation.cs:1326	PromoteColonyToRegion	dot	=		Colony.Literacy Colony.PopSize		col.Literacy * natives / peasantSize
+Pop.Literacy	TechEducation.cs:34	GrowLiteracy	dot	=	Toward	Coefficients.ChildLaborLiteracyPenalty Pop.ChildLaborRate Pop.EducationFill World.EducationLaw World.WarmupFrozen	経由:ChildLaborRate 経由:SupplyFill	PoliticalQuantities.Toward(p.Literacy, p.EducationFill, baseSpeed * litFactor)
+Pop.Literacy	TechEducation.cs:37	GrowLiteracy	dot	=	self-clamp	Coefficients.WomenEduLitBonus Pop.EducationFill World.WomenWageRetention	経由:GenerationalMix	p.GenerationalMix(p.Literacy, Math.Max(p.EducationFill, motherLit * p.Literacy), 1)
+World.MeanSatisfactionPol	Politics.cs:198	Step	dot	=			経由:MeanSatisfaction 経由:MeasureMobilization	sizeSum > 1e-9 ? NationalScore.MeanSatisfaction(w) : 1.0
+World.ParliamentControl	CrownParliament.cs:13	Step	dot	=		World.Polity		target
+World.ParliamentControl	CrownParliament.cs:22	Step	dot	=	self-clamp	Coefficients.SummonParliamentRate	経由:DebtGrip 経由:Value	w.ParliamentControl + c.SummonParliamentRate * s * System.Math.Max(0, t - w.ParliamentControl)
+World.ParliamentControl	CrownParliament.cs:25	Step	dot	=	self-other	Coefficients.SummonParliamentRate World.AusterityIntensity		PoliticalQuantities.Clamp01(w.ParliamentControl + c.SummonParliamentRate * (w.AusterityIntensity - 0.5) * 2.0)
+World.ParliamentControl	CrownParliament.cs:28	Step	dot	=	self-clamp	Coefficients.SummonParliamentRate		System.Math.Max(0, w.ParliamentControl - c.SummonParliamentRate)
+World.ParliamentControl	CrownParliament.cs:56	Step	dot	=	self-other	Coefficients.IdeologyAffinitySlope Coefficients.ParliamentPressureRate World.Polity World.Suffrage	経由:National	PoliticalQuantities.Clamp01(w.ParliamentControl + c.ParliamentPressureRate * (rep - cur))
+World.ParliamentControl	CrownParliament.cs:61	Step	dot	=	self-clamp	Coefficients.ParliamentPressureRate World.Legitimacy		System.Math.Max(0, w.ParliamentControl - c.ParliamentPressureRate * (crown - rep) * w.Legitimacy)
+World.ParliamentControl	CrownParliament.cs:64	Step	dot	=	self-clamp	Coefficients.ArmyPcPressure	経由:ArmyPower 経由:SoldierCrownLean	System.Math.Max(0, w.ParliamentControl - c.ArmyPcPressure * lean * PolicyPreferences.ArmyPower(w))
+World.ParliamentControl	CrownParliament.cs:87	Step	dot	=	self-clamp	Coefficients.ConstitutionalControlFloor		System.Math.Max(w.ParliamentControl, c.ConstitutionalControlFloor)
+World.ParliamentControl	CrownParliament.cs:147	ApplyRegime	dot	=				ParliamentControlTarget(target)
+World.ParliamentControl	GovernanceSnapshot.cs:48	RestoreTo	dot	=				_parliamentControl
+World.ParliamentControl	Politics.cs:383	Transition	dot	=	self-clamp	Coefficients.GrantedControlOnReform Coefficients.ReformGrantPcWidth World.Polity World.Suffrage	経由:SoldierHoldShare	PoliticalQuantities.Clamp01(Math.Max(w.ParliamentControl, grant))
+World.ReformistPower	Politics.cs:328	MeasureMobilization	dot	=		Coefficients.ReformPressureBoost Coefficients.UnionMobilization Pop.Consciousness Pop.Militancy Pop.Size World.ExternalPressure World.LaborUnion World.RecentRegimeChanges		reformist
+World.Coercion	GovernanceSnapshot.cs:47	RestoreTo	dot	=				_coercion
+World.Coercion	MultiNationSim.cs:404	SpawnNation	dot	=		Simulation.World		pw.Coercion
+World.Coercion	Politics.cs:288	Step	dot	=			経由:CoercionNow	CoercionNow(w, c)
+World.RadicalPower	Politics.cs:329	MeasureMobilization	dot	=		Coefficients.DesperationChallengeWeight Coefficients.DesperationConsciousnessGate Coefficients.RiotMilitancyThreshold Pop.Consciousness Pop.Militancy Pop.Size World.RecentRegimeChanges		radical
+World.PriceLevel	OpeningBake.cs:166	Apply	dot	=		Simulation.World	経由:NationKey	lv[0].GetDouble()
+World.PriceLevel	World.cs:1335	UpdatePriceLevel	bare	=	Toward	Coefficients.MonetaryPriceSensitivity Coefficients.MonetaryTrendSpeed World.Convertibility	経由:Value	PoliticalQuantities.Toward(PriceLevel, cyclical, c.MonetaryPriceSensitivity)
+World.PriceLevel	World.cs:1338	UpdatePriceLevel	bare	*=	hand-decay(x*=k)	Coefficients.FiatInflationWeight World.FiatInflationPressure		1.0 + c.FiatInflationWeight * FiatInflationPressure
+World.PriceLevel	World.cs:1341	UpdatePriceLevel	bare	=	self-clamp	Coefficients.PriceLevelFloor		PriceLevel > 0 && PriceLevel < double.PositiveInfinity ? Math.Max(PriceLevel, c.PriceLevelFloor) : before
+Region.AdminFill	EconomyStep.cs:2258	Run	dot	=		?.Count ?.Price Catalog.AdminId Coefficients.AdminNeedPerPop Pop.Size Region.AdminBudget	経由:AdminDistanceMul	StateProcureFill(got, adminNeed, 0.0)
+Region.AdminFill	EconomyStep.cs:2259	Run	dot	=				0.0
+Region.AdminFill	Simulation.cs:125	Simulation	dot	=				0.0
+Region.AdminFill	Simulation.cs:1375	PromoteColonyToRegion	dot	=				0.0
+Pop.RemainingBudget	EconomyStep.cs:757	Run	dot	=			経由:Value	p.Savings.Value
+Pop.RemainingBudget	EconomyStep.cs:773	Run	dot	*=	hand-decay(x*=k)		経由:Value	1.0 - coef.IndInvestmentFrac.Value
+Pop.RemainingBudget	EconomyStep.cs:1262	Run	dot	=	self-clamp	?.Price Coefficients.MilitaryGoods	経由:Participation 経由:Value	Math.Max(0, pp.RemainingBudget - planned * share)
+Pop.RemainingBudget	EconomyStep.cs:1380	Run	dot	-=		?.Count Region.Pops Scratch.TrickleOwner		trickleOwner[k] * fill
+Pop.RemainingBudget	EconomyStep.cs:1417	Run	dot	=				0
+Pop.RemainingBudget	EconomyStep.cs:1599	Run	dot	+=		?.Count ?.Id ?.Price ?.Tier Catalog.DomesticServiceId Coefficients.CrossElasticity Coefficients.DemandElasticityMaxDaily Coefficients.DemandElasticityMaxLuxury Coefficients.DomesticServiceIncomeFactorExponent Coefficients.HarvestShortfallToMarket Coefficients.HouseholdCreditMonths Coefficients.PanicBuyWeight Coefficients.PriceFactorMax Coefficients.PriceFactorMin EconomyStep.Eps Good.Elasticity Good.RefPrice Market.Stock Market.TargetStock Pop.GoodNeed Pop.SubsistenceShare Region.Markets Scratch.ConsumeOrder	経由:Value	borrow
+Pop.RemainingBudget	EconomyStep.cs:1695	Run	dot	-=		?.Count ?.Id ?.Price Pop.GoodDemand Region.Markets Scratch.ConsumeOrder		pay
+Pop.RemainingBudget	EconomyStep.cs:1814	Run	dot	-=		?.Count ?.Id ?.Price Pop.GoodDemand Region.Markets Region.Pops Scratch.ConsumeOrder		pay
+Pop.RemainingBudget	EconomyStep.cs:1819	Run	dot	-=		?.Count ?.Id ?.Price Pop.GoodDemand Region.Markets Region.Pops Scratch.ConsumeOrder		unfilled * m.Price * (1 + stateMonop + distM + monRent + guildRent) - unfilled * insureBase * insure
+War.Score	Diplomacy.cs:2099	ExecuteMediation	dot	=				0
+World.FiscalFundingRatio	GovernanceSnapshot.cs:52	RestoreTo	dot	=				_fiscalFunding
+World.FiscalFundingRatio	Simulation.cs:1976	MonthSettle	dot	=		Coefficients.TradeBiasStrength NationConfig.Education Region.AdminBudget Region.ElecInfraBudget Region.HigherEduFunding Region.InfraBudget Region.MilitaryBudget Region.NavalBudget Region.SoldierPayBudget Region.StateSpent Simulation.World World.Coef World.Convertibility World.LastColonialUpkeepPerMonth World.LastExportValue World.LastInterestPerMonth World.LastPensionCostPerMonth World.LastTributeOutPerQuarter World.LastWelfareCostPerMonth World.RecruitBudget World.Tariff	経由:BaseMoney 経由:Borrow 経由:PortStateRequest 経由:PortThroughputTotal 経由:Transfer 経由:Value	new Share(payRate)
+World.CumulativeDevaluation	Fiscal.cs:130	Step	dot	*=	hand-decay(x*=k)		経由:Value	1.0 - PoliticalQuantities.Clamp01(c.CurrencyReformForgiveShare.Value)
+World.CumulativeDevaluation	Simulation.cs:1963	MonthSettle	dot	+=		Coefficients.TradeBiasStrength NationConfig.Education Region.AdminBudget Region.ElecInfraBudget Region.HigherEduFunding Region.InfraBudget Region.MilitaryBudget Region.NavalBudget Region.SoldierPayBudget Region.StateSpent Simulation.World World.Coef World.Convertibility World.LastColonialUpkeepPerMonth World.LastExportValue World.LastInterestPerMonth World.LastPensionCostPerMonth World.LastTributeOutPerQuarter World.LastWelfareCostPerMonth World.RecruitBudget World.Tariff	経由:BaseMoney 経由:Borrow 経由:PortStateRequest 経由:PortThroughputTotal 経由:Transfer 経由:Value	devalue
+Power.NeedSea	ArmyShape.cs:49	Compute	dot	=				0
+Power.NeedSea	ArmyShape.cs:66	Compute	dot	+=		?.Count Profile.Power	経由:Unrest	ax * landPot[j]
+Power.NeedSea	ArmyShape.cs:69	Compute	dot	+=		?.Count Profile.Power	経由:NavalPower 経由:Unrest	hrSea[j * n + i] / sumS * ps[j].NavalPower
+World.FoodFill	Simulation.cs:2119	DemographicStep	dot	+=	hand-blend(x+=k*(t-x))	Coefficients.FoodFillSmoothing Pop.FoodMet Pop.FoodNeed World.Coef		c.FoodFillSmoothing * (rawFill - prevFood)
+Region.FoodFill	Simulation.cs:2318	SmoothRegionalFoodFill	dot	=	Toward	Coefficients.FoodFillSmoothing Pop.FoodMet Pop.FoodNeed		PoliticalQuantities.Toward(region.FoodFill, raw, c.FoodFillSmoothing)
+Pop.FoodFill()	Model.cs:None	FoodFill	prop	=>	computed			FoodMet/FoodNeed
+Pop.LivingRef	Politics.cs:168	Step	dot	=		Pop.Satisfaction		p.Satisfaction
+Pop.LivingRef	Politics.cs:188	Step	dot	=	Toward	Coefficients.LivingRefSpeed Pop.Satisfaction		PoliticalQuantities.Toward(p.LivingRef, p.Satisfaction, c.LivingRefSpeed)
+Pop.FoodRef	Politics.cs:170	Step	dot	=		Pop.FoodMet Pop.FoodNeed		foodFill
+Pop.FoodRef	Politics.cs:190	Step	dot	=	Toward	Coefficients.LivingRefSpeed Pop.FoodMet Pop.FoodNeed		PoliticalQuantities.Toward(p.FoodRef, foodFill, c.LivingRefSpeed)
+World.FamineMemory	Politics.cs:286	Step	dot	=	hand-leaky(x=x*keep+in)	Coefficients.DynMandateFoodAnchor Coefficients.FamineMemoryKeepPerQuarter World.FoodFill		w.FamineMemory * c.FamineMemoryKeepPerQuarter + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill)
+World.DefeatShock	Diplomacy.cs:2863	OutcomeShocks	dot	=	self-clamp			Math.Max(dw.DefeatShock, 1.0)
+World.DefeatShock	Politics.cs:284	Step	dot	*=	hand-decay(x*=k)	Coefficients.DefeatShockKeepPerQuarter		c.DefeatShockKeepPerQuarter
+
+# 初期化子（new X { 名前 = … }）の書き手の数（構築＝wr は数えない）
+#	Pop.Satisfaction	31
+#	Power.Military	3
+#	Pop.Literacy	14
