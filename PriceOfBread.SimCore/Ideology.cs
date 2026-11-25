@@ -112,9 +112,6 @@ public static class Ideologies
 
     internal static void ClearCultureSplit(IReadOnlyList<World> worlds) { foreach (var w in worlds) CultureSplit.Remove(w); }
 
-    /// <summary>試験の盤面用：表を手で置く（null で消す）。</summary>
-    internal static void SetCultureSplit(World w, Dictionary<string, double>? table) { if (table is null) CultureSplit.Remove(w); else CultureSplit.AddOrUpdate(w, table); }
-
     /// <summary>表の f（表が無い・札が表に無い＝NaN）。</summary>
     internal static double CultureSplitOf(World w, string culture) => CultureSplit.TryGetValue(w, out var t) && t.TryGetValue(culture, out double f) ? f : double.NaN;
 
@@ -227,8 +224,6 @@ public static class Ideologies
     }
 
     public static double[] National(World w) => Aggregate(w, w.AllPops());
-
-    public static double[] Regional(World w, Region r) => Aggregate(w, r.Pops);
 
     public static double[] Soldiers(World w, out double totalWeight) => Aggregate(w, SoldierPops(w), out totalWeight);
 
