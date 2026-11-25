@@ -1,0 +1,30 @@
+(1370) c145sv 事前登録（恒等の線・savetest の 303 の根）  2026-11-26  基点 b8c0944c4
+
+[1] 恒等の線・予言 0（成績表・計器つき 10 種・.cost・計算量は変わらない）
+  根の読み（旗 FemalePartLawFree 既定 1・savetest 1789 300 12 0 state を計器なしで再現して得た・D:/PoB_work/c145sv_work/sv1.txt）
+  - 303 件の道は全て Region.Markets[..].Market.ClearPartners[..]（43 段）…Region.Producers[k].Producer.EffGoods：〈共有の形が違う〉。
+  - 継続の側 A：Producer.EffGoods の `[]` は int[] の空の配列＝.NET の共有の空の配列（Array.Empty<int>）。
+    読み込みの側 B：GraphReader の Tag.Arr が長さ 0 でも Array.CreateInstance で別の実体を作る。
+    保存の時点の古い生産者の空は A・B とも 1 つの実体へ対応づく（A=S・B=L）。読み込みの後の 12 四半期に新しく作られる生産者
+    （Simulation.cs:410・:484・:913）は A・B とも S を持つ → 対（S,S）が先の対（S,L）と食い違い、StateDiffOf の :63 が 303 件を出す。
+  - 〈推〉旗 0 で 0 件＝旗 0 では 12 四半期の間に空の EffGoods を持つ生産者が新しく作られない（盤面が違う）。紙の予言＝旗 1 だけ新規が出る。腕では旗 0 の savetest を取り直さない（stprobe で既出）。
+  - 続きの値には効かない：EffGoods は EconomyStep.cs:1353 の foreach の読みだけ・書き換えは 3 箇所の代入だけ（空の配列の中身は書けない）。
+
+[2] 直す場所＝(b) SaveGame の読み込みで空の配列を共有の空の配列へ戻す（エンジンのコード `[]` と同じ形へ）
+  理由：(a) エンジンの `[]` は 3 箇所＋Catalog の既定の枝＋他の欄にも散る＝直す箇所が多く、ビットも変えうる。(c) 物差しを替える＝選ばない。
+  (b) は読み込みだけ・空の配列は書き換えられない（長さ 0）ので値にも続きにも効かない。
+  変える物：PriceOfBread.SimCore/SaveGame.cs の Tag.Arr（:380 付近）だけ。1 分岐（n==0 なら typeof(Array).Empty<et> を _objects へ入れて返す）。
+  読み手の grep（EffGoods・Array.Empty）：SimCore＝Model.cs:551・Simulation.cs:410・:484・:913・EconomyStep.cs:1353・Catalog.cs:176〜:183／Runner・App・Display・Tests・scripts は EffGoods の読み 0。
+  他の線との重なり：rv・ts・sm は SaveGame.cs に触れない。sv の持ち主の行だけ。新しい係数・旗・状態は 0。Runner は触らない（根は読み込み側）。
+  浮動小数の順序が変わる箇所は 0。
+
+[3] 足す試験（PriceOfBread.Tests/SaveRoundTripTests.cs）と突然変異
+  T1 旗 FemalePartLawFree 1 の小さな盤面を試験の中で置き、保存→読み込み→同じ日数を進める→StateDiff の値の違い 0。
+  T2 型の単体：空の配列（int[] を 2 欄で共有・もう 1 欄は別の空）を持つ物を往復 → 読み込みの空は共有の空の配列と同一・非空の配列は別の実体のまま（空以外を壊さない）。
+  M1 直しを戻す → T2 と savetest（Runner）が赤。T1 が赤になるかは記録（盤面が新規生産者を作らなければ緑のまま＝その場合 T2 が主）。
+  M2 StateDiff が本物の違い（double の 1 ビット）を拾う → 既存〈欄の比べは違いを拾う〉が赤のまま（(c) は選ばないので物差しは変えない・確認だけ）。
+  ㉘ 番人（IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests）：SaveGame.cs の分岐だけ・件数の予言の書き換え 0。
+  試験の数：3233 ＋ 足した数（Tests 側 +2）。
+
+[4] ident：素の 5 種・計器つき 10 種が m1362 と名乗り行を除いて全行一致・.cost +0。savetest の最終行は〈savetest OK〉で始まる時だけ OK。
+[5] 〈判定: 恒等〉かつ最終行 savetest OK なら採る。違うなら外して報告。
