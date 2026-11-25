@@ -1,0 +1,22 @@
+Unhandled exception. System.AggregateException: One or more errors occurred. (ディスクに十分な空き領域がありません。 : 'D:\PoB_work\ident_c143k59\out_ib_10\ins\wars_s3.tsv'.)
+ ---> System.IO.IOException: ディスクに十分な空き領域がありません。 : 'D:\PoB_work\ident_c143k59\out_ib_10\ins\wars_s3.tsv'.
+   at System.IO.StreamWriter.Flush(Boolean flushStream, Boolean flushEncoder)
+   at System.IO.TextWriter.Dispose()
+   at PriceOfBread.SimCore.Instruments.WarTables(Sink sk, DipState dip, Diplomacy dp) in D:\PoB_work\ident_c143k59\snap_ib_10\PriceOfBread.SimCore\Instruments\Instruments.cs:line 2480
+   at PriceOfBread.SimCore.Instruments.WarTables(Sink sk, DipState dip, Diplomacy dp) in D:\PoB_work\ident_c143k59\snap_ib_10\PriceOfBread.SimCore\Instruments\Instruments.cs:line 2476
+   at PriceOfBread.SimCore.Instruments.Close(MultiNationSim sim) in D:\PoB_work\ident_c143k59\snap_ib_10\PriceOfBread.SimCore\Instruments\Instruments.cs:line 1997
+   at PriceOfBread.SimCore.SelfPlayMatch.Run(UInt64 seed, Int32 quarters, Nullable`1 interestRate, Boolean lean) in D:\PoB_work\ident_c143k59\snap_ib_10\PriceOfBread.SimCore\SelfPlay.cs:line 1473
+   at PriceOfBread.SimCore.SelfPlayMatch.Run(UInt64 seed, Int32 quarters, Nullable`1 interestRate, Boolean lean)
+   at PriceOfBread.SimCore.SelfPlayMatch.<>c__DisplayClass21_0.<RunMatches>b__0(Int32 i) in D:\PoB_work\ident_c143k59\snap_ib_10\PriceOfBread.SimCore\SelfPlay.cs:line 1565
+   at System.Threading.Tasks.Parallel.<>c__DisplayClass19_0`2.<ForWorker>b__1(RangeWorker& currentWorker, Int64 timeout, Boolean& replicationDelegateYieldedBeforeCompletion)
+--- End of stack trace from previous location ---
+   at System.Threading.Tasks.Parallel.<>c__DisplayClass19_0`2.<ForWorker>b__1(RangeWorker& currentWorker, Int64 timeout, Boolean& replicationDelegateYieldedBeforeCompletion)
+   at System.Threading.Tasks.TaskReplicator.Replica.Execute()
+   --- End of inner exception stack trace ---
+   at System.Threading.Tasks.TaskReplicator.Run[TState](ReplicatableUserAction`1 action, ParallelOptions options, Boolean stopOnFirstFailure)
+   at System.Threading.Tasks.Parallel.ForWorker[TLocal,TInt](TInt fromInclusive, TInt toExclusive, ParallelOptions parallelOptions, Action`1 body, Action`2 bodyWithState, Func`4 bodyWithLocal, Func`1 localInit, Action`1 localFinally)
+--- End of stack trace from previous location ---
+   at System.Threading.Tasks.Parallel.ForWorker[TLocal,TInt](TInt fromInclusive, TInt toExclusive, ParallelOptions parallelOptions, Action`1 body, Action`2 bodyWithState, Func`4 bodyWithLocal, Func`1 localInit, Action`1 localFinally)
+   at System.Threading.Tasks.Parallel.For(Int32 fromInclusive, Int32 toExclusive, ParallelOptions parallelOptions, Action`1 body)
+   at PriceOfBread.SimCore.SelfPlayMatch.RunMatches(Int32 n, Int32 quarters, Nullable`1 interestRate, Nullable`1 parallel, UInt64 seedBase) in D:\PoB_work\ident_c143k59\snap_ib_10\PriceOfBread.SimCore\SelfPlay.cs:line 1565
+   at Program.<Main>$(String[] args) in D:\PoB_work\ident_c143k59\snap_ib_10\PriceOfBread.Runner\Program.cs:line 5437

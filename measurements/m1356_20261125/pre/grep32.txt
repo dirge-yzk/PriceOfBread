@@ -1,0 +1,32 @@
+# ㉜ grep（Tests・木 1cb76c40c）
+PriceOfBread.Tests/FempInstrumentTests.cs:7:/// 期待は係数の既定値（FemalePartBase 0.4・FemalePartProperty 0.7・FemaleNeedWeight 0.5）から手計算のリテラルと、試験が自分で数える人口の重み。</summary>
+PriceOfBread.Tests/FempInstrumentTests.cs:46:        var (h, rows) = Write(sim => { foreach (var n in sim.Nations) foreach (var r in n.World.Regions) { r.WomenWageRetention = retention; r.FemaleParticipation = 0.123; } });
+PriceOfBread.Tests/FempInstrumentTests.cs:71:                    r.WomenWageRetention = rt;
+PriceOfBread.Tests/GenderTests.cs:34:        Assert.True(reformed.World.WomenPropertyLaw, "イギリスで女性財産権の段に到達しない");
+PriceOfBread.Tests/GenderTests.cs:38:        Assert.InRange(reformed.World.Region.FemaleParticipation, 0.5, 0.7 + 1e-9);   // ★(408) 追従は法の浸透×官僚の役務の充足で進む（(408) の行政費の返り・旗は (419) で焼き込み）＝120 四半期では 0.6 前後（旧 0.69）。0.4 から確かに上がる配線の確認に留める
+PriceOfBread.Tests/GenderTests.cs:39:        Assert.Equal(0.4, baseline.World.Region.FemaleParticipation, 2);
+PriceOfBread.Tests/GenderTests.cs:133:            Assert.Equal(prop, w.WomenPropertyLaw);
+PriceOfBread.Tests/GenderTests.cs:368:        double motherLit = c.FemaleLitFloor + (1.0 - c.FemaleLitFloor) * w.WomenWageRetention;
+PriceOfBread.Tests/LaborWeightTests.cs:13:        if (femaleNeed >= 0) c.FemaleNeedWeight = femaleNeed;
+PriceOfBread.Tests/LaborWeightTests.cs:154:        double part = rbb.FemaleParticipation;
+PriceOfBread.Tests/MobilityTests.cs:243:        w.WomenWageRetention = 0.0;
+PriceOfBread.Tests/RuleSharesFormTests.cs:326:            w.WomenWageRetention = 0.0;
+PriceOfBread.Tests/RuleSharesFormTests.cs:330:            Assert.Equal(want, w.WomenWageRetention, 9);
+PriceOfBread.Tests/StartWarmupTests.cs:264:            D("治安維持力", w.BaseCoercion); D("福祉水準", w.SocialSecurity); D("実労働時間", w.WorkHoursValue); D("賃金保持", w.WomenWageRetention); D("児童労働の合法度", w.ChildLaborLegal);
+# FemalePartProperty の読み手（全域・*.cs *.py *.sh *.axaml）
+./PriceOfBread.SimCore/Coefficients.p02_borrow_polity_epidemic.cs:48:    public double FemalePartProperty = 0.7;      // 女性財産権法の下での参加率（自分の賃金を持てる＝働く誘因。労働供給+2割）
+./PriceOfBread.SimCore/Instruments/InstrumentsFemp.cs:4:// 旧＝FemalePartBase＋(FemalePartProperty−FemalePartBase)×州の賃金保持（エンジンが r.FemaleParticipation へ置く式）・新＝FemalePartBase（賃金保持に依らない構造値）。
+./PriceOfBread.SimCore/Instruments/InstrumentsFemp.cs:21:            old += s * (c.FemalePartBase + (c.FemalePartProperty - c.FemalePartBase) * r.WomenWageRetention);
+./PriceOfBread.SimCore/Simulation.cs:1816:                r.FemaleParticipation = World.Coef.FemalePartBase + (World.Coef.FemalePartProperty - World.Coef.FemalePartBase) * World.WomenWageRetention;   // 構造的参加率（need=0 の代表値・診断/UI用。0.4〜0.7 を賃金保持で連続補間＝2値の崖を解消）
+./PriceOfBread.Tests/FempInstrumentTests.cs:7:/// 期待は係数の既定値（FemalePartBase 0.4・FemalePartProperty 0.7・FemaleNeedWeight 0.5）から手計算のリテラルと、試験が自分で数える人口の重み。</summary>
+# FemaleParticipation の読み手（SimCore・App・Runner）
+PriceOfBread.SimCore/EconomyStep.cs:925:                double part = LaborSupply.FemaleParticipation(region, coef, lastSupply[lp]);
+PriceOfBread.SimCore/Instruments/InstrumentsFemp.cs:4:// 旧＝FemalePartBase＋(FemalePartProperty−FemalePartBase)×州の賃金保持（エンジンが r.FemaleParticipation へ置く式）・新＝FemalePartBase（賃金保持に依らない構造値）。
+PriceOfBread.SimCore/Instruments/InstrumentsFemp.cs:22:            act += s * r.FemaleParticipation;
+PriceOfBread.SimCore/LaborSupply.cs:9:    public static double FemaleParticipation(Region r, Coefficients c, double supplyFill)
+PriceOfBread.SimCore/LaborSupply.cs:10:        => PoliticalQuantities.Clamp01(r.FemaleParticipation + c.FemaleNeedWeight * Need(supplyFill) * r.WomenWageRetention);
+PriceOfBread.SimCore/Model.cs:688:    public double FemaleParticipation = 0.4;
+PriceOfBread.SimCore/Simulation.cs:1816:                r.FemaleParticipation = World.Coef.FemalePartBase + (World.Coef.FemalePartProperty - World.Coef.FemalePartBase) * World.WomenWageRetention;   // 構造的参加率（need=0 の代表値・診断/UI用。0.4〜0.7 を賃金保持で連続補間＝2値の崖を解消）
+PriceOfBread.Runner/Program.cs:5058:// 読み取り専用の計器：国別の**実効女性労働参加率**（LaborSupply.FemaleParticipation＝構造値(賃金保持)+困窮上乗せ）を
+PriceOfBread.Runner/Program.cs:5089:                    double part = LaborSupply.FemaleParticipation(r, w.Coef, p.SupplyFill);    // 実効参加率（構造+困窮×賃金保持）
+PriceOfBread.Runner/Program.cs:5095:            Console.WriteLine($"{gpSim.Year},{nm},{eff:F3},{w.Region.FemaleParticipation:F2},{w.WomenWageRetention:F2},{w.WomenRights}," +

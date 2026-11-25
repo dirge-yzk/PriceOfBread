@@ -46,6 +46,7 @@ public sealed partial class Coefficients
     // --- 女性・子供（構成属性。POP分割はしない）---
     public double FemalePartBase = 0.4;          // 女性の労働参加率の基礎（紡績女工・農婦・家事奉公＝19世紀の現実）
     public double FemalePartProperty = 0.7;      // 女性財産権法の下での参加率（自分の賃金を持てる＝働く誘因。労働供給+2割）
+    public double FemalePartLawFree = 1.0;       // (1356) c143k59 2026-11-25 点火（腕 B の木）：旗（0＝今の形・1＝構造の参加率は FemalePartBase の 1 本＝財産権法の段の項を消す・困窮の項の賃金保持は残す）
     public double ChildWorkFactor = 0.5;         // 児童労働の半人前係数（働く子供は0.5人分の労働力を算出）
     public double LaborWeightsByPower = 1;       // 旗（0＝旧の式・正＝重み）
     public double FemaleHandLaborWeight = 0.6;   // 手作業の女の 1 時間の産出÷成人男性（比）

@@ -156,6 +156,7 @@ public class DormantIdentityTests
         // ★DomesticStayFoodFill（(1335) c140hf 国内の移民の残る値打ちに食の充足＝越境と同じ Territory.StayValue）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は HungerFlightTests の T1・T2＝旗を明示）。
         // ★DestFoodSymmetric（(1349) c142ds 国内と越境の移民の行き先の値打ちに食の充足＝Territory.MoveValue）は 2026-11-25 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は DestFoodSymmetryTests＝旗を明示）。
         // ★ProtectedLawsReversible（(1344) c141lr 守られた法の不可逆を外す）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は ProtectedLawReversalTests）。
+        // ★FemalePartLawFree（(1356) c143k59 構造の女性の参加率を FemalePartBase の 1 本に）は 2026-11-25 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は FemalePartLawFreeTests＝旗を明示）。
         "ArrearsOnePredicate",          // (1284) c132df 本位の停止の門を不履行の導火線と同じ述語にして判定の前へ（0＝今の形・番人 ArrearsOnePredicateTests）。点火時にこの表から外す
         // ★LawPrefSinglePeaked（(1323) c138lp 法の好みの向き＝後退は 1 段下からの上げの好みの反転）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は LawPreferenceDirectionTests＝旗を明示）
         // ★MajorityLabelTierOrder（(1290) c133mr 国の主流の札を格の順で選ぶ）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は MajorityLabelTierOrderTests の T1）。
