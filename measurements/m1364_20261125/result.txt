@@ -1,0 +1,11 @@
+m1364 c144wr (1364) 結果（走査の番人に 2 つのラチェット）
+木：c144wr（基 11bfbfcd6）。SimCore・App・Display・Runner は 0 行（git diff --stat 11bfbfcd6 が空）＝SOURCE-HASH は a27895429deb5132 のまま（腕 Z は回していない）。
+試験：Category!=FullLength 2998（合格 2996・スキップ 2）＋FullLength 3＋Ui 232 ＝ --list-tests の 3001（Tests）と 232（Ui）に一致。足した試験 13（予言 3217→3230・Tests 2985→2998）。
+足した試験：WriterRatchetTests.M9・M10・DerivedValueRatchetTests 表 7 行＋走査が空でない・ValueCountRatchetTests 表 2 行＋M11。
+基準を下げた 4 行（WriterRatchetTests）：闘争度 25→16・満足度 4→1・正統性 13→11・StateSpent 23→18。
+突然変異（作業ツリーで当てて戻した・コミットなし）：
+  M1+M2+M3（SimCore に闘争度の書き手 1・正統性の読み 1・.Value 1）→ 赤 4（Value 表 SimCore・導いた値の表 闘争度と正統性・心理量の書き手 闘争度）
+  M4（Instruments に書き手・読み・.Value を足す）→ 緑（73 本全て合格）
+  M5（ValueScan.Strip を恒等へ）→ 赤 7（M8・M9・M11・Value 表 2 行・導いた値の表 2 行）
+  M10（EngineFiles の Instruments の除外を外す）→ 赤 1（M10）
+走査の番人の束（IndustrializationReader・UnitType・Instruments・WriterRatchet・DormantIdentity・SourceScanCoverage・GoodIdGuard）＋新クラス：197 本のうち赤 1（導いた値の表の〈走査が空でない〉の下限 100 が実数 97 で赤＝試験の下限の誤り・50 へ直して緑）。
