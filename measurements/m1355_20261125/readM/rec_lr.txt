@@ -1,0 +1,2 @@
+時短の後退が 5 回以上の（種・国）の組	14	1 回以上の組	379
+議会（crownpc_s の coopParliamentCrownPrevIndex）の 6 大国×四半期の平均	nan	行 40080

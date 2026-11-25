@@ -1,0 +1,24 @@
+# keepsum (728)	D:/PoB_work/c142ds_work	ファイル 22 本・合計 13339 バイト
+name	sha256	bytes	newlines	header
+armB.mark	22a98b75f5ce6862c6869675217dfc805da3b10e89ac0b4633ebc903a9409f0f	29	1	rc=0 end=2026-11-25 06:51:12
+armB.mark.log	362229169d4454437de6ccb834fa39dffd11802d83ea5e537acf17b97fb5cba0	60	2	armB rc=0 BATCHDONE c142dsB_10
+arms_start.txt	69de4c953d7bcc62038d3b390d8534aca821ded063faa02a869c46f331be3068	180	3	identZ start 2026-11-25 05:35:33 tree=12b432f7c Dfree=68.09GB armsfree=6
+build1.txt	45af4d8b3d0c2f174ed1f731427b49dfbc4212250d3af686c3e1f2fe9eb33c34	5779	29	D:\PoB_work\wt_c142ds\PriceOfBread.Tests\ClearingScopeTests.cs(361,22): warning SYSLIB0050: 'FieldInfo.IsNotSerialized' は旧形式です ('Formatter-based serialization is obsolete and should not be used.') (https://aka.ms/dotnet-warnings/SYSLIB0050) [D:\PoB_work\wt_c142ds\PriceOfBread.Tests\PriceOfBread.Test
+ds.mark	f743fcbc49aabc211e9b47c0a9af794efbc8aa767a46606032d8699075bb0e69	57	1	rc=0 c142ds ba55339c7 2026-11-25 07:58:17 腕B=ed523bcc9
+flag1.py	aee19a2ff594b97c26bc77ed24f1901c1fbc5a2a4d95fe8b7ec87a11082db873	1021	14	import sys
+identz.mark	e2521fae2fcec0ee0b731be91a76ef6b71f4ee8aa9e4f80e57c5d581a75ad56f	29	1	rc=0 end=2026-11-25 06:17:37
+identz.mark.log	072e88e3f16f55d6e6ab99aa67140dd070b761d06a606ff03d91db84adb6f504	4120	45	ident start：段=2（--stage2 で上げた）
+keepsum_z.log	dd9c7d75f318f040d31105e0a195b4495451e339509ada40e2a928a0a11fe227	76	1	要約 130 本 → measurements/m1349_20261125/armZ/keepsum_identz_ins.tsv
+keepsum_z.mark	bc214a5c79dd718f061ceb6bdd306d35349d0d0041d0ba396bc993e0e6c1ece4	9	1	rc=0 end
+mut_run.log	0a2a073fcc206cb09fe53b7911d3bcd16dbe7661276f7c55e68d9adbcd61aff5	60	5	mutated M0
+narrow.mark	bd77f76bd9d32b4edf0fe0c511e4a3f1fb1fcf666c08e06797c98ad8ededa830	29	1	rc=1 end=2026-11-25 06:25:45
+narrow.mark.log	40c63570a96ae9c686c5abff6330f7ae28b28d491ce9945f93d42f41e9fba05a	138	2	fatal: not a git repository (or any of the parent directories): .git
+pre.bgmark	42a958b3a4beb23a412bc124f36e4fbdecbb3b9c9bc9223beb0540621d466494	29	1	rc=0 end=2026-11-25 04:36:42
+pre.bgmark.log	31b178a33e6e63e760f7a6fe1deeb3aa54d9454d526b936471f14b3609ee4b16	297	20	stop906 base rc=0
+pre_run.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+suite.mark	ef2f40bd565a0d507df57ccaa0878ed4dd564e49e501930874ceacebfdad9acb	29	1	rc=0 end=2026-11-25 07:57:41
+suite.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+t1.txt	02de2f776d125fe05ff972b5a2a500524b42ef446adeb791f3b3e7c2ff497062	354	4	D:\PoB_work\c142ds_work\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+wr.mark	32bc29d80f1a1e50d90f63e67c29afe3cd28585eb473702830fc41b214642425	29	1	rc=0 end=2026-11-25 06:27:12
+wr.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+wr.sh	3fba8f9bfe42152cc61eeed97764b11c75fc2eb2fc83afc2b3abc5e085b6a7ac	1014	11	#!/usr/bin/env bash

@@ -1,0 +1,33 @@
+# keepsum (728)	D:/PoB_work/c142lr_work	ファイル 31 本・合計 59253 バイト
+name	sha256	bytes	newlines	header
+armb.mark	5149d28c88f93e11e133ff4f631ddcb7d5c3fe0ac9508f0a92e7558037bb085c	29	1	rc=0 end=2026-11-25 06:45:13
+armb.mark.log	e5793a436dec24fb0576ef41633c584b65f4a34c79ff2a91a02a736477b968f7	60	2	armB rc=0 BATCHDONE c142lrB_10
+arms_start.txt	125ac88a34223665a604f2f01737a43d867145e065212155c62efb12aa091f06	441	7	identZ start 2026-11-25 04:38:44 tree=945801957 Dfree=91.5GB armsfree=6
+bham_aL_lrOnly.txt	e8b8bdd1bec19f0021b4ab15ed65eb5039fbe958a923d31c9987f7f3ae13de88	443	12	# D:/PoB_work/keep_1348_rej/aL_lrOnly 州=バーミンガム
+bham_armB.txt	e63f984abdf58abe64f53da234cb7bef4a9ceef92b842aa4964b533e59ca343c	455	12	# D:/PoB_work/c142lr_work/armb/out_c142lrB_10/ins 州=バーミンガム
+bham_base_ins.txt	0d5278d4df04521466fe4e14e672c2b5ed5e4cd5ef6ce3a5b1aeb02d50f43653	441	12	# D:/PoB_work/keep_1341/base_ins 州=バーミンガム
+bham_mM_wdlr.txt	b9efaa9e1dd1e4b9100b25739b101f873ed315b84c554dc9e8dd94df9e57fe87	445	12	# D:/PoB_work/keep_1348_rej/mM_wdlr 州=バーミンガム
+bham_n1.txt	f12fb7c89ef49d62cb3d65023224c429e907a40d3280af99963caa7d742fd08e	434	12	# D:/PoB_work/keep_1341/n1 州=バーミンガム
+bham_n2.txt	8f0ab766fb3bb101b2a6570442205b04a53bed1d664151c7ca3db7f799b9694b	435	12	# D:/PoB_work/keep_1341/n2 州=バーミンガム
+hol_aL.txt	c676c89e5fb76ff8a9d89e095934debe483181b0149d39be1f73388e1f4ba2ad	2338	17	## 種 10・ピーク 1 千人以上
+identz.mark	2f2ca1535c0b24c02360ca625469ce5ffc60714345013ce73532d8647108eaae	29	1	rc=0 end=2026-11-25 05:35:27
+identz.mark.log	f6a22223516148e8e720c4d6da18e5e7af97984780dcbe69461f53c5a351fab5	4034	45	ident start：段=2（--stage2 で上げた）
+lr.mark	080897f2d3dc357591905ec6c79a600d9365238251f3ca329cef3832fd2f5ee7	42	1	done c142lr a8fc9326c 2026-11-25 08:17:36
+mutbg.mark	64ff7586af63ab68ce41395f7321d2048fcda6fab798c4c6653c2c854e8d8049	29	1	rc=0 end=2026-11-25 04:46:36
+mutbg.mark.log	479d7e3d8234a79aa713563977b0736497155c5f7bd46923ad53ce2699eebfe4	72	6	mutated M0
+narrow.mark	7746e6203efba4476db5faa020e57111999e24490dc3fa840a178c7011d73090	29	1	rc=0 end=2026-11-25 06:19:58
+narrow.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+narrow_keep.txt	adc6462fbf69259e2f3fdb409fbbeeb1fbc4304afce48140eb40b44a60d20ade	1617	8	# (1350) scan HEAD=6d2ba4406 汚れ=0 2026-11-25 05:36:40
+paper_aLlrOnly.txt	f33515a27ec1ab86594cbace7f8697c65885015e94b96b6861722442a165d97b	13184	263	seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor
+paper_base.txt	a2ce346f40258bb4fd90c3fa4d837f276e84eab0e9a31c8ae0381fbfabf2a14b	10132	198	seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor
+paper_n1.txt	200c8f79fbd1b8d6d410094b36f366d17806a935907388fb32d0d8d1a5d88e00	11179	219	seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor
+paper_n2.txt	9a0258b1a133ff91e071396cef24b57786c6bdef45be2f3838b5eab12d2cbf61	10891	213	seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor
+rec_lr.txt	d7c073234e51b1ee9f3659f01b82150d760f94e50bb8474a1ca34123f5dc5259	1002	18	== D:/PoB_work/keep_1341/base_ins
+s11.mark	ddbf93964361bfb8261189b3ccbda88938bbbf315ff41cab1ebc16dead39c0b2	29	1	rc=0 end=2026-11-25 07:23:55
+s11.mark.log	957069de27189391127253206febdc14abb0c216ff9563188e287f41a066f63e	156	10	S11 rc=0 BATCHDONE c142lrS_10_s11
+scan0.mark	e175285dcd08b4dfd4e33ca47c6b12bf130de96c795588e66627fa8e75c53c1f	29	1	rc=0 end=2026-11-25 04:38:35
+scan0.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+scan0_keep.txt	52184b89468eb74a8c9e05e91f377ca15b3b7540076e2e6ec0d587b70e1799c9	772	4	# (1350) scan HEAD=945801957 汚れ=0 2026-11-25 04:25:17
+suite.mark	4722bf1c7509ee536133f4659ed3dfceb8b3ba49a9d5f082a0728c2c1f8f1113	29	1	rc=0 end=2026-11-25 08:15:09
+suite.mark.log	e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855	0	0	
+z0_lrcount.txt	b57d57518bbd3ff0201b5bc1d7f74d771bc619bc0776a7052fce8e5c857c60b5	477	4	seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor

@@ -1,0 +1,35 @@
+# keepsum (728)	D:/PoB_work/r1352_work	ファイル 33 本・合計 3064023 バイト
+name	sha256	bytes	newlines	header
+holu8.done	d117fa006ba9208500b2930ce69cbde436c647afa917cb7396a9bc9111a46dd2	5	1	done
+holu8_a11.txt	cb126f6f989d40fa8e39460eba25d756a06a54105666286b5967940bb84482cf	2451	18	## 種 10・ピーク 1 千人以上
+holu8_aL_lrOnly.txt	c676c89e5fb76ff8a9d89e095934debe483181b0149d39be1f73388e1f4ba2ad	2338	17	## 種 10・ピーク 1 千人以上
+holu8_aWS11_wdOnly.txt	b5062a238d2638d2a90edd401753495e05b4e2f317f8abc912f19338c0ac5ce3	4964	30	## 種 10・ピーク 1 千人以上
+holu8_aW_wdOnly.txt	4d65047d1decd8449a769fde787a3fc7e99d29157d163f6c900159d91d3f2abf	5512	32	## 種 10・ピーク 1 千人以上
+holu8_base_ins.txt	5cfd6d7b1a03de1094e59d872f8a9bb60da800b978c1a3bccdbdf62519fc2aad	5888	34	## 種 10・ピーク 1 千人以上
+holu8_mM_wdlr.txt	2c66fee257369e7db7419fe49c430f660cca1f8f8de245b00e0131555770fe29	6804	38	## 種 10・ピーク 1 千人以上
+holu8_mS11_wdlr.txt	ff10bfeace27a831a556ac74ca8b9fe0a9f9140616c628832dbbf35b562a3f78	6357	36	## 種 10・ピーク 1 千人以上
+holu8_n1.txt	3037e3fa8ed6a6ae6ce178b5bb86c33444024601a699e31bb48e2f476fdc2d66	4576	28	## 種 10・ピーク 1 千人以上
+holu8_n2.txt	94e1278b4197f4c32fc94f1a6b918d0754c00034f5860edb149015e1881a146e	5290	31	## 種 10・ピーク 1 千人以上
+holu8v5_aL_lrOnly.txt	48b657b2f18e9c6b0cb334e0784151495bae44071bd2974cd67031bdec13b831	2761	19	## 種 10・ピーク 1 千人以上
+log_1342_1348.txt	93361dfde0af69976a303363152e3cf2121758df480a41c16a6d3ea485b204d0	13469	42	## 2026-11-24 (1342) 挙動（削除）の線 c141k59 財産権法で女性の参加率が段で変わる所を消す（旗 FemalePartLawFree・1 回目〈手続きの不採用〉）
+plan.txt	02882c8c4e821a0aaef99937275deee7c8602ba95e4daa6b7f40fb89bdd186b3	1364	11	(1352) c142bm 読む線：バーミンガム（英・core）の移民による空洞化の根
+q1_decomp_base_s4_s10.txt	866875e1ccc2a1d0d7f05151782da27ba2e45c2656202634856cf2c9b9ce50bf	2525	40	arm=base_ins seed=4 region=バーミンガム
+q1_decomp_s8.txt	d204b63a3115f6d6d166f1f975315a619dde0757a7d5d7203da541117215c5f7	2562	40	arm=base_ins seed=8 region=バーミンガム
+q1_food_base_s4.tsv	7acca300d3bd42ab629322aa67daba2512de2eede425cd5426c58dfa449d75fe	3255	25	yr	belowNewK	demandPerMonth	fillNew	harvestMean	landFactor	marketNeedPerMonth	popK	stapleNeedPerMonth	subPerMonth	subsistenceMean	birthsK	deathsFamineK	deathsNormalK	killedOtherK	killedViolentK	migrationOutK	residualK	farmCapPerMonth	farmProducedPerMonth	farmSoldPerMonth	marketShareOfNeed	subPopK
+q1_logdec_wdlr_bham.txt	1da7d876838c41e69b7ceeadbdfb6c58fa6e85008036d9be42c295931d6530e4	1726	18	arm=wdlr region=バーミンガム
+q1_logdec_wdlr_lon.txt	184194145089881cdb98f100951c99d1b87447ce73a20678e0daee9edf625153	1719	18	arm=wdlr region=ロンドン
+q1_rural_base_s4.tsv	61ee2dfb512b949d3707c97c4c3f8d02d60f5e8f46fbe3a14a593427aa085fc7	2381	35	yr	pop	rural	arable	hold	land	opp	food	hous	wPrem	facOut	facN	earnPc
+q1_s10.tsv	f573d12daf3b76621c4af6a9976105694733e6c59bc1f40c8a5fa971d19c7940	502790	2005	arm	seed	quarter	year	region	populationK	ruralPopulationK	opportunityIndex	holdingFactor	wageFactor	landFactor	employmentShare	pushFactor	housingFactor	wagePremium	arableLand	migrationOutKPerQuarter	migrationInKPerQuarter	crossBorderOutKPerQuarter	crossBorderInKPerQuarter	foodFillShare	earnedPerMont
+q1_s4.tsv	a85cbbb8c84f96891138653d27250239f0370a538f9e2f15c37b8a11ad0f21ca	493783	2005	arm	seed	quarter	year	region	populationK	ruralPopulationK	opportunityIndex	holdingFactor	wageFactor	landFactor	employmentShare	pushFactor	housingFactor	wagePremium	arableLand	migrationOutKPerQuarter	migrationInKPerQuarter	crossBorderOutKPerQuarter	crossBorderInKPerQuarter	foodFillShare	earnedPerMont
+q1_s8.tsv	0de382d9eb77ea3faa8bea0677f442192aafb81f8d4229d9183d3d7682c91efa	1947477	8017	arm	seed	quarter	year	region	populationK	ruralPopulationK	opportunityIndex	holdingFactor	wageFactor	landFactor	employmentShare	pushFactor	housingFactor	wagePremium	arableLand	migrationOutKPerQuarter	migrationInKPerQuarter	crossBorderOutKPerQuarter	crossBorderInKPerQuarter	foodFillShare	earnedPerMont
+q1_s8_base_v40.tsv	0bd93302f64b3793eefc1241f904821eca7d4451074ec2cd8251c9eca28f5641	1966	18	q	yr	popA	oppA	stayA	foodA	empA	landA	wageA	housA	holdA	outA	inA	xoutA	facA	oppB	foodB	housB	popB	gap
+q1_s8_wdlr_v40.tsv	4eed0798be7c05e4cdbba9a786e7dc4616329245ea9af8af8bdec5d73f9933a0	1952	18	q	yr	popA	oppA	stayA	foodA	empA	landA	wageA	housA	holdA	outA	inA	xoutA	facA	oppB	foodB	housB	popB	gap
+q1_wdlr_bham_1862_1882.tsv	73f893481408d4fec5202d1aebb0e4d6c7f72c07f8c62ba86e09c593b8f4b8b5	7860	85	q	yr	pop	out	in	food	push	hous	emp	wPrem	war	sold	facOut	facN	earnPc	opp	stay	Lopp
+q2_s8_divergence.txt	154019640dff4d6df21e1a558fa977fccbc71849b2a2e52b132b292dfc53a840	879	17	q0: base pop 2481.6 food 0.870 opp 0.824 | wdlr pop 2482.8 food 0.928 opp 0.871
+q3_bham_all.tsv	bd96d2c5af3f6dc4b783d68544199de61997704cef7dbd38485efb26569684bb	13343	91	arm	seed	owner1850	owner1900	peak	peakYr	min/peak	minYr	end/peak	food1860	food1880	food1900	rural1900share	out_cum	top_dest
+q4_rail_bham.tsv	3744ecf2d913131a2c1e49349924b6ba283cbf90adf59efe4ad332f54a9218af	2231	41	arm	seed	trk1845	trk1850	trk1855	trk1860	trk1870	trk1880	trk1900	trk1930	bought_sum	decay_sum	war_sum
+q4_rail_vs_collapse.tsv	991250ce37be197b402025916991e3969a43e56633015f7fa92fbb1e4a186654	2208	41	arm	seed	owner1900	min/peak	food1880	food1900	trk1870	trk1880	trk1900	rail1870_1900_min
+q4_staple_imp_M.tsv	11cd544f920038129f42a7c4886f3401367f877dc2fda96881872deaea3cd48f	669	11	seed	バーミンガム_imp	バーミンガム_dem	バーミンガム_rows_imp>0	マンチェスター_imp	マンチェスター_dem	マンチェスター_rows_imp>0	ロンドン_imp	ロンドン_dem	ロンドン_rows_imp>0
+q4_uk_regions_s4.tsv	4027f8ac3536909a287845001d0a243ffd6ed97e412dc82d9fe3160fd9b9cf9f	589	6	region	port	pop1790	rur1790	food1790	pop1850	rur1850	food1850	pop1870	rur1870	food1870	pop1900	rur1900	food1900	pop1940	rur1940	food1940
+q5_ds_paper_s8.txt	fd3cf8d4b531a3359d1a3a94b39794d33e543f2f20d8f510dbf1daba7f536f6d	376	4	arm=wdlr バーミンガム 1860-1885 四半期 104
+report.txt	d2a07880b9bdb0ada73c7cd2831eb48b0758150d3382ba224049252b8060fe95	11953	84	(1352) c142bm 読む線：バーミンガム（イギリス・core）の空洞化の根　書き手 Claude Opus 5.5（線の担当）

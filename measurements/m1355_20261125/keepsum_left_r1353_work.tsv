@@ -1,0 +1,7 @@
+# keepsum (728)	D:/PoB_work/r1353_work	ファイル 5 本・合計 100691 バイト
+name	sha256	bytes	newlines	header
+plan.txt	f3f7f6d62b822908716ac88d40287d33bb0924a675182fddc9f38b2c3f7b233a	954	11	r1353 (c142uk) 読む線の計画 2026-11-25
+report.txt	4463ef8bc8a45abb60cc02e313ac599c386cd3522be22463d1c84d70f81de52b	15673	109	r1353（c142uk）読む線：wd（助走の間の決定の停止）の S11 種 18 で英が崩れた根　2026-11-25
+uk18_arm.txt	62ef56694eda73d38d695fe36aed8b502c24560a05d82d1631d9aa81935d17a5	39860	668	0 1783 47862.17751 47862.17751 236.3330953 762035.4773 0 0
+uk18_base.txt	f305e6948dbccb0fae8e880d5243ffc6abad2f33e82df36fe162254d38f168d7	40316	668	0 1783 47840.38597 47840.38597 259.3386077 711227.7859 0 0
+wd_simcore.diff	ee1ecac1f6800f8dc13e4d8e1d11b1dd40fd23e0008d241f07fbaf8bc0b120b5	3888	35	diff --git a/PriceOfBread.SimCore/Coefficients.p07_wiring_prewarm.cs b/PriceOfBread.SimCore/Coefficients.p07_wiring_prewarm.cs

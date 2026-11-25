@@ -1,0 +1,319 @@
+seed	sixTotal	all:Suffrage	all:WomenRights	all:SocialSecurity	all:ColonialSuffrage	all:MigrantNativeSuffrage	all:ShorterHours	all:ChildLabor	six:Suffrage	six:WomenRights	six:SocialSecurity	six:ColonialSuffrage	six:MigrantNativeSuffrage	six:ShorterHours	six:ChildLabor
+1	27	179	0	4	0	0	87	0	18	0	0	0	0	9	0
+2	22	142	0	0	0	0	50	0	16	0	0	0	0	6	0
+3	24	148	0	6	0	0	66	0	15	0	4	0	0	5	0
+4	41	161	0	1	0	0	72	0	27	0	0	0	0	14	0
+5	23	137	0	3	0	0	54	0	15	0	2	0	0	6	0
+6	28	156	0	4	0	0	74	0	18	0	2	0	0	8	0
+7	27	153	0	4	0	0	85	0	20	0	0	0	0	7	0
+8	25	145	0	3	0	0	67	0	15	0	2	0	0	8	0
+9	29	182	0	3	0	0	84	0	20	0	0	0	0	9	0
+10	38	168	0	3	0	0	74	0	23	0	1	0	0	14	0
+median_sixTotal	27.0
+seed	sixSame	allSame:Suffrage	allSame:WomenRights	allSame:SocialSecurity	allSame:ColonialSuffrage	allSame:MigrantNativeSuffrage	allSame:ShorterHours	allSame:ChildLabor
+1	9	1	0	3	0	0	83	0
+2	7	1	0	0	0	0	47	0
+3	7	4	0	5	0	0	63	0
+4	15	5	0	1	0	0	63	0
+5	7	2	0	3	0	0	52	0
+6	9	2	0	4	0	0	68	0
+7	7	0	0	4	0	0	79	0
+8	10	3	0	3	0	0	62	0
+9	9	2	0	3	0	0	73	0
+10	13	3	0	3	0	0	69	0
+median_sixSame	9.0
+seed	oldRuleBlockedAll	oldRuleBlockedSix	childLegalBelowLawPeaceQ	childLegalRisePeaceQ
+1	266	25	0	0
+2	190	21	0	0
+3	214	23	0	0
+4	223	39	0	0
+5	190	21	0	0
+6	224	25	0	0
+7	236	24	0	0
+8	202	21	0	0
+9	262	27	0	0
+10	238	33	0	0
+EV	1	1794	イギリス	Suffrage	1	0	polityChanged
+EV	1	1796	ロシア	Suffrage	1	0	polityChanged
+EV	1	1800	イギリス	Suffrage	1	0	polityChanged
+EV	1	1811	ロシア	Suffrage	1	0	polityChanged
+EV	1	1812	ロシア	ShorterHours	1	2	samePolity
+EV	1	1815	プロイセン	Suffrage	1	0	polityChanged
+EV	1	1816	イギリス	Suffrage	1	0	polityChanged
+EV	1	1829	イギリス	Suffrage	1	0	polityChanged
+EV	1	1836	プロイセン	Suffrage	1	0	polityChanged
+EV	1	1840	プロイセン	Suffrage	1	0	polityChanged
+EV	1	1844	イギリス	Suffrage	1	0	polityChanged
+EV	1	1874	アメリカ	Suffrage	2	1	polityChanged
+EV	1	1874	アメリカ	ShorterHours	1	2	samePolity
+EV	1	1901	オーストリア	Suffrage	1	0	polityChanged
+EV	1	1901	オーストリア	ShorterHours	1	2	samePolity
+EV	1	1907	アメリカ	Suffrage	1	0	polityChanged
+EV	1	1907	アメリカ	ShorterHours	1	2	samePolity
+EV	1	1909	フランス	Suffrage	1	0	polityChanged
+EV	1	1909	フランス	ShorterHours	1	2	samePolity
+EV	1	1911	プロイセン	Suffrage	1	0	polityChanged
+EV	1	1911	プロイセン	ShorterHours	1	2	samePolity
+EV	1	1924	オーストリア	Suffrage	1	0	polityChanged
+EV	1	1924	オーストリア	ShorterHours	1	2	samePolity
+EV	1	1926	ロシア	Suffrage	1	0	polityChanged
+EV	1	1926	ロシア	ShorterHours	1	2	samePolity
+EV	1	1931	プロイセン	Suffrage	1	0	polityChanged
+EV	1	1931	プロイセン	ShorterHours	1	2	samePolity
+EV	2	1794	イギリス	Suffrage	1	0	polityChanged
+EV	2	1796	イギリス	Suffrage	1	0	polityChanged
+EV	2	1805	オーストリア	Suffrage	2	1	samePolity
+EV	2	1808	プロイセン	Suffrage	1	0	polityChanged
+EV	2	1813	イギリス	Suffrage	1	0	polityChanged
+EV	2	1816	プロイセン	Suffrage	1	0	polityChanged
+EV	2	1823	ロシア	Suffrage	1	0	polityChanged
+EV	2	1840	ロシア	Suffrage	1	0	polityChanged
+EV	2	1865	イギリス	Suffrage	1	0	polityChanged
+EV	2	1865	イギリス	ShorterHours	1	2	samePolity
+EV	2	1884	オーストリア	Suffrage	1	0	polityChanged
+EV	2	1888	オーストリア	ShorterHours	1	2	samePolity
+EV	2	1891	プロイセン	Suffrage	1	0	polityChanged
+EV	2	1917	プロイセン	Suffrage	1	0	polityChanged
+EV	2	1917	プロイセン	ShorterHours	1	2	samePolity
+EV	2	1937	プロイセン	Suffrage	1	0	polityChanged
+EV	2	1937	プロイセン	ShorterHours	1	2	samePolity
+EV	2	1940	アメリカ	Suffrage	2	1	polityChanged
+EV	2	1940	アメリカ	ShorterHours	1	2	samePolity
+EV	2	1945	ロシア	Suffrage	1	0	polityChanged
+EV	2	1946	ロシア	ShorterHours	1	2	samePolity
+EV	2	1950	プロイセン	Suffrage	1	0	polityChanged
+EV	3	1796	イギリス	Suffrage	1	0	polityChanged
+EV	3	1801	イギリス	Suffrage	1	0	polityChanged
+EV	3	1808	イギリス	Suffrage	1	0	polityChanged
+EV	3	1817	イギリス	Suffrage	1	0	polityChanged
+EV	3	1817	アメリカ	ShorterHours	0	1	samePolity
+EV	3	1827	イギリス	Suffrage	1	0	polityChanged
+EV	3	1832	ロシア	Suffrage	1	0	polityChanged
+EV	3	1870	イギリス	Suffrage	1	0	polityChanged
+EV	3	1870	オーストリア	Suffrage	1	0	polityChanged
+EV	3	1871	オーストリア	ShorterHours	1	2	polityChanged
+EV	3	1880	プロイセン	Suffrage	1	0	polityChanged
+EV	3	1881	プロイセン	ShorterHours	1	2	samePolity
+EV	3	1896	フランス	Suffrage	1	0	polityChanged
+EV	3	1903	プロイセン	Suffrage	1	0	polityChanged
+EV	3	1903	プロイセン	ShorterHours	1	2	samePolity
+EV	3	1908	プロイセン	Suffrage	1	0	polityChanged
+EV	3	1908	プロイセン	ShorterHours	1	2	samePolity
+EV	3	1912	プロイセン	Suffrage	1	0	polityChanged
+EV	3	1912	フランス	Suffrage	1	0	polityChanged
+EV	3	1913	フランス	SocialSecurity	2	1	polityChanged
+EV	3	1919	フランス	SocialSecurity	1	0	samePolity
+EV	3	1922	プロイセン	Suffrage	1	0	polityChanged
+EV	3	1932	プロイセン	SocialSecurity	3	2	samePolity
+EV	3	1946	プロイセン	SocialSecurity	2	1	samePolity
+EV	4	1799	イギリス	Suffrage	1	0	polityChanged
+EV	4	1810	プロイセン	Suffrage	1	0	polityChanged
+EV	4	1811	プロイセン	Suffrage	1	0	polityChanged
+EV	4	1814	イギリス	Suffrage	1	0	polityChanged
+EV	4	1819	ロシア	Suffrage	1	0	polityChanged
+EV	4	1821	ロシア	Suffrage	2	1	samePolity
+EV	4	1827	プロイセン	Suffrage	1	0	polityChanged
+EV	4	1827	プロイセン	ShorterHours	1	2	samePolity
+EV	4	1836	イギリス	Suffrage	1	0	polityChanged
+EV	4	1837	ロシア	Suffrage	1	0	polityChanged
+EV	4	1837	アメリカ	ShorterHours	0	1	samePolity
+EV	4	1844	ロシア	ShorterHours	0	1	samePolity
+EV	4	1844	ロシア	ShorterHours	1	2	samePolity
+EV	4	1846	アメリカ	Suffrage	2	1	polityChanged
+EV	4	1846	アメリカ	ShorterHours	1	2	samePolity
+EV	4	1858	プロイセン	Suffrage	1	0	polityChanged
+EV	4	1870	アメリカ	Suffrage	1	0	polityChanged
+EV	4	1874	オーストリア	Suffrage	1	0	polityChanged
+EV	4	1879	フランス	Suffrage	1	0	polityChanged
+EV	4	1879	フランス	ShorterHours	1	2	samePolity
+EV	4	1882	プロイセン	Suffrage	1	0	polityChanged
+EV	4	1884	アメリカ	Suffrage	1	0	polityChanged
+EV	4	1896	イギリス	Suffrage	1	0	polityChanged
+EV	4	1896	イギリス	ShorterHours	1	2	samePolity
+EV	4	1902	オーストリア	Suffrage	1	0	polityChanged
+EV	4	1902	オーストリア	ShorterHours	1	2	samePolity
+EV	4	1905	オーストリア	Suffrage	1	0	polityChanged
+EV	4	1905	プロイセン	Suffrage	1	0	polityChanged
+EV	4	1905	プロイセン	ShorterHours	1	2	samePolity
+EV	4	1910	アメリカ	Suffrage	1	0	polityChanged
+EV	4	1910	アメリカ	ShorterHours	1	2	samePolity
+EV	4	1911	プロイセン	Suffrage	1	0	polityChanged
+EV	4	1922	オーストリア	Suffrage	1	0	polityChanged
+EV	4	1923	オーストリア	ShorterHours	1	2	samePolity
+EV	4	1933	イギリス	Suffrage	1	0	polityChanged
+EV	4	1937	ロシア	Suffrage	1	0	polityChanged
+EV	4	1937	ロシア	ShorterHours	1	2	samePolity
+EV	4	1942	プロイセン	Suffrage	1	0	polityChanged
+EV	4	1943	プロイセン	ShorterHours	1	2	samePolity
+EV	4	1944	オーストリア	Suffrage	1	0	polityChanged
+EV	4	1944	オーストリア	ShorterHours	1	2	samePolity
+EV	5	1797	イギリス	Suffrage	1	0	polityChanged
+EV	5	1799	イギリス	Suffrage	1	0	polityChanged
+EV	5	1811	イギリス	Suffrage	1	0	polityChanged
+EV	5	1813	アメリカ	Suffrage	2	1	polityChanged
+EV	5	1813	アメリカ	ShorterHours	1	2	samePolity
+EV	5	1814	ロシア	Suffrage	1	0	polityChanged
+EV	5	1814	ロシア	ShorterHours	1	2	polityChanged
+EV	5	1819	ロシア	Suffrage	1	0	polityChanged
+EV	5	1823	プロイセン	Suffrage	1	0	polityChanged
+EV	5	1833	オーストリア	Suffrage	1	0	polityChanged
+EV	5	1849	アメリカ	Suffrage	1	0	polityChanged
+EV	5	1881	フランス	Suffrage	1	0	polityChanged
+EV	5	1882	フランス	ShorterHours	1	2	samePolity
+EV	5	1884	アメリカ	Suffrage	1	0	polityChanged
+EV	5	1884	アメリカ	ShorterHours	1	2	samePolity
+EV	5	1885	オーストリア	Suffrage	1	0	polityChanged
+EV	5	1887	プロイセン	Suffrage	1	0	polityChanged
+EV	5	1911	ロシア	SocialSecurity	3	2	samePolity
+EV	5	1914	プロイセン	Suffrage	1	0	polityChanged
+EV	5	1914	プロイセン	ShorterHours	1	2	samePolity
+EV	5	1923	フランス	Suffrage	1	0	polityChanged
+EV	5	1923	フランス	ShorterHours	1	2	samePolity
+EV	5	1928	オーストリア	SocialSecurity	3	2	samePolity
+EV	6	1796	イギリス	Suffrage	1	0	polityChanged
+EV	6	1798	イギリス	Suffrage	1	0	polityChanged
+EV	6	1804	イギリス	Suffrage	1	0	polityChanged
+EV	6	1805	ロシア	Suffrage	1	0	polityChanged
+EV	6	1807	ロシア	ShorterHours	0	1	samePolity
+EV	6	1808	ロシア	ShorterHours	1	2	samePolity
+EV	6	1818	オーストリア	Suffrage	2	1	samePolity
+EV	6	1821	イギリス	Suffrage	1	0	polityChanged
+EV	6	1825	オーストリア	Suffrage	1	0	polityChanged
+EV	6	1830	プロイセン	Suffrage	1	0	polityChanged
+EV	6	1842	アメリカ	Suffrage	2	1	polityChanged
+EV	6	1842	アメリカ	ShorterHours	1	2	polityChanged
+EV	6	1848	アメリカ	Suffrage	1	0	polityChanged
+EV	6	1852	イギリス	Suffrage	1	0	polityChanged
+EV	6	1855	オーストリア	Suffrage	1	0	polityChanged
+EV	6	1869	フランス	Suffrage	1	0	polityChanged
+EV	6	1876	アメリカ	Suffrage	1	0	polityChanged
+EV	6	1876	アメリカ	ShorterHours	1	2	samePolity
+EV	6	1896	オーストリア	Suffrage	1	0	polityChanged
+EV	6	1896	オーストリア	ShorterHours	1	2	samePolity
+EV	6	1905	プロイセン	Suffrage	1	0	polityChanged
+EV	6	1905	プロイセン	ShorterHours	1	2	polityChanged
+EV	6	1927	アメリカ	Suffrage	1	0	polityChanged
+EV	6	1928	アメリカ	ShorterHours	1	2	samePolity
+EV	6	1929	プロイセン	Suffrage	1	0	polityChanged
+EV	6	1929	プロイセン	ShorterHours	1	2	samePolity
+EV	6	1939	ロシア	SocialSecurity	3	2	samePolity
+EV	6	1945	フランス	SocialSecurity	2	1	samePolity
+EV	7	1795	イギリス	Suffrage	1	0	polityChanged
+EV	7	1801	ロシア	Suffrage	1	0	polityChanged
+EV	7	1801	ロシア	ShorterHours	1	2	samePolity
+EV	7	1821	イギリス	Suffrage	1	0	polityChanged
+EV	7	1825	プロイセン	Suffrage	1	0	polityChanged
+EV	7	1827	プロイセン	Suffrage	1	0	polityChanged
+EV	7	1829	イギリス	ShorterHours	1	2	samePolity
+EV	7	1850	イギリス	Suffrage	1	0	polityChanged
+EV	7	1853	ロシア	Suffrage	1	0	polityChanged
+EV	7	1854	プロイセン	Suffrage	1	0	polityChanged
+EV	7	1855	フランス	Suffrage	1	0	polityChanged
+EV	7	1858	イギリス	Suffrage	1	0	polityChanged
+EV	7	1868	イギリス	Suffrage	1	0	polityChanged
+EV	7	1868	ロシア	Suffrage	1	0	polityChanged
+EV	7	1884	アメリカ	Suffrage	2	1	polityChanged
+EV	7	1884	アメリカ	ShorterHours	1	2	samePolity
+EV	7	1885	オーストリア	Suffrage	1	0	polityChanged
+EV	7	1886	オーストリア	ShorterHours	1	2	samePolity
+EV	7	1888	フランス	Suffrage	1	0	polityChanged
+EV	7	1900	プロイセン	Suffrage	1	0	polityChanged
+EV	7	1900	アメリカ	Suffrage	1	0	polityChanged
+EV	7	1923	プロイセン	Suffrage	1	0	polityChanged
+EV	7	1923	プロイセン	ShorterHours	1	2	samePolity
+EV	7	1926	アメリカ	Suffrage	1	0	polityChanged
+EV	7	1926	アメリカ	ShorterHours	1	2	samePolity
+EV	7	1942	プロイセン	Suffrage	1	0	polityChanged
+EV	7	1942	プロイセン	ShorterHours	1	2	samePolity
+EV	8	1792	アメリカ	ShorterHours	0	1	samePolity
+EV	8	1797	イギリス	Suffrage	1	0	polityChanged
+EV	8	1806	イギリス	Suffrage	1	0	polityChanged
+EV	8	1810	ロシア	ShorterHours	1	2	samePolity
+EV	8	1813	ロシア	Suffrage	1	0	polityChanged
+EV	8	1816	ロシア	Suffrage	1	0	polityChanged
+EV	8	1822	プロイセン	Suffrage	1	0	polityChanged
+EV	8	1822	イギリス	Suffrage	1	0	polityChanged
+EV	8	1823	フランス	Suffrage	1	0	polityChanged
+EV	8	1833	イギリス	Suffrage	1	0	polityChanged
+EV	8	1836	フランス	Suffrage	1	0	polityChanged
+EV	8	1842	オーストリア	Suffrage	1	0	polityChanged
+EV	8	1895	アメリカ	ShorterHours	1	2	samePolity
+EV	8	1903	アメリカ	Suffrage	2	1	polityChanged
+EV	8	1904	アメリカ	ShorterHours	1	2	samePolity
+EV	8	1905	プロイセン	Suffrage	1	0	polityChanged
+EV	8	1905	プロイセン	ShorterHours	1	2	samePolity
+EV	8	1912	ロシア	SocialSecurity	3	2	samePolity
+EV	8	1927	オーストリア	SocialSecurity	3	2	samePolity
+EV	8	1937	プロイセン	Suffrage	1	0	polityChanged
+EV	8	1938	プロイセン	ShorterHours	1	2	samePolity
+EV	8	1939	アメリカ	Suffrage	1	0	polityChanged
+EV	8	1939	アメリカ	ShorterHours	1	2	samePolity
+EV	8	1944	イギリス	Suffrage	1	0	polityChanged
+EV	8	1945	イギリス	ShorterHours	1	2	samePolity
+EV	9	1800	イギリス	Suffrage	1	0	polityChanged
+EV	9	1807	イギリス	Suffrage	1	0	polityChanged
+EV	9	1817	ロシア	Suffrage	1	0	polityChanged
+EV	9	1817	ロシア	ShorterHours	1	2	samePolity
+EV	9	1819	フランス	Suffrage	1	0	polityChanged
+EV	9	1819	プロイセン	Suffrage	1	0	polityChanged
+EV	9	1843	イギリス	Suffrage	1	0	polityChanged
+EV	9	1844	オーストリア	Suffrage	1	0	polityChanged
+EV	9	1846	プロイセン	Suffrage	1	0	polityChanged
+EV	9	1846	プロイセン	ShorterHours	1	2	samePolity
+EV	9	1853	イギリス	Suffrage	1	0	polityChanged
+EV	9	1853	ロシア	Suffrage	1	0	polityChanged
+EV	9	1881	アメリカ	ShorterHours	1	2	samePolity
+EV	9	1883	プロイセン	Suffrage	1	0	polityChanged
+EV	9	1885	ロシア	Suffrage	1	0	polityChanged
+EV	9	1892	イギリス	Suffrage	1	0	polityChanged
+EV	9	1895	フランス	Suffrage	1	0	polityChanged
+EV	9	1896	フランス	ShorterHours	1	2	samePolity
+EV	9	1897	プロイセン	Suffrage	1	0	polityChanged
+EV	9	1897	プロイセン	ShorterHours	1	2	samePolity
+EV	9	1910	ロシア	Suffrage	1	0	polityChanged
+EV	9	1910	アメリカ	Suffrage	2	1	polityChanged
+EV	9	1910	ロシア	ShorterHours	1	2	samePolity
+EV	9	1911	アメリカ	ShorterHours	0	1	samePolity
+EV	9	1911	アメリカ	ShorterHours	1	2	samePolity
+EV	9	1915	プロイセン	Suffrage	1	0	polityChanged
+EV	9	1915	プロイセン	ShorterHours	1	2	samePolity
+EV	9	1916	オーストリア	Suffrage	1	0	polityChanged
+EV	9	1935	アメリカ	Suffrage	1	0	polityChanged
+EV	10	1807	イギリス	Suffrage	1	0	polityChanged
+EV	10	1814	オーストリア	Suffrage	1	0	polityChanged
+EV	10	1815	ロシア	Suffrage	1	0	polityChanged
+EV	10	1816	ロシア	ShorterHours	1	2	samePolity
+EV	10	1817	オーストリア	ShorterHours	1	2	samePolity
+EV	10	1822	アメリカ	ShorterHours	0	1	samePolity
+EV	10	1829	イギリス	Suffrage	1	0	polityChanged
+EV	10	1833	ロシア	Suffrage	1	0	polityChanged
+EV	10	1833	アメリカ	Suffrage	2	1	polityChanged
+EV	10	1834	アメリカ	ShorterHours	1	2	samePolity
+EV	10	1842	オーストリア	Suffrage	1	0	polityChanged
+EV	10	1857	ロシア	Suffrage	1	0	polityChanged
+EV	10	1858	オーストリア	Suffrage	1	0	polityChanged
+EV	10	1859	プロイセン	Suffrage	1	0	polityChanged
+EV	10	1862	アメリカ	Suffrage	1	0	polityChanged
+EV	10	1869	アメリカ	Suffrage	1	0	polityChanged
+EV	10	1869	オーストリア	Suffrage	1	0	polityChanged
+EV	10	1869	アメリカ	ShorterHours	1	2	samePolity
+EV	10	1874	イギリス	Suffrage	1	0	polityChanged
+EV	10	1894	プロイセン	SocialSecurity	3	2	samePolity
+EV	10	1908	イギリス	Suffrage	1	0	polityChanged
+EV	10	1911	フランス	Suffrage	1	0	polityChanged
+EV	10	1911	フランス	ShorterHours	1	2	polityChanged
+EV	10	1920	プロイセン	Suffrage	1	0	polityChanged
+EV	10	1920	プロイセン	ShorterHours	1	2	samePolity
+EV	10	1921	オーストリア	Suffrage	1	0	polityChanged
+EV	10	1921	オーストリア	ShorterHours	1	2	samePolity
+EV	10	1923	ロシア	Suffrage	1	0	polityChanged
+EV	10	1924	ロシア	ShorterHours	1	2	samePolity
+EV	10	1927	オーストリア	Suffrage	1	0	polityChanged
+EV	10	1927	オーストリア	ShorterHours	1	2	samePolity
+EV	10	1929	アメリカ	Suffrage	1	0	polityChanged
+EV	10	1929	アメリカ	ShorterHours	1	2	samePolity
+EV	10	1936	フランス	ShorterHours	0	1	samePolity
+EV	10	1938	プロイセン	Suffrage	1	0	polityChanged
+EV	10	1938	プロイセン	ShorterHours	1	2	samePolity
+EV	10	1948	アメリカ	Suffrage	1	0	polityChanged
+EV	10	1949	アメリカ	ShorterHours	1	2	polityChanged
