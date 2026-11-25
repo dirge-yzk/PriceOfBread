@@ -1,0 +1,4 @@
+M0 rc=0 成功!   -失敗:     0、合格:     4、スキップ:     0、合計:     4、期間: 23 s - PriceOfBread.Tests.dll (net10.0)
+M1 rc=1 失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
+M2 rc=1 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 18 s - PriceOfBread.Tests.dll (net10.0)
+M3 rc=1 失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 18 s - PriceOfBread.Tests.dll (net10.0)

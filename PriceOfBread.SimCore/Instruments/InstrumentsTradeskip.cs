@@ -19,6 +19,7 @@ public static partial class Instruments
     internal enum TsCol { Rows, Idle, NoNeed, Budget0, Scan, DealtCross, DealtDom, NoDeal, XPairs, XSold, XCap, XWedge, WA, WB, WC, WD, XPass, DomPairs,
         Bin0, Bin1, Bin2, Bin3, Bin4, Bin5, Bin6, Bin7, Bin8, Bin9, SUnlinked, SNoStock, SLive, SListed, WAT, WAC, WAB, RNaN, GBin0, OgStock = GBin0 + 40, OgAcc0, OgMil, OgOther, XeHigh, XeXPrice, XeXNeed, XeY, XeBudget, XeCap, XeDeal, XeGuard,
         UbRows, UbInf, RpIter, RpDiff, RpCtrl, RpCtrlDiff, GdRows, GdX, GdY, GdLeft, GdBudget, GdCap, GdRemove, Count }   // RpCtrlDiff〔履歴 InstrumentsTradeskip.cs#4〕
+    internal enum RgCol { Rows, Idle, NoNeed, Budget0, XSold, XCap, XWedge, XPass, ExHigh, ExXPrice, ExXNeed, ExY, ExBudget, ExCapMid, ExDealt, ExGuard, Count }
     internal enum TsExit { None = 0, PriceHigh, XPriceSmall, XNeedSmall, YZero, Budget, CapMid, Dealt, Guard }
     /// <summary>
     /// 〔履歴 InstrumentsTradeskip.cs#5〕
@@ -97,12 +98,30 @@ public static partial class Instruments
 
         void CloseRow()
         {
+            cr = null;
             if (cur < 0) return;
             if (scanned) Add(curBn, curG, dealtCross ? TsCol.DealtCross : dealtDom ? TsCol.DealtDom : TsCol.NoDeal);
             cur = -1; scanned = dealtCross = dealtDom = false;
         }
 
-        internal void Row(int bn, int g) { CloseRow(); cur = 1; curBn = bn; curG = g; curXPass = 0; Add(bn, g, TsCol.Rows); }
+        internal void Row(int bn, int g, Region? reg = null, Market? m = null) { CloseRow(); cur = 1; curBn = bn; curG = g; curXPass = 0; Add(bn, g, TsCol.Rows); RegBegin(bn, g, reg, m); }
+
+        // tsreg_s：州×財（主食の財だけ）の止まり方。行の文脈（cur）に州の記録 cr を持たせ、既存の Outcome・Scan・Exit の中から足す＝tradeskip の蓄えには触れない。
+        internal const int RgColCount = (int)RgCol.Count;
+        internal readonly List<RegRec> Regs = [];
+        readonly Dictionary<(Region, int), RegRec> regIx = [];
+        RegRec? cr;
+        internal sealed class RegRec { internal Region R = null!; internal int Bn, G; internal bool Port; internal int[] C = new int[(int)RgCol.Count]; internal double Dem, Imp, Short; }
+        internal void RegReset() { Regs.Clear(); regIx.Clear(); cr = null; }
+        void RegBegin(int bn, int g, Region? reg, Market? m)
+        {
+            if (reg is null || m is null) return;
+            var gd = Catalog.Goods[g];
+            if (!(gd.Tier == GoodTier.Staple || gd.GrainChain)) return;
+            if (!regIx.TryGetValue((reg, g), out var rr)) { rr = new RegRec { R = reg, Bn = bn, G = g, Port = reg.IsPort }; regIx[(reg, g)] = rr; Regs.Add(rr); }
+            rr.C[(int)RgCol.Rows]++; rr.Dem += m.LastDemand; rr.Imp += m.LastImport; rr.Short += m.LastShortage; cr = rr;
+        }
+        void R(RgCol c) { if (cr is not null) cr.C[(int)c]++; }
         /// <summary>
         /// その行の xPass の組の数だけ該当の列へ足す（組ごとの追跡ではなく行の終わりの理由を組の数で重みづけ）。〔履歴 InstrumentsTradeskip.cs#10〕
         /// </summary>
@@ -166,8 +185,8 @@ public static partial class Instruments
         }
         internal void IterRemove() { if (cur < 0 || !scanned) return; gd[5]++; }
 
-        void ExitXPass(TsExit why) { if (cur < 0 || !scanned || curXPass == 0 || why == TsExit.None) return; C[(curBn * Gc + curG) * (int)TsCol.Count + (int)TsCol.XeHigh + (int)why - 1] += curXPass; }
-        internal void Outcome(int which) { if (cur < 0) return; Add(curBn, curG, which == TsOutIdle ? TsCol.Idle : which == TsOutNoNeed ? TsCol.NoNeed : TsCol.Budget0); }
+        void ExitXPass(TsExit why) { if (cur < 0 || !scanned || curXPass == 0 || why == TsExit.None) return; C[(curBn * Gc + curG) * (int)TsCol.Count + (int)TsCol.XeHigh + (int)why - 1] += curXPass; if (cr is not null) cr.C[(int)RgCol.ExHigh + (int)why - 1] += curXPass; }
+        internal void Outcome(int which) { if (cur < 0) return; Add(curBn, curG, which == TsOutIdle ? TsCol.Idle : which == TsOutNoNeed ? TsCol.NoNeed : TsCol.Budget0); R(which == TsOutIdle ? RgCol.Idle : which == TsOutNoNeed ? RgCol.NoNeed : RgCol.Budget0); }
         internal void Deal(bool cross) { if (cur < 0) return; if (cross) dealtCross = true; else dealtDom = true; }
 
         /// <summary>走査に入る直前（行の門を全て通った）：売り手の表の越境の売り手を最初に当たった門で数える。</summary>
@@ -189,13 +208,13 @@ public static partial class Instruments
                 double ratio = selP / lp; int b = 0; while (b < TsRatioEdges.Length && ratio >= TsRatioEdges[b]) b++;
                 bool nan = double.IsNaN(ratio);
                 if (!nan) Add(curBn, curG, TsCol.Bin0 + b); else Add(curBn, curG, TsCol.RNaN);
-                if (left[i] <= 1e-12) { Add(curBn, curG, TsCol.XSold); if (PairOn) P(sNat, 1); if (!nan) Add(curBn, curG, TsCol.GBin0 + b); continue; }
-                if (capLeft[sn] <= 1e-12 || capLeft[t] <= 1e-12) { Add(curBn, curG, TsCol.XCap); if (PairOn) P(sNat, 2); if (!nan) Add(curBn, curG, TsCol.GBin0 + 10 + b); continue; }
+                if (left[i] <= 1e-12) { Add(curBn, curG, TsCol.XSold); R(RgCol.XSold); if (PairOn) P(sNat, 1); if (!nan) Add(curBn, curG, TsCol.GBin0 + b); continue; }
+                if (capLeft[sn] <= 1e-12 || capLeft[t] <= 1e-12) { Add(curBn, curG, TsCol.XCap); R(RgCol.XCap); if (PairOn) P(sNat, 2); if (!nan) Add(curBn, curG, TsCol.GBin0 + 10 + b); continue; }
                 double wS2 = wedge - (sellCheap is not null ? sellCheap[sNat] : 0.0);
                 bool wedgeD = false;
                 if (selP * (baseMul + wS2) >= lp)
                 {
-                    Add(curBn, curG, TsCol.XWedge); if (!nan) Add(curBn, curG, TsCol.GBin0 + 20 + b);
+                    Add(curBn, curG, TsCol.XWedge); R(RgCol.XWedge); if (!nan) Add(curBn, curG, TsCol.GBin0 + 20 + b);
                     if (selP * (baseMul + wS2 - duty) < lp)
                     {
                         Add(curBn, curG, TsCol.WA); if (PairOn) P(sNat, 3);
@@ -207,7 +226,7 @@ public static partial class Instruments
                     else if (selP * (1.0 + wS2 - duty) < lp) { Add(curBn, curG, TsCol.WC); if (PairOn) P(sNat, 5); }
                     else { Add(curBn, curG, TsCol.WD); wedgeD = true; if (PairOn) P(sNat, 6); }
                 }
-                else { Add(curBn, curG, TsCol.XPass); curXPass++; if (!nan) Add(curBn, curG, TsCol.GBin0 + 30 + b); if (PairOn) P(sNat, 7); }
+                else { Add(curBn, curG, TsCol.XPass); R(RgCol.XPass); curXPass++; if (!nan) Add(curBn, curG, TsCol.GBin0 + 30 + b); if (PairOn) P(sNat, 7); }
                 if (PairOn) Shadow(tr, t, sn, sNat, selP, baseMul, wS2, lp, wedgeD, bCostNow, bCostBp);
             }
         }
@@ -245,7 +264,7 @@ public static partial class Instruments
         internal void End(long ledger) { CloseRow(); LedgerDelta = ledger - Ledger0; Ended = true; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<InternationalMarket, TsAcc> TsAccs = new();
-    sealed class TsSink { public System.IO.StreamWriter? W, WPair, WShadow; }
+    sealed class TsSink { public System.IO.StreamWriter? W, WPair, WShadow, WReg; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, TsSink> TsSinks = new();
 
     /// <summary>清算の頭：調べる年の第 4 四半期の最初の清算なら蓄えを返す（それ以外・計器が切れていれば null）。呼び口は null の確かめだけを熱い所に置く。</summary>
@@ -267,7 +286,7 @@ public static partial class Instruments
             a.TariffNow[i] = wi.Tariff; a.Treaty[i] = 1.0 - Politics.ForeignPortShare(wi);
             double tg = Government.Q5(wi.Policy.TariffTarget) + wi.TariffRetaliationBias; a.Target[i] = tg < wi.Coef.TariffFloor ? wi.Coef.TariffFloor : tg > 1 ? 1 : tg;
         }
-        a.Nn = nn; a.Gc = gc;
+        a.Nn = nn; a.Gc = gc; a.RegReset();
         a.PairOn = TsPairAllYears || w0.Year + 1 == 1870 || w0.Year + 1 == 1913;   // PairOn〔履歴 InstrumentsTradeskip.cs#18〕
         if (a.PairOn)
         {
@@ -318,6 +337,7 @@ public static partial class Instruments
             sk.W.WriteLine(string.Join('\t', I(year), "ALL", Catalog.Goods[g].Name) + "\t" + zeros + "\t" + I(a.NoSell[g]) + "\t0\t" + zerosNew);
         sk.W.WriteLine(string.Join('\t', I(year), "ALL", "ALL") + "\t" + zeros + "\t0\t" + I(a.LedgerDelta) + "\t" + zerosNew);
         if (a.PairOn && a.Pair.Length > 0) TradeskipPairTables(sk, a, year, seed);
+        if (Wants("tsreg_s")) TsregWrite(sk, a, year, seed);
         a.Filled = false; a.Ended = false;
     }
 
@@ -358,5 +378,21 @@ public static partial class Instruments
         a.Pair = []; a.Sh = [];
     }
 
-    static void TradeskipClose(MultiNationSim sim) { if (TsSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; sk.WPair?.Dispose(); sk.WPair = null; sk.WShadow?.Dispose(); sk.WShadow = null; } }
+    internal const string TsregHeaderText = "year	nation	region	portFlag	good	rows	rowIdle	rowNoNeed	rowBudget0	xSoldOut	xCap	xWedge	xPass	exPriceHigh	exXPriceSmall	exXNeedSmall	exYZero	exBudget	exCapMid	exDealt	exGuard	demand	import	shortage";
+    /// <summary>tsreg_s：その年の第 4 四半期の最初の清算の州×財（主食の財だけ）の行の止まり方。蓄えは TsAcc の行の文脈から積む（tradeskip と同じ出口の分類・同じ重み）。</summary>
+    static void TsregWrite(TsSink sk, TsAcc a, int year, ulong seed)
+    {
+        if (sk.WReg is null) { sk.WReg = Open("tsreg", seed); sk.WReg.WriteLine(TsregHeaderText); }
+        string I(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var cols = new List<string>(24);
+        foreach (var rr in a.Regs)
+        {
+            cols.Clear(); cols.Add(I(year)); cols.Add(a.Names[rr.Bn]); cols.Add(rr.R.Name); cols.Add(rr.Port ? "1" : "0"); cols.Add(Catalog.Goods[rr.G].Name);
+            for (int c = 0; c < (int)TsAcc.RgColCount; c++) cols.Add(I(rr.C[c]));
+            cols.Add(FR(rr.Dem)); cols.Add(FR(rr.Imp)); cols.Add(FR(rr.Short));
+            sk.WReg.WriteLine(string.Join('	', cols));
+        }
+    }
+
+    static void TradeskipClose(MultiNationSim sim) { if (TsSinks.TryGetValue(sim, out var sk)) { sk.W?.Dispose(); sk.W = null; sk.WPair?.Dispose(); sk.WPair = null; sk.WShadow?.Dispose(); sk.WShadow = null; sk.WReg?.Dispose(); sk.WReg = null; } }
 }

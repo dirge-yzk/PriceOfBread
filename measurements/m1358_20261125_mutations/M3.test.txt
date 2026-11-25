@@ -1,0 +1,25 @@
+D:\PoB_work\c143sg_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:06.02]     PriceOfBread.Tests.TsregInstrumentTests.T3_計器を切ると州の表も蓄えも作られない [FAIL]
+  失敗 PriceOfBread.Tests.TsregInstrumentTests.T3_計器を切ると州の表も蓄えも作られない [4 s]
+  エラー メッセージ:
+   Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   TsAcc { }
+  スタック トレース:
+     at PriceOfBread.Tests.TsregInstrumentTests.T3_計器を切ると州の表も蓄えも作られない() in D:\PoB_work\wt_c143sg_mut\PriceOfBread.Tests\TsregInstrumentTests.cs:line 110
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:20.19]     PriceOfBread.Tests.TradeInstrumentTests.T5_計器を切ると蓄えは作られない [FAIL]
+  失敗 PriceOfBread.Tests.TradeInstrumentTests.T5_計器を切ると蓄えは作られない [2 s]
+  エラー メッセージ:
+   Assert.Null() Failure: Value is not null
+Expected: null
+Actual:   TsAcc { }
+  スタック トレース:
+     at PriceOfBread.Tests.TradeInstrumentTests.T5_計器を切ると蓄えは作られない() in D:\PoB_work\wt_c143sg_mut\PriceOfBread.Tests\TradeInstrumentTests.cs:line 194
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 18 s - PriceOfBread.Tests.dll (net10.0)

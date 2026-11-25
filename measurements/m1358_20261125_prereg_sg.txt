@@ -1,0 +1,44 @@
+(1358) c143sg 事前登録（腕の前の最初のコミット）  木 1cb76c40c（基線 m1355）
+種類：恒等の線（計器だけ）。予言 0＝力学の出力は 1 バイトも変わらない。
+
+[1] 恒等の線・予言 0
+  足す物：兄弟の表 tsreg_s（内陸の州の主食の輸入の門の止まり方を、州×財で数える）。既存の tradeskip_s は 1 バイトも変えない。
+  形：TsAcc の行（Row〜CloseRow）の文脈に州の記録（RegRec）を持たせ、Outcome・Scan・Exit の既存の呼び口の中から足す。
+      BilateralMarket.cs の変更は Row の呼び口の 1 行（:850）だけ＝引数に州と市場を足す。
+  主食の選び：計器が自分で Catalog.Goods[g] を見る（Tier==Staple または GrainChain）。港でない州と港の州の両方を書く。
+  表を主食の財だけにする理由：全財だと行数が約 3 倍＋非主食は本線の問いに要らない。
+  列：year nation region portFlag good rows rowIdle rowNoNeed rowBudget0 xSoldOut xCap xWedge xPass
+      exPriceHigh exXPriceSmall exXNeedSmall exYZero exBudget exCapMid exDealt exGuard demand import shortage
+      （demand・import・shortage はその年の第 4 四半期の最初の清算の行の時点の LastDemand・LastImport・LastShortage）。
+  新しい係数 0・旗 0・状態 0（TsAcc の蓄えは既存と同じ＝セーブに載らない計器の欄）。距離の表（KmOf・PairRisk）は呼ばない。
+  エンジンの局所の値は書き換えない。Instruments.On でない時は ts が null＝呼ばれない。
+
+[2] 消す物と残す物
+  消す物：無し。残す物：tradeskip_s の列と値の全て。
+  読み手の grep（tradeskip）：SimCore の Instruments/InstrumentsTg.cs・InstrumentsTradeskip.cs だけ。Runner・App・Display は 0。Tests は TradeInstrumentTests・TradePhase0Tests・TradeSkipC4*Tests・InstrumentHookClosureTests（表の名前の並びだけ）。
+  tsreg の名前：SimCore・Runner・App・Display・Tests・scripts・POB_COEF・SaveGame で既存の読み手 0（grep 済み）。
+  他の線との重なり：c143sp は Instruments.cs の登録の行と InstrumentsStProc.cs（別ファイル）・c143ce は InstrumentsCwend.cs（別ファイル）。
+      自分は Instruments.cs に触れない（TradeskipTable に書き足す＝InstrumentsTradeskip.cs の内側）・InstrumentsTg.cs:67 の BuyShadow の列に tsreg_s を 1 つ足す・
+      InstrumentHookClosureTests.cs の 2 行（BuyShadow/Tradeskip と BuyShadow）の表の名前の並びに tsreg_s を足す。
+      BilateralMarket.cs :850 の 1 行（c143sp・k59 は触れない）。
+  浮動小数の順序が変わる箇所：0（読むだけの加算・エンジンの式に触れない）。同じ盤面で旧と新の食い違いの数＝全行比較で 0 の予言。
+
+[3] 足す試験と突然変異
+  TsregInstrumentTests（新しい）
+    T1 手で置いた盤面：2 州の国（内陸＝港でない州と港の州）・主食の買いの行で内陸の州の容量が 0 の時、内陸の xCap が 1 増え港の州は増えない（TsAcc を直接動かす）。
+    T2 走らせた盤面：24 四半期の 4 国。州ごとの和が tradeskip_s の国×財の行の列と一致（主食の財だけ・rows・idle・noNeed・budget0・xSold・xCap・xWedge・xPass・出口 8 区分）。
+       対照：港でない州の行が 1 つ以上・xCap の和が 0 でない・出口の列の和が 0 でない。
+    T3 計器を切ると蓄えが無い（Instruments.On でない時 TsBegin が null）。
+  突然変異
+    M1 州の鍵を売り手の州にする（Scan の州の記録を売り手の側へ）→ T1 が赤。
+    M2 Outcome の Idle を数えない → T2 の和の一致が赤。
+    M3 Instruments.On でない時にも集計する（TsBegin の On の門を外す）→ T3 または計算量の番人が赤。
+  ソースを走査する番人の点検（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器のコミットの直後に回す。
+      grep：new MoneyStock( は SimCore の既存どおり（足さない＝書き換える件数の予言 0）・WriterRatchetTests の宣言の表は触れない（予言 0）・工業化度の読み手の許可表は触れない（予言 0）。
+      InstrumentHookClosureTests の表の名前の並びだけ 2 行書き足す（★(743) の区分＝名前の並びの写し・Assert は変えない）。
+
+[4] 恒等の合否
+  素の 5 種・計器つき 10 種が m1355 と名乗り行（SOURCE-HASH）を除いて全行一致。計器の表の差は宣言 tsreg の 1 本だけ（+1）。
+  tradeskip_s は基線の生と 1 バイトも違わない。.cost は +0（計器が切れている時は呼ばない）。
+  試験の数：3199 ＋ 足した数（--tests-delta で宣言）。savetest OK・leakhunt OK。
+[5] 〈判定: 恒等〉なら採る。一致しなければその変更を外して報告に回す。
