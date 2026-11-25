@@ -1,0 +1,38 @@
+(1369) 合流（波144）の予言＝merge の前にコミットする（★(711)）。書き手 Opus 5.5。基点 11bfbfcd6（基線 m1362・SOURCE-HASH a27895429deb5132）。
+
+[入れる線]
+- 恒等の線 4 本：c144ut (1363)・c144wr (1364)・c144lb (1365)・c144cf (1366)。挙動の線は無い＝基線は m1362 のまま。
+- 線の ident の最終行は ut・lb・cf とも〈判定: 不一致〉。理由は savetest の 1 件だけ（値の違い 303・Producer.EffGoods の共有の形）。
+  同じ 303 は基点 11bfbfcd6 の合流 (1362) の記録 measurements/m1362_20261125/suite_7c6d1eb3c/savetest.txt に既にある（その最終行は〈乖離 0・状態の違いのある点 3/3〉で、(1362) の実装ログはこれを〈savetest OK〉と写した＝記録の誤り）。m1357 の suite は値の違い 0。
+  ＝線の原因ではない（3 本の反証役 v の読みと一致）→ 3 本とも〈成績表と計器の表は恒等（測った種で一致）・savetest は基点の既存の不一致〉として入れる。
+- 読む線 c144gr (1367)・設計の材料 c144rd (1368)：写すだけ（コミットは合流）。
+- 反証役の high：rd の v の 1 件（W1 の崩壊の条件＝InCivilWar は内戦の両側で常に真）＝設計の材料なので外さず、docs の末尾に訂正として足す。他の線に high は無い。
+
+[作者の指示から外れる所（先に名乗る）]
+- ut の型 2 種（FractionPerMonth・FractionPerQuarter）で Tests.Ui の DisplayCatalogTests:275 の型の数の番人（9）が赤になる（ut の線の申告）。
+  合流が Display/Table.cs（enum Unit に 2 つ・UnitOf に 2 行）と App/Fmt.cs（書式の 2 行＝RatePerMonth・RatePerQuarter と同じ形）を足し、試験の 9 を 11 にする。
+  〈App・Display・Runner は 0 行〉の線の決まりから外れる。エンジンの .cs ではない（シミュのビットは変わらない）。FmtTests の〈全ての単位に書式〉の番人が enum の追加で赤にならないよう Fmt に 2 行が要る。
+  書き換えの区分：★(764) の静的な件数の番人（予言 9→11）。突然変異（UnitOf の 1 行を外す）で Assert.All が赤になることを確かめる。
+
+[予言（腕 Z＝合わせた木の ident m1369z・段 2・--saveleak --ng --tests-delta 16 --rewritten-tables cwend_s@scripts/instruments/c144cf/cwend_check.py）]
+- Z1 素の 5 種：b5_20261125_m1362 と名乗り行を除いて全行バイト一致。計器つき 10 種：b10_20261125_m1362_ins と全行一致。
+- Z2 計器の表：宣言の無い違い 0・cwend_s の 10 本は検算の台本で通る（cf の札の直し）・ほかはバイト一致か既知の揺れ。注視 mon は一致。
+- Z3 .cost：推定 230.8 秒（5 種）・229.7 秒（10 種）＝m1362 と同じ（+0 秒）。
+- Z4 NG：88（ng1362 と比べて新 0・外 0）。
+- Z5 テスト：Category!=FullLength 3233（3217＋ut 1＋wr 13−lb 5＋cf 7）・FullLength 3。
+- Z6 savetest：値の違い 303（比べた対象 6239112＝基点 6239236−124〔lb が消した係数 2 本×国ごとの Coef 62〈推〉〕）＝ident の最終行は〈判定: 不一致〉を予言。leakhunt は保存則違反なし。
+  ＝〈判定: 不一致〉が savetest 以外の理由で出たら、その線を外して報告に回す。
+
+[合わせた木で動く番人（予言・静的な件数＝★(764)）]
+- ValueCountRatchetTests の SimCore 755 → 758（ut の Units.cs・Calendar.cs の外の +3＝PoliticalQuantities.cs の Toward の多重定義 2・Parliament.cs:335 の 1）。Display 48 は動かない（enum と UnitOf に .Value は無い）。
+  ＝作者の指示〈2 本の線の基の数の和を超えたら赤〉を、wr の基 755＋ut の増分 3＝758 と読み、表を 758 にする。
+- DerivedValueRatchetTests（7 つの値の書き手/入力/出力）と WriterRatchetTests の宣言の表は動かない（ut・lb・cf の差分に 7 つの値の書き手・読み手は無い）。
+- DisplayCatalogTests:275 の 9 → 11（上）。
+- 予言が外れたら、外れた行を記録の段の先頭に書く（表の数え直しはその数で入れ、外れとして名乗る）。
+
+[記録の段（採否に使わない）]
+- savetest の帰属：合わせた木で旗 FemalePartLawFree 0 と StateProcureAsSold 0 を 1 本ずつ（POB_COEF）savetest を回し、どちらの旗で 303 が消えるかを読む（m1362z の腕 Z＝両旗 0 は OK だった）。エンジンは直さない＝次の波の線へ。
+- ident の生：段 2 の out_ib_10/ins は PRUNE=0 で残し、D:/PoB_work/keep_1369/base_ins へ（cwend_s の札が変わったので INSRAW を移す）。
+- 線の ident の生（ident_c144ut・ident_c144lb・ident_c144cf）は、反証役が表の一致を読み終えた＝帰属は読んだ＝keepsum の要約を残して消す（D: の空き 21GB＜腕 Z の約 30GB）。
+
+[計算量] 0 秒（全て恒等）。余りは約 15.2 秒のまま（保守側 S11）。
