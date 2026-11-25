@@ -1,0 +1,3 @@
+# D:/PoB_work/c143k59_work/armB/out_c143k59B_10/ins
+差の行の国×年（種×国×年）3922・うち 6 大国 4：ロシア
+差の行の lwk_s の POP 行 32673・partShare の平均 0.4906・workEngineIndex の平均 0.4373
