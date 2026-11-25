@@ -741,6 +741,9 @@ public sealed class World
     /// </summary>
     public MoneyStock OutstandingLoans => (Bank?.Loans ?? default) + (Bank?.HouseholdLoans ?? default);
     public MoneyStock BroadMoney => TotalMoney;
+
+    /// <summary>正貨の覆い率＝基礎貨幣÷広義の貨幣（広義が 0 なら 1.0）。(1380) A2-09：Fiscal・Government・PlayText・SelfPlay・Simulation の 6 か所の同じ式をここへ寄せた（Credit.cs の gcCoverage はガード条件が別なので別）。</summary>
+    public double SpecieCoverRatio() => BroadMoney.Value > 1e-9 ? BaseMoney / BroadMoney : 1.0;
     public double FinancialHeat => Bank?.Heat ?? 0.0;   // 金融過熱度（恐慌の予兆ゲージ・ガラス箱）
 
     // --- 国庫・財政（§9-F／§6.2・段4b）---

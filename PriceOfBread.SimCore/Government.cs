@@ -168,7 +168,7 @@ public static class Government
         double rateTarget = Q5(PoliticalQuantities.Clamp01(p.InterestRateTarget));
         if (w.OnGoldStandard && !w.CapitalControlLaw && w.GoldStandardLaw)
         {
-            double coverage = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
+            double coverage = w.SpecieCoverRatio();
             double coverTarget = c.GoldCoverMin.Value * c.GoldRejoinCoverMargin;
             double gap = coverTarget > 1e-9 ? (coverTarget - coverage) / coverTarget : 0;
             gap = Math.Clamp(gap, -1, 1);

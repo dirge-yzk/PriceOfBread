@@ -1932,7 +1932,7 @@ public sealed class Simulation
             // 封印されるのは**銀行券の発行**の側＝正貨比率（BaseMoney/BroadMoney）ぶんは   兌換中でも改鋳の窓が開く：room = deficit×(1 − Conv×(1−正貨比率))。〔履歴 Simulation.cs#239〕
             if (World.MonetaryLaw == MonetaryStandardLaw.Silver)
             {
-                double specie = World.BroadMoney.Value > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
+                double specie = World.SpecieCoverRatio();
                 if (!(specie >= 0)) specie = 0; else if (specie > 1) specie = 1;   // NaNは0へ倒す（否定形＝ClampはNaNを消さない）
                 devalueRoom = deficit * (1.0 - World.Convertibility * (1.0 - specie));
             }
@@ -2381,7 +2381,7 @@ public sealed class Simulation
         double gapLeft = 0;      // gapLeft〔履歴 Simulation.cs#324〕
         if (World.Coef.MintReserveTargetWeight > 0)
         {
-            double coverage = World.BroadMoney.Value > 1e-9 ? World.BaseMoney / World.BroadMoney : 1.0;
+            double coverage = World.SpecieCoverRatio();
             double coverTarget = World.Coef.GoldCoverMin.Value * World.Coef.GoldRejoinCoverMargin;
             double shortfall = coverTarget > 1e-9 ? (coverTarget - coverage) / coverTarget : 0;
             shortfall = PoliticalQuantities.Clamp01(shortfall);   // NaN は Clamp01 が0＝造幣停止側へ倒す

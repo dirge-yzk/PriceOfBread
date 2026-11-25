@@ -215,7 +215,7 @@ public static class Fiscal
         {
         if (w.MonetaryEnabled)
         {
-            double coverage = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
+            double coverage = w.SpecieCoverRatio();
             if (w.OnGoldStandard)
             {
                 if (!w.MetallicStandardLaw || fundingTrip || coverage < c.GoldCoverMin.Value)
