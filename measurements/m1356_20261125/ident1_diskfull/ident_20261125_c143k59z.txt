@@ -1,0 +1,82 @@
+=== 恒等の判定（測った種で一致） c143k59z（2026-11-25 13:10:25）===
+測った木：D:/PoB_work/wt_c143k59（HEAD 88b7d98c3・未コミット 1 本）
+基準の設定：D:/PoB_work/wt_c143k59/scripts/instruments/ident/ident.cfg
+宣言： tests_delta=3
+腕 a：rc=0 end=2026-11-25 12:23:41
+腕 b：rc=4 end=2026-11-25 13:10:25
+  △ 未了：腕 b の終了コードが測れた走りの物でない（rc=4 end=2026-11-25 13:10:25）＝腕が満杯の 3・ビルドや measure.sh の失敗
+腕 t：rc=0 end=2026-11-25 12:10:05
+腕 s：rc=0 end=2026-11-25 12:27:52
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：c1247166480a3bde
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: c1247166480a3bde
+[素の 5 種] b5_ia_5.txt 対 b5_20261125_m1355
+  ○ 全行バイト一致（182 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261125_m1355.cost
+  ○ 件数の行 45 本・推定 229.8 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: c1247166480a3bde
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261125_m1355_ins
+  ✗ 不一致：計器つき 10 種：行数 23 対 184・違う行 22
+      1: 新 Unhandled exception. System.AggregateException: One or more errors occurred. (ディスクに十分な空き領域がありません。 : 'D:\PoB_work\ident_c143k59\out_ib_10\ins
+         基 === バッチ自己対戦 seeds 1..10（各668四半期）===
+      2: 新  ---> System.IO.IOException: ディスクに十分な空き領域がありません。 : 'D:\PoB_work\ident_c143k59\out_ib_10\ins\wars_s3.tsv'.
+         基 破綻（未完走）: 0/10
+      3: 新    at System.IO.StreamWriter.Flush(Boolean flushStream, Boolean flushEncoder)
+         基 平均 首位確定: Q1/668    平均首位交代: 0.0回
+      4: 新    at System.IO.TextWriter.Dispose()
+         基 デッドロック発生: 0/10    終盤決着(最終1割の四半期): 0/10    異常総数: 0
+      5: 新    at PriceOfBread.SimCore.Instruments.WarTables(Sink sk, DipState dip, Diplomacy dp) in D:\PoB_work\ident_c143k59\snap_ib_10\PriceOfBread.S
+         基 ハーネス不合格を含む試合: 9/10
+      6: 新    at PriceOfBread.SimCore.Instruments.WarTables(Sink sk, DipState dip, Diplomacy dp) in D:\PoB_work\ident_c143k59\snap_ib_10\PriceOfBread.S
+         基 恐慌統計: 平均最大ドローダウン 95.0%　大恐慌(25%超)を含む試合 10/10　平均恐慌回数 101.8
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261125_m1355_ins.cost
+  △ 未了：計器つき 10 種の .cost：.cost が無い
+[計器の表] 腕 D:/PoB_work/ident_c143k59/out_ib_10/ins  対  基準 D:/PoB_work/keep_1355/base_ins
+  基準 1759 本・腕 1742 本・バイト一致 1566 本
+  基準にあって腕に無い 17 本（うち宣言 0）
+  既知の揺れの列だけが違う表 18 本：burscan_s:seconds×9・clock_s:worldTotalPerMonth@kind=C×9
+  ✗ 不一致：計器の表：基準にあって腕に無い 17 本 ['burscan_s3.tsv', 'canal_s3.tsv', 'casualty_s3.tsv', 'cederule_s3.tsv', 'cess_s3.tsv']
+  ✗ 不一致：計器の表：宣言の無い違い 158 本
+      admrule_s3.tsv	['FIELDS', 'ROWS', 'atWarFlag', 'excessSoldierK', 'manLimitK', 'manLimitOldK']
+      age_s3.tsv	['FIELDS', 'ROWS', 'bandIndex', 'bands', 'birthsK', 'countK']
+      aib_s3.tsv	['FIELDS', 'ROWS', 'artilleryBuildingCount', 'artilleryBuiltSum', 'artilleryScaleSum', 'bestRegionCount']
+      anchor_s3.tsv	['FIELDS', 'ROWS', 'activeRegionsN', 'anchorOld', 'anchorRegions', 'anchorRegionsN']
+      armsfill_s3.tsv	['FIELDS', 'ROWS', 'engineEquipFillShare', 'fillContribQtyTotal', 'otherFillContribQty', 'readinessShare']
+      arrears_s3.tsv	['FIELDS', 'ROWS', 'arrNewMonth', 'cumNew', 'cumOld', 'insolvencyBefore']
+      basisx_s3.tsv	['FIELDS', 'ROWS', 'bxNanFlag', 'bxShadowFrozenC2', 'bxShadowFrozenS', 'bxSwitchA']
+      burblock_s3.tsv	['FIELDS', 'ROWS', 'blockMask', 'feasMask', 'need', 'wantMask']
+      capcol_s3.tsv	['FIELDS', 'ROWS', 'capitalChangedFlag', 'capitalRegion', 'capitalTier', 'civilWarFlag']
+      capinv_s3.tsv	['FIELDS', 'ROWS', 'capitalistIncomePerYear', 'capitalistSavingsStock', 'elecFactoryProfitPerMonth', 'ownFactoryProfitPerMonth']
+  内訳：共通の表 1742 本＝バイト一致 1566＋既知の揺れ 18＋列が増えた 0＋行が増えた 0＋列が消えた 0＋検算の台本で通った表 0＋宣言の無い違い 158＋その他 0（和 1742）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ→検算の台本〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261125_m1355.txt（タグの行を除く）
+  ✗ 不一致：注視の表：行数 4825 対 4875・違う行 4789
+      3: 新 MONHEAD	第 2 段の表を読んだ種：monlaw=10・mongood=9・monai=9(種の数 10)
+         基 MONHEAD	第 2 段の表を読んだ種：monlaw=10・mongood=10・monai=10(種の数 10)
+      4: 新 MONHEAD	封鎖：blockadeRiskShare は全期間 0(409239 行・World.LastBlockadeRisk の書き手が無い)＝封鎖は拾えない
+         基 MONHEAD	封鎖：blockadeRiskShare は全期間 0(410441 行・World.LastBlockadeRisk の書き手が無い)＝封鎖は拾えない
+      6: 新 MONHEAD	表なし：canal
+         基 MONSEED	種1	国数=76	政体PDあり=0	年内往復=308	分母が痩せた年=0
+      7: 新 MONHEAD	表なし：invade
+         基 MONSEED	種2	国数=68	政体PDあり=0	年内往復=281	分母が痩せた年=0
+      8: 新 MONHEAD	列なし：pclamp.nation
+         基 MONSEED	種3	国数=66	政体PDあり=0	年内往復=250	分母が痩せた年=0
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ✗ 不一致：NG：基準 88・比べる 12・新しい 8・外れた 84
+[テストの数] --list-tests
+  ○ Category!=FullLength 3202（基準 3199+3 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+不一致の理由 5 件：
+  - 計器つき 10 種：行数 23 対 184・違う行 22
+  - 計器の表：基準にあって腕に無い 17 本 ['burscan_s3.tsv', 'canal_s3.tsv', 'casualty_s3.tsv', 'cederule_s3.tsv', 'cess_s3.tsv']
+  - 計器の表：宣言の無い違い 158 本
+  - 注視の表：行数 4825 対 4875・違う行 4789
+  - NG：基準 88・比べる 12・新しい 8・外れた 84
+未了 2 件：
+  - 腕 b の終了コードが測れた走りの物でない（rc=4 end=2026-11-25 13:10:25）＝腕が満杯の 3・ビルドや measure.sh の失敗
+  - 計器つき 10 種の .cost：.cost が無い
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 不一致
