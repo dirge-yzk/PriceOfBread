@@ -135,6 +135,30 @@ public class SaveRoundTripTests
         }
     }
 
+    /// <summary>(1370) 空の配列の共有の形：エンジンの `[]` は共有の空の配列。読み込みで別実体にすると、読み込みの後に作られる生産者の `[]` と
+    /// 共有の形が食い違い、StateDiff が〈共有の形が違う〉を出す（main の savetest の 303 の根）。往復の後に両方へ同じ `[]` の生産者を足して値の違い 0。
+    /// 旗 FemalePartLawFree 1（既定）の盤面。⚠突然変異「読み込みの空の配列を別実体に戻す」で赤。</summary>
+    [Fact]
+    public void 空の配列の共有の形は往復の後も保たれる()
+    {
+        var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
+        Assert.True(sim1.Nations[0].World.Coef.FemalePartLawFree > 0);
+        using var ms = new System.IO.MemoryStream();
+        SaveGame.Save(sim1, ms);
+        ms.Position = 0;
+        var sim2 = SaveGame.Load(ms);
+        var prods = sim2.Nations[0].World.Regions[0].Producers;
+        Assert.True(prods.Any(p => p.EffGoods.Length == 0), "対照：空の EffGoods を持つ生産者が盤面に無い（試験が空振り）");
+        Assert.Same(System.Array.Empty<int>(), prods.First(p => p.EffGoods.Length == 0).EffGoods);
+        foreach (var sim in new[] { sim1, sim2 })
+            sim.Nations[0].World.Regions[0].Producers.Add(new Producer { GoodId = 0, EffGoods = [] });   // 読み込みの後に作られる生産者（Simulation の `[]` と同じ書き方）
+        var sd = SaveGame.StateDiff(sim1, sim2, 4);
+        Assert.True(sd.Values == 0, $"値の違い {sd.Values} 件：{string.Join(" ／ ", sd.Samples)}");
+        // 非空の配列は共有しない（空だけを戻す）
+        var nonEmpty = prods.Where(p => p.EffGoods.Length > 0).Take(2).ToList();
+        if (nonEmpty.Count == 2) Assert.NotSame(nonEmpty[0].EffGoods, nonEmpty[1].EffGoods);
+    }
+
     /// <summary>(1309) 欄の比べ StateDiff の自己試験：同じ中身は値の違い 0・1 つの欄を変えれば値の違いに 1 件出る（比べの道具が空振りしない）。</summary>
     [Fact]
     public void 欄の比べは違いを拾う()
