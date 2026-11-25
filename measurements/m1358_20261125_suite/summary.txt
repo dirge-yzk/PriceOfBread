@@ -1,0 +1,3 @@
+PriceOfBread.Tests nonfull rc=0
+PriceOfBread.Tests.Ui nonfull rc=0
+FullLength rc=0
