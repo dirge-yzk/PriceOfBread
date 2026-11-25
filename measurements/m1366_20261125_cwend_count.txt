@@ -1,0 +1,6 @@
+(1366) c144cf cwend_s の endPath の区分ごとの件数（M の 10 種）
+旧（基準 keep_1362/base_ins）：
+行 84 区分 {'collapse': 68, 'weary': 10, 'decisive': 6}
+新（腕 Z）：
+行 84 区分 {'decisive': 43, 'weary': 41}
+区分×collapseFlag {('decisive', '1'): 37, ('weary', '1'): 31, ('weary', '0'): 10, ('decisive', '0'): 6}
