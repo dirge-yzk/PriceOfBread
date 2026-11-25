@@ -64,7 +64,9 @@ public static class FactionSnapshot
 
     internal static double Participation(World w, Pop p, double[] coord, double[] lawGap)
     {
-        return Math.Max(DiscontentOf(w, p, coord, lawGap), p.Militancy);
+        double d = DiscontentOf(w, p, coord, lawGap);
+        if (w.Coef.SatReadersToDiscontent > 0) return d;   // (1371) 旗 1＝参加は D だけ（闘争度を読まない）
+        return Math.Max(d, p.Militancy);
     }
 
     internal static (int Bloc, int Ideo) BlocIdeo(Pop p)
