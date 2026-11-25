@@ -88,7 +88,7 @@ public static class Politics
         if (c.SatReadersToDiscontent > 0)   // (1371) 旗 1＝D＝Clamp01(WantWeight×Pos(R−s))・声の項を抜く（案 D1）
         {
             double want = LivingWant(p, c);
-            return PoliticalQuantities.Clamp01(c.WantWeight * (want > 0 ? want : 0.0));
+            return PoliticalQuantities.Clamp01(c.WantWeight * PoliticalQuantities.Pos(want));   // (1377) 手書きの Pos を 1 本へ（!(x>0) ? 0 : x＝NaN も 0・ビットは同じ）
         }
         double distance = c.DiscontentLawGap > 0 ? lawGap : AxisDistance(p, regimeCoord);
         double d = DiscontentRaw(w, c, p, distance);
