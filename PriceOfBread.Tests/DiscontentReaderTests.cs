@@ -20,7 +20,7 @@ public class DiscontentReaderTests
         var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
         sim.Run(8);
         var w = sim.World; var c = w.Coef;
-        c.MilitancySpeed = 0; c.ConsciousnessSpeed = 0;
+        c.MilitancySpeed = FractionPerQuarter.FromQuarter(0); c.ConsciousnessSpeed = 0;
         foreach (var r in w.Regions)
             foreach (var p in r.Pops) { p.Militancy = militancy; p.Consciousness = 0; p.Satisfaction = 0.5; p.LivingRef = 0.5 + drop; }
         return w;

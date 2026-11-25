@@ -315,7 +315,7 @@ public class RuleSharesFormTests
     [Fact]
     public void D6_女性の賃金保持の追従の速さが国家の区分に比例し行政効率に依らない()
     {
-        Assert.Equal(0.15, new Coefficients().WomenRightsFollowSpeed, 12);   // 前提（既定の追従の速さ）。期待値は手計算のリテラル＝1−(1−0.15×到達)^3（月次の追従が 3 回）
+        Assert.Equal(0.15, new Coefficients().WomenRightsFollowSpeed.Value, 12);   // 前提（既定の追従の速さ）。期待値は手計算のリテラル＝1−(1−0.15×到達)^3（月次の追従が 3 回）
         foreach (var (reach, want) in new[] { (0.2, 0.087327), (1.0, 0.385875) })
         {
             var sim = France(_ => { });

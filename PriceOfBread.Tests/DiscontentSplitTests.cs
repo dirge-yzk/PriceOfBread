@@ -92,7 +92,7 @@ public class DiscontentSplitTests
         foreach (double drop in new[] { 0.25, 0.0, -0.25 })
         {
             var w = Board(drop, militancy: 0.0);
-            w.Coef.MilitancySpeed = 1.0;
+            w.Coef.MilitancySpeed = FractionPerQuarter.FromQuarter(1.0);
             Politics.Step(w, w.Coef);
             var ps = ActivePops(w).ToList();
             Assert.True(ps.Count > 50);
@@ -110,7 +110,7 @@ public class DiscontentSplitTests
         Assert.True(gain > 0, "前提：飢餓の駆動が点火している");
         double fill = 1.0 - onset - 0.5 / gain;   // 駆動 0.5 になる充足（平常 1.0 から）
         foreach (var p in ActivePops(w)) { p.FoodNeed = 1.0; p.FoodMet = fill; p.FoodRef = 1.0; }
-        w.Coef.MilitancySpeed = 1.0;
+        w.Coef.MilitancySpeed = FractionPerQuarter.FromQuarter(1.0);
         Politics.Step(w, w.Coef);
         var ps = ActivePops(w).ToList();
         Assert.True(ps.Count > 50);

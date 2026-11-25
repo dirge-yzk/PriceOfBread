@@ -127,7 +127,7 @@ public class PriceLevelPressureTests(ITestOutputHelper output)
         var on = RunDeficit(1.5, quarters);
         var c = new Coefficients();
         // 上限の導出（式を写さない）：P_after ≤ max(P_before, 循環比) × (1 + W × 四半期の圧の和)。圧の和 ≤ 月数（月の圧 ≤ 1）。循環比 ≤ 1/追従速度（趨勢 ≥ 追従速度 × 比）。
-        double cycMax = 1.0 / c.MonetaryTrendSpeed;
+        double cycMax = 1.0 / c.MonetaryTrendSpeed.Value;
         double Bound(double pPrev) => Math.Max(Math.Max(pPrev, cycMax), c.PriceLevelFloor) * (1.0 + c.FiatInflationWeight * 3.0) * (1 + 1e-9);
         Assert.False(on.broke, "貨幣保存が破れた");
         Assert.Equal(quarters, on.reachedQ);
