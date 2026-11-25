@@ -38,6 +38,7 @@ public sealed class GovernanceSnapshot
 
     public void RestoreTo(World w)
     {
+        Instruments.LawstepSideBegin(w);   // (1372) 計器 lawstep_s
         w.EducationLaw = _eduLaw; w.Suffrage = _suffrage;
         w.Censorship = _censorship; w.LaborUnion = _laborUnion; w.WomenRights = _womenRights;
         w.CornLaws = _cornLaws; w.SerfEmancipation = _serfEmancipation; w.LandReform = _landReform; w.WorkHours = _workHours;
@@ -54,5 +55,6 @@ public sealed class GovernanceSnapshot
         w.Policy.CopyFrom(_policy);
         if (w.Bank is { } bank) { bank.Loans = default; bank.HouseholdLoans = default; bank.Confidence = 1.0; bank.Heat = 0; }
         foreach (var (_, p) in w.AllPopsWithRegion()) p.Debt = default;
+        Instruments.LawstepSideEnd(w, 5);   // (1372)
     }
 }

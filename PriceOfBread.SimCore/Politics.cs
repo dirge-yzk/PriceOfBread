@@ -698,6 +698,7 @@ public static class Politics
     private static void ConcedeToFaction(World w, Coefficients c, FactionState f)
     {
         var demands = FactionSnapshot.ComputeDemands(w, f.Bloc);
+        Instruments.LawstepSideBegin(w);   // (1372) 計器 lawstep_s（On は関数の中で読む）
         int steps = 0;
         for (int i = 0; i < demands.Count; i++)
             steps += ApplyDemand(w, c, demands[i].Axis, demands[i].Increase, i == 0 ? c.FactionConcessionSteps : 1);
@@ -706,6 +707,7 @@ public static class Politics
         w.MandateSpent += spend;
         w.MandateSpentNew += spend;
         foreach (var p in f.Region.Pops) if (p.IsCommoner) p.Militancy *= c.ReformMilitancyRelief;
+        Instruments.LawstepSideEnd(w, 4);   // (1372)
         w.LogAdd($"{w.Year} {w.SelfPower?.Name}が{Factions.DisplayName(f)}の要求をのんだ");
     }
 

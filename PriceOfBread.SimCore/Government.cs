@@ -137,11 +137,11 @@ public static class Government
         }
 
         int stepIdx = -1;
-        if (Instruments.On) Instruments.StockAtLevelHead(w);
+        if (Instruments.On) { Instruments.StockAtLevelHead(w); Instruments.LawstepHead(w); }
         foreach (var law in LevelLaws)
         {
             stepIdx++;
-            if (Instruments.On) Instruments.LevelBegin(w, stepIdx);
+            if (Instruments.On) { Instruments.LevelBegin(w, stepIdx); Instruments.LawstepBegin(w, law); }
             if (law.Open != null && !law.Open(w)) continue;
             int target = law.Target(w, p);
             if (law.Enact != null) law.Enact(w, p, target);
@@ -178,7 +178,7 @@ public static class Government
         w.InterestRate = PoliticalQuantities.Toward(w.InterestRate, rateTarget, c.PolicyBaseSpeed);
         w.AdminSpending = PoliticalQuantities.Toward(w.AdminSpending, Q5(PoliticalQuantities.Clamp01(p.AdminSpendingTarget)), c.PolicyBaseSpeed);
 
-        if (Instruments.On) Instruments.StockAtStepEnd(w);
+        if (Instruments.On) { Instruments.StockAtStepEnd(w); Instruments.LawstepEnd(w); }
         w.AusterityIntensity = austerity;
     }
 
