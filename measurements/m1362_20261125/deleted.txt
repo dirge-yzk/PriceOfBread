@@ -1,0 +1,7 @@
+(1362) 合流が消したフォルダ（2026-11-25・消す前の要約は同じフォルダの rsum_*.tsv・keepsum_*.tsv）
+- D:/PoB_work/ident_c143sg・ident_c143ce・ident_c143k59・c143ce_art（線の生・18:13・rsum_ident_c143sg_ce_k59.tsv の後・M の空きのため）
+- D:/PoB_work/ident_m1362z（合流の腕 Z の生・19:08・keepsum_ident_m1362z_ins.tsv・rsum_ident_m1362z.tsv の後）
+- D:/PoB_work/c143k59_work・c143sp_work・c143sg_work・c143ce_work（線の作業フォルダ・20:27・keepsum_c143k59B.tsv・keepsum_c143spB.tsv・rsum_line_and_merge_left.tsv の後）
+- D:/PoB_work/m1362_work の out_mM_10（ins は keep_1362/base_ins へ移した後の残り）・out_mS11_10_s11（ins は keep_1362/a11 へ）・out_p5_5・src_*・suite/art・art_scan
+- D:/PoB_work/keep_1355/base_ins（ident.cfg を keep_1362/base_ins へ移して push した 8babd0485 の後＝INSRAW でも KEEPNULL でもない・要約は measurements/m1355_20261125/keepsum_keep1355_base_ins.tsv・N1・N2 の空きのため）
+- 残した keep：keep_1355/a11・n1・n2（KEEPNULL を keep_1362 へ移す 2 回目の push までの参照）・keep_1362（base_ins・a11・n1・n2）

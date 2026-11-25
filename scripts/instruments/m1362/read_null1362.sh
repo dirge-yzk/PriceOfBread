@@ -3,9 +3,12 @@
 #   使い方: bash read_null1362.sh <ins（D:/ の形）> <タグ> <出力フォルダ（D:/ の形）>
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 D0="$(cd "$(dirname "$0")" && pwd)"; R="$(cd "$D0/../../.." && pwd -W)"; S=$R/scripts/instruments
-INS=${1:?ins}; TAG=${2:?タグ}; OUT=${3:?出力}; BASE=D:/PoB_work/keep_1355/base_ins
+INS=${1:?ins}; TAG=${2:?タグ}; OUT=${3:?出力}; BASE=D:/PoB_work/keep_1362/base_ins
 mkdir -p "$OUT"; cd "$R"
 bash "$S/c78gz/stoplines906.sh" "$INS" "$OUT/stop906.txt" 1 > "$OUT/stop906.log" 2>&1; echo "stop906 rc=$?"
+bash "$S/c139sl/stoplines1330.sh" "$INS" "$OUT/stop1330.txt" 1 > "$OUT/stop1330.log" 2>&1; echo "stop1330 rc=$?"
+python -X utf8 -I "$S/m1362/hrmax.py" "$INS" > "$OUT/hrmax.txt" 2>&1; echo "hrmax rc=$?"
+python -X utf8 -I "$S/c143sp/fw_sp.py" "$INS" 1 10 > "$OUT/fw.txt" 2>&1; echo "fw rc=$?"
 python -X utf8 "$S/hol/an_h2.py" "$INS" -v4 > "$OUT/hol_v4.txt" 2>&1; echo "hol rc=$?"
 python -X utf8 -I "$S/m808/gdp_zero10.py" arm=$INS base=$BASE > "$OUT/gdp_zero10.txt" 2>&1; echo "gdpz rc=$?"
 python -X utf8 -I "$S/m975/ukdef975.py" "$INS" 1 > "$OUT/ukdef.txt" 2>&1; echo "ukdef rc=$?"
