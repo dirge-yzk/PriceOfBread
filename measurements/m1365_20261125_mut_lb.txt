@@ -1,0 +1,4 @@
+M1: 失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 4 s - PriceOfBread.Tests.dll (net10.0) / ProtectedLawReversalTests.T5_守られた法の後退の費用は支持の負の量に払い率を掛けただけ [FAIL] 
+M2: 失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 4 s - PriceOfBread.Tests.dll (net10.0) / ProtectedLawReversalTests.T3_児童労働の再合法化は平時もTowardで進む [FAIL] 
+M3: 失敗!   -失敗:     2、合格:    10、スキップ:     0、合計:    12、期間: 4 s - PriceOfBread.Tests.dll (net10.0) / ProtectedLawReversalTests.T1_選挙権の後退は1段下がる [FAIL] ProtectedLawReversalTests.T4_守られていない軸は塞がれない [FAIL] 
+M4: 失敗!   -失敗:     1、合格:    11、スキップ:     0、合計:    12、期間: 4 s - PriceOfBread.Tests.dll (net10.0) / ProtectedLawReversalTests.T2_農奴解放と土地改革は戻らない [FAIL] 
