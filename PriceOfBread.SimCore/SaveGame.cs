@@ -335,6 +335,9 @@ public static class SaveGame
             }
         }
 
+        private static readonly System.Reflection.MethodInfo _arrayEmpty = typeof(Array).GetMethod(nameof(Array.Empty))!;
+        private static Array EmptyArrayOf(Type et) => (Array)_arrayEmpty.MakeGenericMethod(et).Invoke(null, null)!;
+
         private Type ReadTypeRef()
         {
             int id = br.ReadInt32();
@@ -381,7 +384,8 @@ public static class SaveGame
                 {
                     var et = ReadTypeRef();
                     int n = br.ReadInt32();
-                    var arr = Array.CreateInstance(et, n);
+                    // (1370) 長さ 0 の配列は書けない＝エンジンの `[]`（共有の空の配列）と同じ 1 つの実体へ戻す（別実体にすると、読み込みの後に作られる `[]` と共有の形が食い違う）
+                    var arr = n == 0 ? EmptyArrayOf(et) : Array.CreateInstance(et, n);
                     _objects.Add(arr);
                     for (int i = 0; i < n; i++) arr.SetValue(ReadValue(), i);
                     return arr;
