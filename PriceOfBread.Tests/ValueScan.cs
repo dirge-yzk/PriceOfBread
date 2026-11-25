@@ -13,7 +13,8 @@ namespace PriceOfBread.Tests;
 /// ・本文の整え＝文字列の中身は空へ・`//` と `/* */` の注釈は消す（注釈と文字列の中の言及は数えない）。
 /// ・書き手＝`.量名` への代入・複合代入（`=`・`+=`・`-=`・`*=`・`/=`・添字つき可・`==` と `=>` は除く）。1 行に 2 つあれば 2 と数える。
 ///   Toward の結果の代入も代入文なので同じ規則で 1 と数える。**初期化子（`new Pop { 量名 = … }`）は数えない**（構築であって書き込みではない）。
-///   ドットなしの自分の型の中の書き込みも数えない（ドットつきだけ）。
+///   ドットなしの書き込み（自分の型の中の `量名 = …`）は、受け手の指定が無い量は全てのファイルで数え、受け手の指定がある量（`@pop`・`@colony`）は
+///   その型（Pop・Colony）の宣言の本体の中だけで数える（(1379) 突然変異 M1b で確かめた）。
 /// ・出力＝`.量名` の読み（書き手でない出現）。ドットつきだけ。欄の無い値は関数の呼び出しを読みとして数える（宣言は除く）。
 /// ・入力＝書き手の右辺（`;` まで・括弧の中は対で読む）にある項の種類の数（量ごとに全ての書き手の和集合）。項の規則は <see cref="InputTerms"/>。
 ///   **機械で数えられない限り**＝局所変数は 1 項（その変数の中身は展開しない）＝入力は少なく数える側に偏る。</summary>
@@ -104,9 +105,23 @@ internal static class ValueScan
 
     internal static int CountWriters(string text, string member) => DottedWriters(Strip(text), member).Count();
 
-    /// <summary>ドットなしの書き手の数（量の指定に受け手が無い時だけ）。</summary>
+    /// <summary>ドットなしの書き手の位置と、その位置が指す本文。受け手の指定が無い量は全体・`@pop`／`@colony` はその型（Pop・Colony）の宣言の本体の中だけ（(1379)）。</summary>
+    private static (string Scope, List<Match> At) BareWritersOf(string t, string spec)
+    {
+        var (member, recv) = Parse(spec);
+        if (recv == null) return (t, BareWriters(t, member).ToList());
+        string type = spec.EndsWith("@colony", StringComparison.Ordinal) ? "Colony" : "Pop";
+        var d = Regex.Match(t, $@"\b(class|struct)\s+{type}\b[^{{;]*\{{");
+        if (!d.Success) return (t, new List<Match>());
+        int s = d.Index + d.Length, depth = 1, e = s;
+        for (; e < t.Length && depth > 0; e++) { if (t[e] == '{') depth++; else if (t[e] == '}') depth--; }
+        string body = t[s..e];
+        return (body, BareWriters(body, member).ToList());
+    }
+
+    /// <summary>ドットなしの書き手の数。</summary>
     internal static int CountBareWriters(string text, string spec)
-        => Parse(spec).Recv != null ? 0 : BareWriters(Strip(text), spec).Count();
+        => BareWritersOf(Strip(text), spec).At.Count;
 
     /// <summary>ドットつき＋ドットなしの書き手の数（導いた値の表が使う）。</summary>
     internal static int CountAllWriters(string text, string spec) => CountWriters(text, spec) + CountBareWriters(text, spec);
@@ -153,11 +168,15 @@ internal static class ValueScan
 
     /// <summary>(1373) ドットつき＋ドットなしの書き手の右辺。</summary>
     internal static IEnumerable<string> WriterRhsAll(string text, string spec)
+        => WriterSites(text, spec).Select(s => s.Rhs);
+
+    /// <summary>(1379) 書き手の右辺と、その書き手より前の本文（局所変数の定義を探す範囲）。ドットつき＋ドットなし。</summary>
+    internal static IEnumerable<(string Rhs, string Before)> WriterSites(string text, string spec)
     {
         string t = Strip(text);
-        foreach (Match m in DottedWriters(t, spec)) yield return RhsAt(t, m);
-        if (Parse(spec).Recv == null)
-            foreach (Match m in BareWriters(t, spec)) yield return RhsAt(t, m);
+        foreach (Match m in DottedWriters(t, spec)) yield return (RhsAt(t, m), t[..m.Index]);
+        var (scope, at) = BareWritersOf(t, spec);
+        foreach (Match m in at) yield return (RhsAt(scope, m), scope[..m.Index]);
     }
 
     /// <summary>右辺の項。ドット連鎖を 1 つの経路と読み、
@@ -183,17 +202,30 @@ internal static class ValueScan
     internal static int CountInputs(IEnumerable<string> texts, string spec)
         => texts.SelectMany(t => WriterRhsAll(t, spec)).SelectMany(r => InputTerms(r, Parse(spec).Member)).Distinct(StringComparer.Ordinal).Count();
 
-    /// <summary>(1373) 機械で数えられない入力（局所変数を通る右辺）の指紋。書き手の右辺のうち局所変数を含む物を空白を除いて並べ、先頭 12 桁の SHA-256 にする。
-    /// 局所変数の中身が変わっても項の数は動かない＝その盲点を、右辺の文面で守る（表の指紋と違えば赤＝宣言して更新する）。</summary>
+    /// <summary>(1373・1379) 機械で数えられない入力（局所変数を通る右辺）の指紋。書き手の右辺のうち局所変数を含む物を空白を除いて並べ、
+    /// (1379) その局所変数の定義の文（書き手より前で最も近い `var／double／float／int／long 名 = …;`）も並べて、先頭 12 桁の SHA-256 にする。
+    /// 定義が引数や foreach の変数で文として見つからない時は定義の行を足さない（右辺の文面だけ）。
+    /// 変えたら宣言して指紋を更新する（その時は局所変数の中身を見て入力が増えていないか確かめる）。</summary>
     internal static string LocalFedFingerprint(IEnumerable<string> texts, string spec)
     {
         var (member, _) = Parse(spec);
-        var rhs = texts.SelectMany(t => WriterRhsAll(t, spec))
-            .Where(r => InputTerms(r, member).Any(x => x.StartsWith("local:", StringComparison.Ordinal)))
-            .Select(r => Regex.Replace(r, @"\s+", ""))
-            .Distinct(StringComparer.Ordinal).OrderBy(x => x, StringComparer.Ordinal).ToList();
+        var lines = new HashSet<string>(StringComparer.Ordinal);
+        int count = 0;
+        foreach (var site in texts.SelectMany(t => WriterSites(t, spec)))
+        {
+            var locals = InputTerms(site.Rhs, member).Where(x => x.StartsWith("local:", StringComparison.Ordinal)).Select(x => x[6..]).ToList();
+            if (locals.Count == 0) continue;
+            if (lines.Add("R:" + Regex.Replace(site.Rhs, @"\s+", ""))) count++;
+            foreach (var name in locals)
+            {
+                Match last = null!;
+                foreach (Match d in Regex.Matches(site.Before, $@"\b(?:var|double|float|int|long)\s+{Regex.Escape(name)}\s*=[^;]*;")) last = d;
+                if (last != null) lines.Add("D:" + Regex.Replace(last.Value, @"\s+", ""));
+            }
+        }
+        var rhs = lines.OrderBy(x => x, StringComparer.Ordinal).ToList();
         var h = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(string.Join("\n", rhs)));
-        return rhs.Count + ":" + Convert.ToHexString(h)[..12].ToLowerInvariant();
+        return count + ":" + Convert.ToHexString(h)[..12].ToLowerInvariant();
     }
 
     /// <summary>`.Value`（Units.cs と Calendar.cs の外）。注釈と文字列の中は数えない。`?.Value` は数える。</summary>

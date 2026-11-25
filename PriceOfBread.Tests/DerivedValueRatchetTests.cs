@@ -80,16 +80,16 @@ public class DerivedValueRatchetTests
         Assert.True(v.Length == 0, string.Join(" / ", v));
     }
 
-    /// <summary>(1373) 機械で数えられない入力＝局所変数を通る書き手の右辺の指紋（局所変数の中身が変わっても項の数は動かない＝文面で守る）。
+    /// <summary>(1373・1379) 機械で数えられない入力＝局所変数を通る書き手の右辺と、その局所変数の定義の文の指紋（局所変数の中身が変わっても項の数は動かない＝文面で守る）。
     /// 変えたら宣言して指紋を更新する（その時は局所変数の中身を見て入力が増えていないか確かめる）。</summary>
     [Theory]
-    [InlineData("Militancy@pop", "5:ea738c0b5255")]
+    [InlineData("Militancy@pop", "5:caa4320678ac")]
     [InlineData("Militancy@colony", "0:e3b0c44298fc")]
-    [InlineData("Legitimacy", "8:c054d0d9a600")]
-    [InlineData("WarExhaustion", "2:b54fdc5e0994")]
-    [InlineData("Consciousness", "1:7d448530734a")]
+    [InlineData("Legitimacy", "8:d94e04138a65")]
+    [InlineData("WarExhaustion", "2:d3723a024ea5")]
+    [InlineData("Consciousness", "1:5f3bdc7fec61")]
     [InlineData("Satisfaction", "0:e3b0c44298fc")]
-    [InlineData("DynasticMandate", "1:64bd56268e60")]
+    [InlineData("DynasticMandate", "1:7728e74e495a")]
     public void 局所変数を通る入力は文の指紋で守る(string spec, string fingerprint)
     {
         var texts = ValueScan.EngineFiles(SimCoreDir()).Select(File.ReadAllText).ToList();
@@ -114,6 +114,15 @@ public class DerivedValueRatchetTests
         // 宣言・初期化子・比較は書き手でない
         Assert.Equal(0, ValueScan.CountBareWriters("public double M = 1.0;\nvar q = new Pop { M = 0.1, N = 2 };\nvar r = new Pop\n{\n    M = 0.2,\n};\nif (M == 1) { }", "M"));
         Assert.Equal(2, ValueScan.CountBareWriters("if (z) M += 1;\nelse M = 2;\nfoo(new X()) ; var q = new Pop { N = 2 };", "M"));
+        // (1379) 受け手の指定がある量のドットなしの書き手は、その型の宣言の本体の中だけ数える（Pop の中の `Militancy = …` は @pop・Colony の中は @colony・他の型は数えない）
+        const string typed = "public sealed class Pop\n{\n    public double M;\n    void F() { M = 1; }\n}\npublic sealed class Colony\n{\n    public double M;\n    void G() { M *= 2; M += 1; }\n}\nclass Other { void H() { M = 3; } }";
+        Assert.Equal(1, ValueScan.CountBareWriters(typed, "M@pop"));
+        Assert.Equal(2, ValueScan.CountBareWriters(typed, "M@colony"));
+        Assert.Equal(1, ValueScan.CountAllWriters(typed, "M@pop"));
+        // (1379) 指紋は局所変数の定義の文も入れる：定義を変えると指紋が変わる（右辺は同じ）
+        string[] f1 = ["void F() { double tgt = a.P * 2; x.M = Math.Max(0, tgt); }"];
+        string[] f2 = ["void F() { double tgt = a.P * 3; x.M = Math.Max(0, tgt); }"];
+        Assert.NotEqual(ValueScan.LocalFedFingerprint(f1, "M"), ValueScan.LocalFedFingerprint(f2, "M"));
         // Toward の項：x が自分なら数えない・target は項・k（c.）は数えない
         Assert.Equal(["local:target"], ValueScan.InputTerms("PoliticalQuantities.Toward(p.M, target, c.Speed)", "M").ToArray());
         Assert.Equal(["Level", "local:target"], ValueScan.InputTerms("PoliticalQuantities.Toward(p.Level, target, c.Speed)", "M").OrderBy(s => s, StringComparer.Ordinal).ToArray());
