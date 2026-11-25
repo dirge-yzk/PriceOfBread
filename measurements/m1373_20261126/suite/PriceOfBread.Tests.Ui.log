@@ -1,0 +1,16 @@
+  復元対象のプロジェクトを決定しています...
+  D:\PoB_work\wt_c145sm\PriceOfBread.Display\PriceOfBread.Display.csproj を復元しました (103 ミリ秒)。
+  D:\PoB_work\wt_c145sm\PriceOfBread.App\PriceOfBread.App.csproj を復元しました (272 ミリ秒)。
+  D:\PoB_work\wt_c145sm\PriceOfBread.Tests.Ui\PriceOfBread.Tests.Ui.csproj を復元しました (271 ミリ秒)。
+  5 個中 2 個の復元対象のプロジェクトは最新です。
+  PriceOfBread.SimCore -> D:\PoB_work\c145sm_art\bin\PriceOfBread.SimCore\release\PriceOfBread.SimCore.dll
+  PriceOfBread.Tests -> D:\PoB_work\c145sm_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll
+  PriceOfBread.Display -> D:\PoB_work\c145sm_art\bin\PriceOfBread.Display\release\PriceOfBread.Display.dll
+D:\PoB_work\wt_c145sm\PriceOfBread.App\Controls\TableView.cs(131,51): warning CS0618: 'TextBox.Watermark' は旧形式です ('Use PlaceholderText instead.') [D:\PoB_work\wt_c145sm\PriceOfBread.App\PriceOfBread.App.csproj]
+  PriceOfBread.App -> D:\PoB_work\c145sm_art\bin\PriceOfBread.App\release\PriceOfBread.App.dll
+  PriceOfBread.Tests.Ui -> D:\PoB_work\c145sm_art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll
+D:\PoB_work\c145sm_art\bin\PriceOfBread.Tests.Ui\release\PriceOfBread.Tests.Ui.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+結果ファイル: D:\PoB_work\wt_c145sm\measurements\m1373_20261126\suite\PriceOfBread.Tests.Ui.trx
+
+成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 42 s - PriceOfBread.Tests.Ui.dll (net10.0)

@@ -1,0 +1,45 @@
+m1373 事前登録（(1373) c145sm・波145・恒等の線）2026-11-26　基 b8c0944c4・記録した者＝Claude Sonnet 5.5
+種類＝恒等（予言 0）。挙動を変えない。〈証明〉とは書かない（測った種で一致を名乗る）。
+
+[1] 恒等の線・予言 0
+・素の 5 種・計器つき 10 種は m1362 と名乗り行を除いて全行一致。.cost は +0（推定の一致）。
+・F7 の 2 行は x += k*(t−x) と Toward の x + k*(t−x) が同じ式の同じ順序（第 1 引数は代入前の自分の値）。
+  Simulation.cs の FoodFill：:2109 の prevFood = World.FoodFill から :2118 までに FoodFill の書き手が無いことを grep で確かめた（Explain は読むだけ）。
+  TechEducation.cs の TechLevel：左辺と第 1 引数が同じ w.TechLevel・adoptRate は double（係数 AdoptionRate〔double〕の混ぜ）。
+  浮動小数の順序が変わる箇所＝無し（旧 a + b*(c−a) の a+(b*(c−a)) と新 x + k.Value*(t−x) は同じ。Toward の double 版は k をそのまま使う）。
+  同じ盤面で旧≠新の行を数える紙の台本は、式が同一なので 0 と予言。ident のビット一致で確かめる（一致しなければ F7 を外す）。
+・保守側の予言：旗・係数・欄・セーブの欄は増えない。
+
+[2] 触る物と触らない物（読み手の grep）
+・消す物＝WriterRatchetTests の「心理量への書き手は増やさない」（4 行・基準 Militancy 16・Satisfaction 1・Legitimacy 11・Consciousness 2）。DerivedValueRatchetTests が同じ 4 量を持つ（数え方 ValueScan の 1 本へ）。
+  移す経緯の注釈（2026-08-29〜09-30 の宣言）は DerivedValueRatchetTests へ移す。
+・残す物＝WriterRatchetTests の M8〜M10・支払いの表（CountWriters＝ドットつきだけ）・DormantIdentityTests。
+・F7＝Simulation.cs:2118・TechEducation.cs:65 の各 1 行だけ。読み手の grep：FoodFill＝Tests は ExplainTests（読み）・scripts は r1094/mk_ledger.py と r1367/report.py（読み）。
+  POB_COEF の名前（FoodFillSmoothing・AdoptionRate）は不変・SaveGame の欄は不変・App・Display・Runner は 0 行。
+・他の線との重なり＝rv が DerivedValueRatchetTests・ValueCountRatchetTests の自分の値の行の数を動かす（合流が合わせた木で数え直す＝2 本の基の数の和を超えたら赤）。
+  sv は Simulation.cs :410・:484・:913・:1815 の周り（:2118 は別の行）。ts は Instruments の新しいファイルを足す＝Instruments の .Value の行（下記）を合流で数え直す。
+
+[3] 足す試験と、それぞれを赤にする突然変異
+・ValueScan：ドットなしの書き手（CountBareWriters）・受け手で分ける量の指定（`名前@colony`・`名前@pop`）・局所変数を通る右辺の指紋（LocalFedFingerprint）。
+  Toward の項の数え方を名乗る：x（自分なら数えない）・target（普通の項）・k（係数は数えない）。
+・DerivedValueRatchetTests：書き手＝ドットつき＋ドットなし。表の新しい数（予言）：
+    Legitimacy 書き手 11→12（World.cs:536）・入力 8→10（その右辺の局所変数 net・effect）。
+    Militancy を Pop と Colony の 2 行へ：Pop 書き手 14・入力 7・出力 37／Colony 書き手 2・入力 0・出力 3（和は書き手 16・出力 40＝従来の行と同じ）。
+    他の行（WarExhaustion 3/7/34・Consciousness 2/1/14・Satisfaction 1/2/12・DynasticMandate 2/1/4・DiscontentOf 0/0/2）は不変。
+  新しい試験：局所変数の指紋の Theory（7 行）・M12（人工の行で入力と書き手を足すと赤・Toward の項・受け手の分け）。
+・ValueCountRatchetTests：Instruments の .Value の行（今の数 417）。SimCore 758・Display 48 は不変。
+・試験の数の予言：非 FullLength は 3233 → 3239（WriterRatchet −4・Derived +1 行〔Militancy 分割〕・指紋 +7・M12 +1・ValueCount +1）。--list-tests で突き合わせる。
+・突然変異（作業ツリーで当てて戻す・コミットしない）と赤の持ち主：
+    M1 World.cs にドットなしの書き手を 1 つ足す → 導いた値の表（Legitimacy の書き手 13/12）が赤。
+    M2 入力を 1 つ足す（Legitimacy の右辺に新しい状態を足す）→ 入力が表を超えて赤。局所変数経由の足し込みは指紋が赤。
+    M3 Instruments に .Value を 1 つ足す → Valueの取り出しの Instruments 行が赤。
+    M4 F7 の Toward の第 3 引数を 0 にする → ident で非恒等（成績表が変わる）。
+  ㉘（走査の番人）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器の直後に回す。
+  ㉑ 書き換える件数の予言：Legitimacy 書き手 +1・入力 +2・Militancy の行の分割・Instruments 行の新設（上のとおり）。書き換えの区分は ★(764)（静的な件数・値の番人で、事前登録の予言と一致する時だけ）。
+  走査の番人の点検の grep（腕の前）：工業化度の読み手の許可表＝触らない・`new MoneyStock(` 64（不変）・route_anchors.tsv の鍵の行＝触らない・WriterRatchetTests の宣言の表＝支払い系は不変。
+
+[4] 腕
+・素の 5 種（b5）と計器つき 10 種（b10 ins）を ident で。m1362 と名乗り行を除いて全行一致。
+・savetest は基点と同じ 303（根は旗 FemalePartLawFree 1 の道）なら恒等として進める。
+
+[5] 採る条件＝〈判定: 恒等〉・突然変異のとおりの赤・フルスイートの合計が --list-tests と一致。

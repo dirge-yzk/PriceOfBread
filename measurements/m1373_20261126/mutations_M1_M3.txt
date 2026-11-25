@@ -1,0 +1,27 @@
+== M1 bare writer in World.cs
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.DerivedValueRatchetTests.導いた値の書き手と入力と出力は表を超えない(spec: "Legitimacy", isFunction: False, writers: 12, inputs: 10, outputs: 47) [63 ms]
+   書き手が表を超えた（Legitimacy：書き手 13/12・入力 10/10・出力 47/47・目標 1/3/3）＝増やすなら導く元を 1 本へ寄せる（設計思想⑪）。減らしたら表を下げる。
+失敗!   -失敗:     1、合格:    20、スキップ:     0、合計:    21、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M2 add one input to Legitimacy writer
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.DerivedValueRatchetTests.導いた値の書き手と入力と出力は表を超えない(spec: "Legitimacy", isFunction: False, writers: 12, inputs: 10, outputs: 47) [99 ms]
+   入力が表を超えた（Legitimacy：書き手 12/12・入力 11/10・出力 47/47・目標 1/3/3）＝増やすなら導く元を 1 本へ寄せる（設計思想⑪）。減らしたら表を下げる。
+  失敗 PriceOfBread.Tests.DerivedValueRatchetTests.局所変数を通る入力は文の指紋で守る(spec: "Legitimacy", fingerprint: "8:c054d0d9a600") [40 ms]
+Expected: "8:c054d0d9a600"
+Actual:   "8:7d0fcf9cdec2"
+失敗!   -失敗:     2、合格:    19、スキップ:     0、合計:    21、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+== M2b add input via local variable text (fingerprint)
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.DerivedValueRatchetTests.局所変数を通る入力は文の指紋で守る(spec: "Legitimacy", fingerprint: "8:c054d0d9a600") [37 ms]
+Expected: "8:c054d0d9a600"
+Actual:   "8:0f35ada5b310"
+失敗!   -失敗:     1、合格:    20、スキップ:     0、合計:    21、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+== M3 .Value in Instruments
+45:public readonly record struct RatePerMonth(double Value) : IUnitValue, IFormattable, IComparable<RatePerMonth>
+85:public readonly record struct MoneyPerMonth(double Value) : IUnitValue, IFormattable, IComparable<MoneyPerMonth>
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.ValueCountRatchetTests.Valueの取り出しは型の外で増やさない(place: "Instruments", baseline: 417) [40 ms]
+   Instruments の .Value が 418 か所（表 417）＝増えている。単位つきの型の中（Units.cs・Calendar.cs）へ取り出しを寄せるか、型のまま渡すこと。減らしたら表を下げる。
+失敗!   -失敗:     1、合格:    20、スキップ:     0、合計:    21、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+done
