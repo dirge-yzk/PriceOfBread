@@ -1,0 +1,18 @@
+raw_M1.txt:      成功: 7
+raw_M1.txt:      失敗: 1
+raw_M1.txt: 合計時間: 15.9428 秒
+raw_M2.txt:      成功: 7
+raw_M2.txt:      失敗: 1
+raw_M2.txt: 合計時間: 15.2873 秒
+raw_M3.txt:      成功: 7
+raw_M3.txt:      失敗: 1
+raw_M3.txt: 合計時間: 16.1495 秒
+raw_M4.txt:      成功: 5
+raw_M4.txt:      失敗: 3
+raw_M4.txt: 合計時間: 17.1991 秒
+raw_M5.txt:      成功: 7
+raw_M5.txt:      失敗: 1
+raw_M5.txt: 合計時間: 15.7033 秒
+raw_M6.txt:      成功: 7
+raw_M6.txt:      失敗: 1
+raw_M6.txt: 合計時間: 19.7407 秒
