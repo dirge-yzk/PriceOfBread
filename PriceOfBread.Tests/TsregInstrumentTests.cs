@@ -11,7 +11,7 @@ namespace PriceOfBread.Tests;
 public class TsregInstrumentTests
 {
     private const ulong Seed = 1789UL;
-    private static readonly string[] SumCols = ["rows", "rowIdle", "rowNoNeed", "rowBudget0", "xSoldOut", "xCap", "xWedge", "xPass"];
+    private static readonly string[] SumCols = ["rows", "rowIdle", "rowNoNeed", "rowBudget0", "xSoldOut", "xCapSeller+xCapBuyer", "xWedge", "xPass"];
     private static readonly string[] ExitCols = ["exPriceHigh", "exXPriceSmall", "exXNeedSmall", "exYZero", "exBudget", "exCapMid", "exDealt", "exGuard"];
     private static readonly string[] SkipExitCols = ["xpEndPriceHigh", "xpEndXPriceSmall", "xpEndXNeedSmall", "xpEndYZero", "xpEndBudget", "xpEndCapMid", "xpEndDealt", "xpEndGuard"];
     private static readonly string[] SkipSumCols = ["rows", "rowIdle", "rowNoNeed", "rowBudget0", "xSoldOut", "xCap", "xWedge", "xPass"];
@@ -47,12 +47,42 @@ public class TsregInstrumentTests
         a.Row(0, other, inland, m); a.Scan(tr, 0, 100.0, left, capLeft, 1.0, 0.0, 0.0, null); a.Exit(Instruments.TsExit.CapMid);
         Assert.Equal(2, a.Regs.Count);
         var ri = a.Regs.Single(r => r.R == inland); var rp = a.Regs.Single(r => r.R == port);
-        Assert.Equal(1, ri.C[(int)Instruments.RgCol.XCap]); Assert.Equal(0, ri.C[(int)Instruments.RgCol.XPass]); Assert.False(ri.Port);
-        Assert.Equal(0, rp.C[(int)Instruments.RgCol.XCap]); Assert.Equal(1, rp.C[(int)Instruments.RgCol.XPass]); Assert.True(rp.Port);
+        Assert.Equal(1, ri.C[(int)Instruments.RgCol.XCapBuyer]); Assert.Equal(0, ri.C[(int)Instruments.RgCol.XCapSeller]); Assert.Equal(0, ri.C[(int)Instruments.RgCol.XPass]); Assert.False(ri.Port);
+        Assert.Equal(0, rp.C[(int)Instruments.RgCol.XCapBuyer] + rp.C[(int)Instruments.RgCol.XCapSeller]); Assert.Equal(1, rp.C[(int)Instruments.RgCol.XPass]); Assert.True(rp.Port);
         Assert.Equal(1, ri.C[(int)Instruments.RgCol.Rows]); Assert.Equal(3.0, ri.Dem); Assert.Equal(2.0, ri.Short);
         Assert.Equal(1, rp.C[(int)Instruments.RgCol.ExDealt] > 0 ? 1 : 0);   // 港の行の出口は xPass の組の数で重みづけて Dealt へ
         // tradeskip の国×財の列は同じ盤面で xCap=1（内陸）＋ xCap=1（主食でない財は別の財の列）＝州の記録が既存の蓄えを変えていない
         Assert.Equal(1, a.At(0, bread, Instruments.TsCol.XCap)); Assert.Equal(1, a.At(0, other, Instruments.TsCol.XCap));
+    }
+
+    private static Instruments.TsAcc.RegRec RunOne(double[] capLeft, Market m)
+    {
+        int gc = Catalog.Goods.Length, bread = Catalog.BreadId;
+        var buyer = new Region { Name = "買い手", IsPort = true }; var seller = new Region { Name = "売り手", IsPort = true };
+        var tr = new (int nation, Region r, double lat, double lon, double landKm, double access, double cap, bool linked, double ownLat, double ownLon, bool seaOk)[]
+        {
+            (0, buyer, 0, 0, 0, 1, 1, true, 0, 0, true), (1, seller, 0, 0, 0, 1, 1, true, 0, 0, true), (1, seller, 0, 0, 0, 1, 1, true, 0, 0, true),
+        };
+        var a = new Instruments.TsAcc { Nn = 2, Gc = gc, Names = ["甲", "乙"], NoSell = new int[gc] };
+        a.C = new int[2 * gc * (int)Instruments.TsCol.Count];
+        a.GoodBegin(1); a.AddSeller(2, 1.0);
+        a.Row(0, bread, buyer, m); a.Scan(tr, 0, 100.0, [5.0], capLeft, 1.0, 0.0, 0.0, null); a.Exit(Instruments.TsExit.CapMid);
+        return a.Regs.Single();
+    }
+
+    [Fact]
+    public void T4_売り手だけの容量切れは_xCapSeller_に付き買い手の列には付かない()
+    {
+        var r = RunOne([10.0, 10.0, 0.0], new Market { LastDemand = 3 });   // 買い手の節（0）は余り・売り手の節（2）は容量 0
+        Assert.Equal(1, r.C[(int)Instruments.RgCol.XCapSeller]); Assert.Equal(0, r.C[(int)Instruments.RgCol.XCapBuyer]);
+    }
+
+    [Fact]
+    public void T5_買い手だけの容量切れは_xCapBuyer_に付き_import_は前の月の値から取る()
+    {
+        var r = RunOne([0.0, 10.0, 10.0], new Market { LastDemand = 3, LastImport = 1, PrevImport = 4 });
+        Assert.Equal(1, r.C[(int)Instruments.RgCol.XCapBuyer]); Assert.Equal(0, r.C[(int)Instruments.RgCol.XCapSeller]);
+        Assert.Equal(4.0, r.Imp);   // 清算の頭で LastImport は 0 に戻る＝直前の清算の輸入は PrevImport
     }
 
     [Fact]
@@ -72,6 +102,7 @@ public class TsregInstrumentTests
             int Ti(string n) { int i = Array.IndexOf(ts.H, n); Assert.True(i >= 0, n); return i; }
             int Ri(string n) { int i = Array.IndexOf(rg.H, n); Assert.True(i >= 0, n); return i; }
             long Sum(IEnumerable<string[]> rows, int col) => rows.Sum(r => long.Parse(r[col]));
+            long SumN(IEnumerable<string[]> rows, string n) => n.Split('+').Sum(x => Sum(rows, Ri(x)));
             var byKey = rg.R.GroupBy(r => (r[Ri("year")], r[Ri("nation")], r[Ri("good")])).ToDictionary(g => g.Key, g => g.ToList());
             int cmp = 0; long xcapInland = 0, rowsInland = 0, exitSum = 0; var ports = new HashSet<string>();
             foreach (var r in ts.R)
@@ -79,20 +110,20 @@ public class TsregInstrumentTests
                 string nat = r[Ti("nation")], good = r[Ti("good")];
                 if (nat == "ALL" || !IsStaple(good)) continue;
                 byKey.TryGetValue((r[Ti("year")], nat, good), out var mine); mine ??= [];
-                for (int k = 0; k < SumCols.Length; k++) Assert.True(long.Parse(r[Ti(SkipSumCols[k])]) == Sum(mine, Ri(SumCols[k])), $"{r[0]} {nat} {good} {SumCols[k]}");
+                for (int k = 0; k < SumCols.Length; k++) Assert.True(long.Parse(r[Ti(SkipSumCols[k])]) == SumN(mine, SumCols[k]), $"{r[0]} {nat} {good} {SumCols[k]}");
                 for (int k = 0; k < ExitCols.Length; k++) Assert.True(long.Parse(r[Ti(SkipExitCols[k])]) == Sum(mine, Ri(ExitCols[k])), $"{r[0]} {nat} {good} {ExitCols[k]}");
                 cmp++;
             }
             foreach (var r in rg.R)
             {
                 ports.Add(r[Ri("portFlag")]);
-                if (r[Ri("portFlag")] == "0") { xcapInland += long.Parse(r[Ri("xCap")]); rowsInland += long.Parse(r[Ri("rows")]); }
+                if (r[Ri("portFlag")] == "0") { xcapInland += long.Parse(r[Ri("xCapSeller")]) + long.Parse(r[Ri("xCapBuyer")]); rowsInland += long.Parse(r[Ri("rows")]); }
                 for (int k = 0; k < ExitCols.Length; k++) exitSum += long.Parse(r[Ri(ExitCols[k])]);
             }
             Assert.True(cmp >= 4 * 5 * 3, "対照：比べた国×財の行が少ない");
             Assert.True(ports.Contains("0") && ports.Contains("1"), "対照：港でない州と港の州の両方の行がある");
             Assert.True(rowsInland > 0 && exitSum > 0, "対照：港でない州の行と出口の数が正");
-            Assert.True(rg.R.Sum(r => long.Parse(r[Ri("xCap")])) > 0, "対照：容量で止まった組が 1 つ以上ある");
+            Assert.True(rg.R.Sum(r => long.Parse(r[Ri("xCapSeller")]) + long.Parse(r[Ri("xCapBuyer")])) > 0, "対照：容量で止まった組が 1 つ以上ある");
         }
         finally { Instruments.NgEveryYears = every0; Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
