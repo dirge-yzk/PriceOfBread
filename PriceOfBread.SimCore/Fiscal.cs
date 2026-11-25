@@ -272,7 +272,7 @@ public static class Fiscal
         }
         else w.LastWelfareCostPerMonth = new MoneyPerMonth(0);
 
-        double pensionLevel = w.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
+        double pensionLevel = InternationalMarket.CornFactor(w.Pension);
         if (pensionLevel > 1e-9)
         {
             double oldSize = 0; foreach (var p in pops) oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);
