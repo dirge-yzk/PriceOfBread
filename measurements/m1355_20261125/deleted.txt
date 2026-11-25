@@ -1,0 +1,2 @@
+D:/PoB_work/keep_1341	73.22GB	基線 m1341 の生（INSRAW・KEEPNULL n1・n2・a11）＝ident.cfg を keep_1355 へ移して push（0e72aa06a）した後・keepsum は measurements/m1341_20261124/keepsum_insraw1341・a11_1341・n1_1341・n2_1341	作者 2026-11-11「再開」で答えの無かった D: の問いを推奨 (a) で採った指示の許し
+D:/PoB_work/keep_1348_rej	12.20GB	波141 の採らなかった腕の門の表＝INSRAW でも KEEPNULL でもない・要約は rsum_keep1348rej.tsv	作者 2026-11-11「再開」で答えの無かった D: の問いを推奨 (a) で採った指示の許し
