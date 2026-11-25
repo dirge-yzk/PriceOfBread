@@ -1,0 +1,18 @@
+writerCode	件数（10 種の和）
+1	34640
+2	321
+3	847
+4	40
+6	6580
+和	42428
+書き手 6 の軸の内訳：Suffrage 3321・Censorship 2484・ConscriptionLaw 775
+lawstep_s1.tsv	1:3496 2:33 3:64 6:619
+lawstep_s10.tsv	1:3241 2:34 3:74 6:620
+lawstep_s2.tsv	1:3491 2:36 3:68 4:3 6:666
+lawstep_s3.tsv	1:3537 2:22 3:62 4:4 6:662
+lawstep_s4.tsv	1:3382 2:28 3:71 4:4 6:631
+lawstep_s5.tsv	1:3741 2:40 3:116 4:15 6:673
+lawstep_s6.tsv	1:3284 2:24 3:70 4:14 6:723
+lawstep_s7.tsv	1:3404 2:34 3:116 6:651
+lawstep_s8.tsv	1:3395 2:32 3:86 6:706
+lawstep_s9.tsv	1:3669 2:38 3:120 6:629
