@@ -1,0 +1,24 @@
+D:\PoB_work\c143sg_mutart\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:06.22]     PriceOfBread.Tests.TsregInstrumentTests.T1_内陸の州の容量切れは内陸の州の_xCap_に付き港の州には付かない [FAIL]
+  失敗 PriceOfBread.Tests.TsregInstrumentTests.T1_内陸の州の容量切れは内陸の州の_xCap_に付き港の州には付かない [24 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 1
+Actual:   0
+  スタック トレース:
+     at PriceOfBread.Tests.TsregInstrumentTests.T1_内陸の州の容量切れは内陸の州の_xCap_に付き港の州には付かない() in D:\PoB_work\wt_c143sg_mut\PriceOfBread.Tests\TsregInstrumentTests.cs:line 50
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:18.13]     PriceOfBread.Tests.TsregInstrumentTests.T2_州ごとの和はtradeskipの国と財の行と一致する [FAIL]
+  失敗 PriceOfBread.Tests.TsregInstrumentTests.T2_州ごとの和はtradeskipの国と財の行と一致する [11 s]
+  エラー メッセージ:
+   1784 フランス 麦 xCap
+  スタック トレース:
+     at PriceOfBread.Tests.TsregInstrumentTests.T2_州ごとの和はtradeskipの国と財の行と一致する() in D:\PoB_work\wt_c143sg_mut\PriceOfBread.Tests\TsregInstrumentTests.cs:line 82
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 19 s - PriceOfBread.Tests.dll (net10.0)
