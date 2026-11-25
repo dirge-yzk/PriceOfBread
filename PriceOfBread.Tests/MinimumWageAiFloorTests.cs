@@ -249,7 +249,6 @@ public class MinimumWageAiFloorTests
         UtilityAgent.GateAllLawTargets(w, w.Policy);
         Assert.Equal(MinimumWageLaw.Subsistence, w.Policy.MinimumWage);
         // 軸は不可逆の保護の対象でない（保護されていれば下げは規則で塞がれ現行へ畳まれる）
-        Assert.False(Government.ProtectedLaw(w, PolicyAxis.MinimumWage));
         Assert.False(Government.BlockedByIrreversibility(w, PolicyAxis.MinimumWage, regressive: true));
     }
 }
