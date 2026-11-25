@@ -7,7 +7,7 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// (1372) 計器 lawstep_s（法の段が変わった 1 件ごとに 1 行）の番人（読むだけ）。盤面は試験の中で置く：時短（MandateMargin が無限大＝門に止められない軸）の目標を TargetDemand で動かし、
 /// Government.Step を直に回す。書き手の別は盤面が置いた物から期待する（要求の旗を立てた＝2・3、何も立てない＝1、施行の外で段を書く＝6、GovernanceSnapshot の戻し＝5、譲歩の前後の hook＝4）。
-/// 突然変異（使い捨ての木）：M3 書き手の別を常に 1 で書く → L1・L3・L4 赤。M5 〈その他〉の比べを外す → L2 赤。M6 段が動かない月にも行を書く → L5 赤。
+/// 突然変異（使い捨ての木・実測）：M3 書き手の別を常に 1 で書く → L1 赤。M5 〈その他〉（6）の行を書かない → L2 赤。M6 段が動かない法にも行を書く → L1・L1b・L2・L3・L4 赤。
 /// </summary>
 [Collection("Instruments")]
 public class LawstepInstrumentTests
