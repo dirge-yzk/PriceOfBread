@@ -58,6 +58,7 @@ public static class SaveGame
             if (x is double dx) { if (System.BitConverter.DoubleToInt64Bits(dx) != System.BitConverter.DoubleToInt64Bits((double)y)) Diff(path, $"{dx:R}⇔{(double)y:R}"); continue; }
             if (x is IUnitValue ux) { if (System.BitConverter.DoubleToInt64Bits(ux.Value) != System.BitConverter.DoubleToInt64Bits(((IUnitValue)y).Value)) Diff(path, $"{ux.Value:R}⇔{((IUnitValue)y).Value:R}"); continue; }
             if (t.IsPrimitive || t.IsEnum || x is string) { if (!x.Equals(y)) Diff(path, $"{x}⇔{y}"); continue; }
+            if (x is Array za && za.Length == 0) { if (((Array)y).Length != 0) Diff(path, "長さ 0⇔" + ((Array)y).Length); continue; }   // (1370) 長さ 0 の配列は不変で値も続きも持てない＝共有の形（Array.Empty と別実体）を比べない
             if (!t.IsValueType)
             {
                 if (seen.TryGetValue(x, out var prev)) { if (!ReferenceEquals(prev, y)) Diff(path, "共有の形が違う"); continue; }
@@ -335,9 +336,6 @@ public static class SaveGame
             }
         }
 
-        private static readonly System.Reflection.MethodInfo _arrayEmpty = typeof(Array).GetMethod(nameof(Array.Empty))!;
-        private static Array EmptyArrayOf(Type et) => (Array)_arrayEmpty.MakeGenericMethod(et).Invoke(null, null)!;
-
         private Type ReadTypeRef()
         {
             int id = br.ReadInt32();
@@ -384,8 +382,7 @@ public static class SaveGame
                 {
                     var et = ReadTypeRef();
                     int n = br.ReadInt32();
-                    // (1370) 長さ 0 の配列は書けない＝エンジンの `[]`（共有の空の配列）と同じ 1 つの実体へ戻す（別実体にすると、読み込みの後に作られる `[]` と共有の形が食い違う）
-                    var arr = n == 0 ? EmptyArrayOf(et) : Array.CreateInstance(et, n);
+                    var arr = Array.CreateInstance(et, n);
                     _objects.Add(arr);
                     for (int i = 0; i < n; i++) arr.SetValue(ReadValue(), i);
                     return arr;

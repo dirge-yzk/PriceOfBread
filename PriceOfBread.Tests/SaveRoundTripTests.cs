@@ -135,9 +135,9 @@ public class SaveRoundTripTests
         }
     }
 
-    /// <summary>(1370) 空の配列の共有の形：エンジンの `[]` は共有の空の配列。読み込みで別実体にすると、読み込みの後に作られる生産者の `[]` と
-    /// 共有の形が食い違い、StateDiff が〈共有の形が違う〉を出す（main の savetest の 303 の根）。往復の後に両方へ同じ `[]` の生産者を足して値の違い 0。
-    /// 旗 FemalePartLawFree 1（既定）の盤面。⚠突然変異「読み込みの空の配列を別実体に戻す」で赤。</summary>
+    /// <summary>(1370) 空の配列の共有の形：エンジンの `[]` は共有の空の配列だが、読み込みは長さ 0 の配列を別実体で作る。長さ 0 の配列は不変で値も続きも持てない＝
+    /// StateDiff は共有の形を比べない（main の savetest の 303 の根）。往復の後に両方へ同じ `[]` の生産者を足して値の違い 0。本物の違い（double の 1 ビット）は拾う。
+    /// 旗 FemalePartLawFree 1（既定）の盤面。⚠突然変異「長さ 0 の配列の除外を消す」で赤・「double の 1 ビットを変える」でも赤。</summary>
     [Fact]
     public void 空の配列の共有の形は往復の後も保たれる()
     {
@@ -149,14 +149,15 @@ public class SaveRoundTripTests
         var sim2 = SaveGame.Load(ms);
         var prods = sim2.Nations[0].World.Regions[0].Producers;
         Assert.True(prods.Any(p => p.EffGoods.Length == 0), "対照：空の EffGoods を持つ生産者が盤面に無い（試験が空振り）");
-        Assert.Same(System.Array.Empty<int>(), prods.First(p => p.EffGoods.Length == 0).EffGoods);
+        Assert.NotSame(System.Array.Empty<int>(), prods.First(p => p.EffGoods.Length == 0).EffGoods);   // 読み込みは別実体
         foreach (var sim in new[] { sim1, sim2 })
-            sim.Nations[0].World.Regions[0].Producers.Add(new Producer { GoodId = 0, EffGoods = [] });   // 読み込みの後に作られる生産者（Simulation の `[]` と同じ書き方）
+            sim.Nations[0].World.Regions[0].Producers.Add(new Producer { GoodId = 0, EffGoods = [] });   // Simulation の `[]` と同じ書き方（共有の空の配列）
         var sd = SaveGame.StateDiff(sim1, sim2, 4);
         Assert.True(sd.Values == 0, $"値の違い {sd.Values} 件：{string.Join(" ／ ", sd.Samples)}");
-        // 非空の配列は共有しない（空だけを戻す）
-        var nonEmpty = prods.Where(p => p.EffGoods.Length > 0).Take(2).ToList();
-        if (nonEmpty.Count == 2) Assert.NotSame(nonEmpty[0].EffGoods, nonEmpty[1].EffGoods);
+        // 本物の違い（double の 1 ビット）は拾う
+        var pr = sim2.Nations[0].World.Regions[0].Producers[0];
+        pr.EffFill = System.BitConverter.Int64BitsToDouble(System.BitConverter.DoubleToInt64Bits(pr.EffFill) ^ 1L);
+        Assert.True(SaveGame.StateDiff(sim1, sim2, 4).Values > 0, "double の 1 ビットの違いを拾わない");
     }
 
     /// <summary>(1309) 欄の比べ StateDiff の自己試験：同じ中身は値の違い 0・1 つの欄を変えれば値の違いに 1 件出る（比べの道具が空振りしない）。</summary>
