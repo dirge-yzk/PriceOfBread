@@ -1,0 +1,14 @@
+(1359) c143ce 記録：腕 Z（計器つき 10 種・種 1〜10）の cwend_s から数えた内戦の終わり（読むだけ・cw〔仮〕の事前登録の材料）
+種\t内戦の終わり\t白紙の分断(blankSplitFlag 1)\tうち親がイギリス\t経路
+1	19	2	0	collapse 14・decisive 2・weary 3
+2	9	0	0	collapse 6・decisive 1・weary 2
+3	16	0	0	collapse 15・decisive 1
+4	6	0	0	collapse 4・decisive 1・weary 1
+5	8	0	0	collapse 6・decisive 2
+6	22	0	0	collapse 13・decisive 8・weary 1
+7	17	0	0	collapse 14・decisive 3
+8	12	1	1	collapse 5・decisive 4・weary 3
+9	5	0	0	collapse 4・forced 1
+10	5	2	0	collapse 4・decisive 1
+合計	119	5	1
+注：白紙の分断は 10 種で 5 件（全ての国）・親がイギリスは 1 件（種 8）。経路の collapse が多数＝厭戦の崩壊の決着が内戦の終わりの主流（計器が自分で判定した値）。

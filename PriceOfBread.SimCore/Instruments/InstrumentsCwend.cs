@@ -31,7 +31,7 @@ public static partial class Instruments
     /// <summary>建国（SpawnNation）の直後：生まれた国が実際に持った厭戦と首都発の建国かを置く（読むだけ）。</summary>
     internal static void CweBorn(Power born, bool capitalRising)
     {
-        if (!Tg.Cwend) return;
+        if (!On || !Tg.Cwend) return;   // 呼び手は On を読まずに呼ぶ
         CweBorns.Remove(born);
         CweBorns.Add(born, new CweBornRec { Exhaustion = born.WarExhaustion, CapitalRising = capitalRising });
     }
@@ -39,7 +39,7 @@ public static partial class Instruments
     /// <summary>終戦の 1 本（ConcludeWar）で ResolvePeace の前に呼ぶ：内戦だけ行を積む。</summary>
     internal static void CweEnd(Diplomacy d, Coefficients c, War war)
     {
-        if (!Tg.Cwend) return;
+        if (!On || !Tg.Cwend) return;   // 呼び手は On を読まずに呼ぶ（呼び手の On の読みの数を増やさない・OnDoubleReadScanTests）
         if (war.CivilWarParent is not { } parent) return;
         var rebel = war.A == parent ? war.B : war.A;
         var st = CweStates.GetValue(d, _ => new CweState());
@@ -73,7 +73,7 @@ public static partial class Instruments
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         int Uid(Power p) => p.Nation is { } w && States.TryGetValue(w, out var ws) ? ws.Uid : 0;
         foreach (var r in st.Recs)
-            wr.WriteLine(string.Join('\t', I(r.Month / Calendar.MonthsPerQuarter), I(r.Year), I(Uid(r.Parent)), I(Uid(r.Rebel)), I(r.Months), F(r.Score), r.EndPath,
+            wr.WriteLine(string.Join('\t', I((int)Calendar.PerQuarterToPerMonth(r.Month)), I(r.Year), I(Uid(r.Parent)), I(Uid(r.Rebel)), I(r.Months), F(r.Score), r.EndPath,
                 F(r.ExhP), F(r.ExhR), F(r.CutP), F(r.CutR), F(r.Inherited), I(r.CapRising), I(r.ParentPol), I(r.WarPol),
                 r.Secession ? "1" : "0", I(r.Verdict), r.BlankSplit ? "1" : "0", r.Reserved ? "1" : "0", r.ParentName, r.RebelName));
     }
