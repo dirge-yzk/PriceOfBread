@@ -1,0 +1,2 @@
+# M5（HEAD）
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T2a_参加が闘争度に依らない [289 ms]

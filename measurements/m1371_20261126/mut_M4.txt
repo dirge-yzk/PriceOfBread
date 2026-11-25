@@ -1,0 +1,4 @@
+# M4（HEAD）
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T3_DはGに比例する [1 s]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T1_声が届かず法の隔たりが大きい意識の高い人でR等しsならDが0 [212 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T2a_参加が闘争度に依らない [512 ms]
