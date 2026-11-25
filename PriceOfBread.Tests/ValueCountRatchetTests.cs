@@ -35,13 +35,24 @@ public class ValueCountRatchetTests
             })
             .OrderBy(f => f, StringComparer.Ordinal).ToArray();
 
+    private static string[] InstrumentFiles()
+        => Directory.EnumerateFiles(Path.Combine(RepoRoot(), "PriceOfBread.SimCore", "Instruments"), "*.cs", SearchOption.AllDirectories)
+            .Where(f =>
+            {
+                string rel = Path.GetRelativePath(Path.Combine(RepoRoot(), "PriceOfBread.SimCore", "Instruments"), f).Replace(Path.DirectorySeparatorChar, '/');
+                return !rel.StartsWith("obj/", StringComparison.Ordinal) && !rel.StartsWith("bin/", StringComparison.Ordinal);
+            })
+            .OrderBy(f => f, StringComparer.Ordinal).ToArray();
+
     // 2026-11-25 実測（基 11bfbfcd6）：SimCore 755・Display 48。
+    // (1373) 計器（SimCore/Instruments）の .Value を足した（母集合の外だった＝(1369) の穴③）。今の数で固定。
     [Theory]
+    [InlineData("Instruments", 417)]
     [InlineData("SimCore", 758)]   // (1369) 合わせた木で数え直した＝wr の基 755＋ut (1363) の +3（PoliticalQuantities.cs の Toward の多重定義 2・Parliament.cs:335 の 1）＝予言どおり（★(764)）
     [InlineData("Display", 48)]
     public void Valueの取り出しは型の外で増やさない(string place, int baseline)
     {
-        var files = place == "SimCore" ? SimCoreFiles() : DisplayFiles();
+        var files = place == "SimCore" ? SimCoreFiles() : place == "Instruments" ? InstrumentFiles() : DisplayFiles();
         Assert.True(files.Length >= 10, $"{place} の .cs が少ない（{files.Length}）＝走査が空");
         int n = files.Sum(f => ValueScan.CountValue(File.ReadAllText(f)));
         Assert.True(n <= baseline,
