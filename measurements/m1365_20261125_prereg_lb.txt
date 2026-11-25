@@ -1,0 +1,45 @@
+(1365) c144lb 恒等（削除）：lr の焼き込み。旗 ProtectedLawsReversible（既定 1）と、旗 1 で死ぬ守られた法の不可逆の道を消す。
+基準 m1362（木 434325065 の合流 11bfbfcd6）。
+
+[1] 恒等の線・予言 0
+ 旗の既定が 1 なので、旧の道（旗 0 の枝）を消しても既定の世界はビットのまま。
+ 浮動小数の順序が変わる箇所：なし。x*1.0 と x/1.0 を消す所が 3 組ある（Government.cs CanStep・MandateGate・GateInfo の costMul）。
+ どれも IEEE で x*1.0==x・x/1.0==x（NaN も同じ）＝ビットが変わらない。同じ盤面で旧と新の比較の食い違いは 0 の見込み（x*1.0 は恒等）。
+
+[2] 消す物と残す物（main 11bfbfcd6・grep）
+ 消す：
+  Coefficients.p06_rank_discovery.cs:32 IrreversibleLaws（読み手は旗 1 で全て死ぬ道だけ）
+  Coefficients.p06_rank_discovery.cs:33 ProtectedLawsReversible
+  Government.cs:462〜466 BlockedByIrreversibility の旗以降の 5 行（L07 の行 :461 は残す）
+  Government.cs:469〜473 ProtectedLaw（読み手は BlockedByIrreversibility と ReversalCostMul だけ＝SimCore の読み手は 0 になる）
+  Government.cs:476〜482 ReversalCostMul（旗 1 で常に 1.0）と、その呼び出し :290・:397・:498
+  Government.cs:260 MandateGate の引数 costMul とその 2 か所の使い（:263 の /costMul・:266 の *costMul）・GateInfo の costMul（:397〜:399）
+  Simulation.cs:1720 の if の 1 行（条件は旗 1 で常に真）。:1721 の文は 1 字も変えない。
+ 残す：
+  BlockedByIrreversibility（農奴解放と土地改革の L07 の行だけ・読み手 Government.cs:394・:496・SelfPlay.cs:229・GenderTests・ProtectedLawReversalTests）
+  Government.AtWar（読み手 Politics.cs:121 ほか）・RuptureWindowQuarters（他に読み手あり）・Simulation の childRegress と atWarNation（:1721 と軍需調達が読む）
+ 読み手の grep（旗・IrreversibleLaws・ReversalCostMul・ProtectedLaw）：
+  SimCore は上の行だけ。App・Display・Runner・Instruments は 0。SaveGame はリフレクションで全欄を触るが、欄の消去は同じ版の往復には影響しない。
+  POB_COEF の名前解決：scripts の台本に旗の名前を渡す物は無い（過去の台本 scripts/instruments/c142lr と r1360 は文字列の参照だけ＝使わない）。
+  measurements の旧の表は文字列の記録（読み手ではない）。
+ 他の線との重なり：Government.cs :178・:179・:438（ut）・Simulation.cs:1721（ut）には触れない。MandateGate の引数の行 :260 は lb の行に足す（ut は触れない）。
+ ProtectedLaw（:469〜473）は指示の行番号の外だが、読み手 0 になるため消す（隣の行・ut と重ならない）。
+
+[3] 試験
+ 項 1（今の盤面へ移す・旗 0 の側を消す）：
+  ProtectedLawReversalTests.cs：旗の引数を外し、旗 1 の側だけ残す。T4（旗に依らず同じ）と T5（旗 0 で 2 倍）は、
+   今の規則で書き直す（T5＝後退の費用が支持の負の量×MandateSpendRate のまま＝倍が掛からない）。
+  GenderTests.cs・MinimumWageAiFloorTests.cs：旗・IrreversibleLaws・ReversalCostMul・ProtectedLaw の行だけ消す。
+ 突然変異（最終の木に当てる）：
+  M1 ReversalCostMul を 1/(1−IrreversibleLaws) の形（0.5 の盤面）に戻す → T5 赤
+  M2 Simulation.cs:1720 の条件を戻す（再合法化を IrreversibleLaws>0 と同じ形で塞ぐ）→ T3 赤
+  M3 BlockedByIrreversibility の守られた法の道を戻す（選挙権の後退を塞ぐ）→ T1 赤
+  M4 L07 の行を消す → T2 赤
+ ソースを走査する番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・OnDoubleReadScanTests。
+  書き換える件数の予言：0（On の読みの数は変わらない・Coefficients の件数の番人があれば −2 の見込み・出たら名乗る）。
+
+[4] 成績表：素の 5 種・計器つき 10 種が m1362 と名乗り行を除いて全行一致（計器の表の差は 0）。
+ .cost は減る向きか 0。試験の数：Theory の旗引数を外すので数は減る（−6 前後の見込み）。
+[5] 〈判定: 恒等〉なら採る。一致しなければ、その変更を外して報告に回す。
+
+足す計器：0。新しい係数・状態：0。
