@@ -24,12 +24,12 @@
   他の線との重なり：Instruments.cs・InstrumentsTg.cs は自分の行だけ（sg の Tsreg・sp の StProc と隣り合わせ＝合流で解く）。Diplomacy.cs は ConcludeWar の 1 行・MultiNationSim.cs は :415 の隣の 1 行。
 
 [3] 足す試験と突然変異・走査の番人（㉘）・書き換える件数（㉑）
-  足す試験（新しい 4 本・CwendInstrumentTests）：盤面は試験の中で置く（SpawnNation を直に呼び、War を置き、ConcludeWar を反射で通す）。
+  足す試験（T1・T2・T3〔Theory 2 行〕・T4＝5 件・CwendInstrumentTests）：盤面は試験の中で置く（SpawnNation を直に呼び、War を置き、ConcludeWar を反射で通す）。
     T1 白紙で終わる政体の内戦（Score 0・双方が厭戦上限超え）＝1 行・blankSplitFlag 1・endPath weary・verdictCode 0。
     T2 決着の内戦（Score 1・厭戦低い）＝endPath decisive・blankSplitFlag 0・verdictCode 1。
     T3 継いだ厭戦＝首都の州を含む分離で親の値（試験が置いた 0.37）と一致・capitalRisingFlag 1／首都を含まない分離では 0・flag 0。
     T4 対外戦は行を書かない・月の印から quarter が出る（CpMonth(d, 7, 1800) → quarter 2）・RevCut＝試験が置いた重みと圧力から。
-  試験の数の予言：Tests は +4（3199 の Tests 2967 → 2971・Ui 232 のまま・合計 3203）。
+  試験の数の予言：Tests は +5（3199 の Tests 2967 → 2972・Ui 232 のまま・合計 3204）。〔腕の前の訂正：書いた時は Theory の行を 1 件に数えて +4 だった〕
   突然変異（使い捨ての木・結果は measurements/m1359_20261125_mut_ce.txt）
     M1 endPath の weary と decisive を入れ替える → T1・T2 が赤。
     M2 継いだ厭戦を 0 で書く → T3 が赤。
@@ -37,7 +37,7 @@
   ソースを走査する番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・InstrumentsPlacementTests・InstrumentHookClosureTests を ident の前に回す。
   書き換える既存の試験の件数（㉑）：0（走査の番人の許可表の行も 0 の予言）。
 
-[4] 素の 5 種・計器つき 10 種は m1355 と全行一致（計器の表の差は cwend_s の追加だけ）。TESTS_NONFULL 3199→3203 を ident に宣言。
+[4] 素の 5 種・計器つき 10 種は m1355 と全行一致（計器の表の差は cwend_s の追加だけ）。TESTS_NONFULL 3199→3204 を ident に宣言。
 [5]〈判定: 恒等〉なら採る（測った種で一致。〈証明〉とは書かない）。一致しなければその変更を外して報告に回す。
 
 記録（腕 Z の生で数える・cw〔仮〕の事前登録の材料）：白紙の分断の件数（M の 10 種・英だけと全ての国）を cwend_s から。腕の前の予想は書かない（読むだけ）。
