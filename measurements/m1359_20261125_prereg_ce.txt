@@ -1,0 +1,43 @@
+(1359) c143ce 事前登録（恒等の線・計器 cwend_s＝内戦の終わり 1 件ごとに 1 行）　基準 m1355（木 98d7a5283）・出発 main 1cb76c40c・書いた日 2026-11-25
+（注）作者の承認ではない。作者「全て推奨で」（2026-11-20・11-23）で推奨を採った線。答え待ちではない。この事前登録は項 1〜2 のコミットより前＝腕・ident の前。
+
+[1] 恒等の線・予言 0
+  - 挙動を変えない。新しい係数 0・旗 0・シミュの状態 0（計器の置き場だけ）。式の変更 0。
+  - 素の 5 種・計器つき 10 種が m1355 と名乗り行を除いて全行一致。計器の表の差は宣言だけ＝足す表は cwend_s（1 本）。
+  - 浮動小数の順序が変わる箇所：無し（既存の式は触らない・計器は読むだけ）。紙の台本で旧と新の食い違いを数える対象も 0 箇所。
+  - 計算量：Instruments.On の時だけ（内戦の終わりごとに 1 行・数十行/試合）。.cost の推定は m1355 と一致のはず（+0）。
+
+[2] 消す物と残す物（消す物は無い）
+  項 1：新しい表 cwend_s。PriceOfBread.SimCore/Instruments/InstrumentsCwend.cs（新）・Tg.Cwend（InstrumentsTg.cs）・Close の呼び 1 行（Instruments.cs）・
+        CpMonth の先頭に月の印を渡す 1 行（InstrumentsCpeace.cs）・Diplomacy.cs の ConcludeWar の先頭に計器の呼び 1 行（:2441 の隣）。
+    内戦（War.CivilWarParent が非 null）の終わり 1 件ごとに 1 行。ConcludeWar は ResolvePeace の前に呼ぶ（終わりの経路・厭戦・RevCut は講和の前の値）。
+    列：quarter year parentUid rebelUid months scoreAtPeace endPath(decisive/weary/forced/collapse/other) exhParent exhRebel revCutParent revCutRebel
+        inheritedExhaustion capitalRisingFlag(−1＝建国の記録が無い) parentPolity civilWarPolity secessionFlag verdictCode blankSplitFlag reunifyReservedFlag parentName rebelName。
+    計器が自分で war と国から読む：厭戦＝Power.WarExhaustion・RevCut＝1−RevolutionSurrenderWeight×Politics.RevolutionPressure（エンジンの局所関数 RevCut を呼ばず同じ式を自分で書く）・
+        endPath は war.ForcedPeace → 崩壊（厭戦≧1×RevCut）→ |Score|≧1 → 厭戦の双方が上限超え（weary）の順に自分で判定。
+        blankSplitFlag＝VerdictOf(Score, 政体の内戦か, WhitePeaceScore)＝Blank かつ ResolvePeace の最初の枝（分離＋調停）でない（ResolvePeace の分断の枝と同じ入口）。
+        reunifyReservedFlag＝講和の前に親の国の SecedingRegion が非 null（首都を返す記しが立っている）。
+    crownpc_s の項（召集・①②②′・巻き返し）は複写しない。鍵は parentUid・quarter（crownpc_s は nation・nationUid・quarter）＝読み手の台本で結ぶ。
+  項 2：MultiNationSim.cs の建国（SpawnNation :415 の隣）に、Instruments.On の時だけ継いだ厭戦と capitalRising を計器の置き場（ConditionalWeakTable<Power,…>）へ置く 1 行。
+        spec は ThreadStatic の辞書だったが、国の寿命に結ぶ CWT のほうが漏れず、並列の試合で混ざらない＝同じ働きの別の形（記録）。
+  読み手の grep：Runner／App／Display 0 行・Tests は CwendInstrumentTests のみ・scripts／measurements の台本は新しい（cw〔仮〕が読む）。
+  他の線との重なり：Instruments.cs・InstrumentsTg.cs は自分の行だけ（sg の Tsreg・sp の StProc と隣り合わせ＝合流で解く）。Diplomacy.cs は ConcludeWar の 1 行・MultiNationSim.cs は :415 の隣の 1 行。
+
+[3] 足す試験と突然変異・走査の番人（㉘）・書き換える件数（㉑）
+  足す試験（T1・T2・T3〔Theory 2 行〕・T4＝5 件・CwendInstrumentTests）：盤面は試験の中で置く（SpawnNation を直に呼び、War を置き、ConcludeWar を反射で通す）。
+    T1 白紙で終わる政体の内戦（Score 0・双方が厭戦上限超え）＝1 行・blankSplitFlag 1・endPath weary・verdictCode 0。
+    T2 決着の内戦（Score 1・厭戦低い）＝endPath decisive・blankSplitFlag 0・verdictCode 1。
+    T3 継いだ厭戦＝首都の州を含む分離で親の値（試験が置いた 0.37）と一致・capitalRisingFlag 1／首都を含まない分離では 0・flag 0。
+    T4 対外戦は行を書かない・月の印から quarter が出る（CpMonth(d, 7, 1800) → quarter 2）・RevCut＝試験が置いた重みと圧力から。
+  試験の数の予言：Tests は +5（3199 の Tests 2967 → 2972・Ui 232 のまま・合計 3204）。〔腕の前の訂正：書いた時は Theory の行を 1 件に数えて +4 だった〕
+  突然変異（使い捨ての木・結果は measurements/m1359_20261125_mut_ce.txt）
+    M1 endPath の weary と decisive を入れ替える → T1・T2 が赤。
+    M2 継いだ厭戦を 0 で書く → T3 が赤。
+    M3 対外戦にも行を書く → T4 が赤。
+  ソースを走査する番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・InstrumentsPlacementTests・InstrumentHookClosureTests を ident の前に回す。
+  書き換える既存の試験の件数（㉑）：0（走査の番人の許可表の行も 0 の予言）。
+
+[4] 素の 5 種・計器つき 10 種は m1355 と全行一致（計器の表の差は cwend_s の追加だけ）。TESTS_NONFULL 3199→3204 を ident に宣言。
+[5]〈判定: 恒等〉なら採る（測った種で一致。〈証明〉とは書かない）。一致しなければその変更を外して報告に回す。
+
+記録（腕 Z の生で数える・cw〔仮〕の事前登録の材料）：白紙の分断の件数（M の 10 種・英だけと全ての国）を cwend_s から。腕の前の予想は書かない（読むだけ）。
