@@ -1,0 +1,9 @@
+# (1362) suite 木=/d/PoB_work/wt_m1362 HEAD=7c6d1eb3c 2026-11-25 19:29:25
+list-tests Tests(Category!=FullLength)=2985 Tests.Ui=232 和=3217 FullLength=3
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   777、スキップ:     1、合計:   778、期間: 15 m 46 s - PriceOfBread.Tests.dll (net10.0)
+Tests(Category!=FullLength) rc=0 成功!   -失敗:     0、合格:  2983、スキップ:     2、合計:  2985、期間: 22 m 43 s - PriceOfBread.Tests.dll (net10.0)
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 13 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 3 m 51 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest 乖離 0（2量）・状態の違いのある点 3/3（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 212・その月の額の和 2.954E+04 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+SUITEDONE 2026-11-25 20:18:29

@@ -1,0 +1,3 @@
+# D:/PoB_work/m1362_work/out_mS11_10_s11/ins
+差の行の国×年（種×国×年）3901・うち 6 大国 3：プロイセン・ロシア
+差の行の lwk_s の POP 行 35037・partShare の平均 0.4844・workEngineIndex の平均 0.4311
