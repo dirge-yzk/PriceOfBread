@@ -1,0 +1,5 @@
+(1390) 合流が D:/PoB_work で消した物と移した物（2026-11-26）
+- 消した（keepsum を measurements/m1390_20261126/keepsum_ident_c147*.tsv に取ってから・rmraw.sh）：ident_c147wb（11G）・ident_c147bb（14G）・ident_c147rk（30G）・ident_c147vs（3.9G）＝線の ident の生（反証役が読み終えた・指示の片付けの文〈ident の生と腕の生＝帰属を読み終えたら消す〉）。空き 34GB→91GB。
+- 移した：ident_m1390z/out_ib_10/ins → keep_1390/base_ins（新しい INSRAW・keepsum は keepsum_insraw1390.tsv）。c147vs_work/armB/out_c147vsB_10 → keep_1390_rej/c147vsB_10（採らなかった腕 B の生）。
+- 消した（合流が作った）：ident_m1390z（INSRAW を移した後）。
+- 消していない：keep_1383（KEEPNULL n1・n2・a11 と旧の INSRAW base_ins＝指示〈INSRAW と KEEPNULL の keep は消さない・中身も移さない〉）・keep_1362（空・誰も消さない）。線の作業フォルダ（c147*_work・wt_c147*・r1388_work・r1389_work）は線の物＝消していない。

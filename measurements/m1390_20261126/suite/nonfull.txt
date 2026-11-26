@@ -1,0 +1,9 @@
+D:\PoB_work\m1390_work\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:02:20.40]     PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [SKIP]
+  スキップ PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する [1 ms]
+[xUnit.net 00:22:44.29]     PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [SKIP]
+  スキップ PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [1 ms]
+結果ファイル: D:\PoB_work\m1390_work\suite\nonfull.trx
+
+成功!   -失敗:     0、合格:  3048、スキップ:     2、合計:  3050、期間: 24 m 24 s - PriceOfBread.Tests.dll (net10.0)
