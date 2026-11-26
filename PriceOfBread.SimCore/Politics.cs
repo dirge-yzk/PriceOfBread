@@ -419,25 +419,13 @@ public static class Politics
             sufTarget = (Suffrage)Math.Clamp((int)sufTarget, su - 1, su + 1);
             pressTarget = (CensorshipLaw)Math.Clamp((int)pressTarget, pr - 1, pr + 1);
         }
-        if (allowRevoke)
+        // 片方向の錠（Max の上げだけ）。改定を許す呼び出しで反動の政体のときだけ、目標へそのまま置く（A2-06＝2 つの枝の同じ 6 行を 1 本へ）
+        if (allowRevoke && !(c is not null && !IsReactionaryPolity(w.Polity)))
         {
-            bool ratchet = c is not null && !IsReactionaryPolity(w.Polity);
-            if (ratchet)
-            {
-                var sufFloorL = (Suffrage)Math.Max((int)w.Suffrage, (int)sufTarget);
-                w.Suffrage = sufFloorL;
-                w.Policy.Suffrage = (Suffrage)Math.Max((int)w.Policy.Suffrage, (int)sufFloorL);
-                var pressFloorL = (CensorshipLaw)Math.Max((int)w.Censorship, (int)pressTarget);
-                w.Censorship = pressFloorL;
-                w.Policy.Censorship = (CensorshipLaw)Math.Max((int)w.Policy.Censorship, (int)pressFloorL);
-            }
-            else
-            {
-                w.Suffrage = sufTarget;
-                w.Policy.Suffrage = sufTarget;
-                w.Censorship = pressTarget;
-                w.Policy.Censorship = pressTarget;
-            }
+            w.Suffrage = sufTarget;
+            w.Policy.Suffrage = sufTarget;
+            w.Censorship = pressTarget;
+            w.Policy.Censorship = pressTarget;
         }
         else
         {
