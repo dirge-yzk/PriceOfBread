@@ -652,11 +652,11 @@ public sealed class MultiNationSim
             System.Threading.Tasks.Parallel.For(0, Nations.Count, i => TimedDaily(Nations[i]));
         else
             foreach (var sim in Nations) TimedDaily(sim);    // 各国の鼓動（価格形成＝旬の最終日だけ・建設・信用）
+        StageTimer.End(StageTimer.DailyWall, tDaily);   // 壁の時間は並列の呼びだけ（逐次の世界の所得の配り・文化の分断の表は含めない）
         // 締め境界＝**常に逐次**。〔履歴 MultiNationSim.cs#73〕
         if (_coef.LuxuryIncomeElasticity > 0 && Calendar.IsMonthEndDay(_dayInQuarter)) DistributeWorldRealIncome();   // ε＝0 は走らない〔履歴 MultiNationSim.cs#74〕
         List<World>? splitWorlds = null;   // (1230) 文化の分断 f の表（世界で 1 枚）＝四半期の末の締め（QuarterEnd の思想の更新）の直前に盤面から作り、締めの直後に消す
         if (Calendar.IsQuarterEndDay(_dayInQuarter)) { var ws = Nations.ConvertAll(n => n.World); if (Ideologies.BuildCultureSplit(ws)) splitWorlds = ws; }
-        StageTimer.End(StageTimer.DailyWall, tDaily);
         long tClose = StageTimer.Begin();
         foreach (var sim in Nations) sim.StepDayClose();
         StageTimer.End(StageTimer.Close, tClose);
@@ -1078,7 +1078,7 @@ public sealed class MultiNationSim
                 var m = Nations[j].World;
                 if (m.EpidemicActiveYears <= 0) continue;   // 感染源でない
                 double km = Geo.DistanceKm(w.Latitude, w.Longitude, m.Latitude, m.Longitude);
-                double proximity = PoliticalQuantities.Clamp01(1.0 - km / (_coef.EpidemicTransmitRange * _coef.EraFactor(w.WorldTechLevel, _coef.EraEpidemicRange)));   // =0で×1恒等）              // 陸路＝近いほど強い〔履歴 MultiNationSim.cs#118〕
+                double proximity = PoliticalQuantities.Clamp01(1.0 - km / (_coef.EpidemicTransmitRange));   // =0で×1恒等）              // 陸路＝近いほど強い〔履歴 MultiNationSim.cs#118〕
                 double trade = _coef.EpidemicTradeTransmit * w.ExternalTradeAccess() * m.ExternalTradeAccess();   // 海路＝両国が交易に開かれているほど（港経由のコレラ）
                 // 戦争＝距離に依らない強制的な濃厚接触（軍営・前線・補給線・復員兵）＝最強の伝播経路（スペイン風邪1918型）。
                 double war = w.SelfPower is { } sp && m.SelfPower is { } mp && Diplomacy.IsAtWar(sp, mp) ? _coef.EpidemicWarTransmit : 0;
