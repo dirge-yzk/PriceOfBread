@@ -1,0 +1,7 @@
+    0 エラー
+
+経過時間 00:00:14.70
+D:/PoB_play/kit/build/bin/PriceOfBread.Runner/release/PriceOfBread.Runner.dll
+D:/PoB_play/kit/build/bin/PriceOfBread.Runner/release/PriceOfBread.Display.dll
+木 db9f837ef（(1397) の最後の記録のコミット・SimCore は腕 Z の木 6056269fc と同じ）で dotnet build -c Release --artifacts-path D:/PoB_play/kit/build（D:/PoB_play の他の物には書いていない）
+KITDONE
