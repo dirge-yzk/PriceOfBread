@@ -1,0 +1,12 @@
+(1379) c146kt 結果（Claude Sonnet 5.5・木 0a8bcc67d・事前登録 c2029e8b7）
+恒等の判定（測った種で一致）：判定: 恒等（段 1）＝素の 5 種・計器つき 10 種とも m1362 と全行バイト一致（184 行・名乗り行を除く）・.cost 推定 230.8／229.7（+0）・計器の表 290 本バイト一致。
+savetest OK（値の違い 0・45 日の点・75 日の点とも）・leakhunt 完走・保存則違反なし。試験の数 Category!=FullLength 3257（3256+1）・FullLength 3。
+フルスイート：Tests 3025（合格 3023・スキップ 2・失敗 0）・Ui 232（失敗 0）・FullLength 3（失敗 0）。㉘ の束 190 本緑。
+突然変異（使い捨ての木 D:/PoB_work/c146kt_work/mut で当てて戻した・生の出力 mutations_raw.log）
+ μ1（Simulation.cs:1815 を旧の式へ）：FemalePartLawFreeTests T1・T2・T3 の 3 本とも赤（事前登録は T1・T2＝T3 も赤で予言より 1 本多い）
+ μ3（困窮の項から賃金保持を外す）：T3 赤
+ M1b（Pop の中に Militancy = 0 を足す）：導いた値の書き手…(Militancy@pop) 赤（旧の数え方では緑）
+ pf（Politics.cs の dmTarget の定義 0.5→0.6）：局所変数の指紋(DynasticMandate) 赤。※事前登録は dmFood の定義を変える案だったが、指紋は 1 段（右辺の直接の局所変数）の定義だけで dmFood は dynPerf 経由の 2 段目＝緑のまま。突然変異の対象を dmTarget に取り替えた（結果の後の読み替えではなく、深さ 1 の限りを名乗る）。
+ bare（型の絞りを外す）：M12 赤・defdrop（定義の行を指紋に入れない）：指紋 6 本赤
+ L3（:708 の hook を消す）：L3b 赤（1 本）・:717 の SideEnd を消す：L3b 赤（1 本）・L5（切る行を外す）：L5 赤
+指紋の新しい値：Militancy@pop 5:caa4320678ac・Legitimacy 8:d94e04138a65・WarExhaustion 2:d3723a024ea5・Consciousness 1:5f3bdc7fec61・DynasticMandate 1:7728e74e495a（予言どおり。@colony・Satisfaction は不変）。
