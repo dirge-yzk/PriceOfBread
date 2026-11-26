@@ -33,21 +33,21 @@ public static class Parliament
 
         // (1118) 旗が正：席が空の選挙政体で思想がまだ無い（開幕の四半期 0）なら、議会の前に思想を 1 回出す（得票が保守 100% へ退避しない）
         bool gapless = c.ParliamentSeatsWithoutGap > 0;
-        if (gapless && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
+        if (gapless && PolicyPreferences.HasLegislature(w.Polity)
             && w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2] < 1e-9 && !HasIdeology(w))
             Ideologies.UpdateShares(w);
         if (ins) Instruments.ParlPreVotes(w);
         ComputeVotes(w, c);
         bool seatsEmpty = w.PartySeats[0] + w.PartySeats[1] + w.PartySeats[2] < 1e-9;
         if (seatsEmpty && (gapless ? HasIdeology(w) : w.QuartersSinceElection >= 1)
-            && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic)
+            && PolicyPreferences.HasLegislature(w.Polity))
         {
             SnapshotSeats(w);
             w.GoverningParty = (int)Winner(w);
         }
         w.QuartersSinceElection++;
 
-        bool hasElections = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic;
+        bool hasElections = PolicyPreferences.HasLegislature(w.Polity);
         if (hasElections)
         {
             w.QuartersWithElections++;
@@ -85,7 +85,7 @@ public static class Parliament
 
     public static void Dissolve(World w)
     {
-        if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && w.ParliamentEnabled)
+        if (PolicyPreferences.HasLegislature(w.Polity) && w.ParliamentEnabled)
             w.QuartersSinceElection = w.Coef.ElectionIntervalQuarters;
     }
 

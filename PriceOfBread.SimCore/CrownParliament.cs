@@ -27,7 +27,7 @@ public static class CrownParliament
         if (c.SummonParliamentRate > 0 && w.Crown != CrownForm.None && w.CoopParliamentCrown < -0.5 && w.Legitimacy > CrownRollbackLegitimacyMin && w.ArmyAllegiance > CrownRollbackArmyAllegianceMin)
             w.ParliamentControl = System.Math.Max(0, w.ParliamentControl - c.SummonParliamentRate);
 
-        bool hasLegislature = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic;
+        bool hasLegislature = PolicyPreferences.HasLegislature(w.Polity);
         if (hasLegislature && w.ParliamentEnabled)
         {
             double classAffinity = w.Crown != CrownForm.None ? w.PartySeats[0] - w.PartySeats[2] : 0.0;
@@ -156,7 +156,7 @@ public static class CrownParliament
             case SeizureForm.Proletarian: return Polity.ProletarianDictatorship;
             case SeizureForm.Bourgeois: return Polity.BourgeoisDictatorship;
         }
-        double floor = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
+        double floor = PolicyPreferences.HasLegislature(w.Polity)
             ? c.ConstitutionalControlExit : c.ConstitutionalControlFloor;
         if (w.ParliamentControl >= floor)
             return w.Crown == CrownForm.None ? Polity.Republic : Polity.ConstitutionalMonarchy;

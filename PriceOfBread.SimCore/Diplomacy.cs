@@ -2736,7 +2736,7 @@ public sealed class Diplomacy
                 bool ceded = false;   // ceded〔履歴 Diplomacy.cs#313〕
                 // 0で不読。〔履歴 Diplomacy.cs#314〕
                 bool ratifyRefused = c.TreatyRatificationControlThreshold > 0 && dw.ParliamentEnabled
-                    && dw.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && dw.ParliamentControl >= c.TreatyRatificationControlThreshold;
+                    && PolicyPreferences.HasLegislature(dw.Polity) && dw.ParliamentControl >= c.TreatyRatificationControlThreshold;
                 // 遠く離れた国は**属国として統治できない**（守備兵も総督も送れない）。〔履歴 Diplomacy.cs#315〕
                 bool tooFarToRule = c.TreatyPortWinnerDistanceKm > 0 && winner.Nation is { } wf && loser.Nation is { } lf
                     && Geo.DistanceKm(wf.Latitude, wf.Longitude, lf.Latitude, lf.Longitude) > c.TreatyPortWinnerDistanceKm;

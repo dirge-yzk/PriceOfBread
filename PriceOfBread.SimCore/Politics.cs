@@ -75,7 +75,7 @@ public static class Politics
     {
         double effVoice = InterestGroups.FranchiseVoice(p, w.Suffrage, c);
         {
-            double reality = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
+            double reality = PolicyPreferences.HasLegislature(w.Polity)
                 ? (w.SecretBallot == SecretBallotLaw.Secret ? 1.0 : c.OpenBallotReality)
                 : c.PaperFranchiseReality;
             effVoice *= reality;
@@ -250,7 +250,7 @@ public static class Politics
                 erosion += constErode;
                 w.Explain?.Add("Legitimacy", "議会の反王党派議席(立憲君主の形骸化)", -constErode);
             }
-            if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && maxSeat > c.PartyDominanceThreshold.Value && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
+            if (PolicyPreferences.HasLegislature(w.Polity) && maxSeat > c.PartyDominanceThreshold.Value && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
             {
                 double domErode = c.DominanceLegitimacyErosion * (maxSeat - c.PartyDominanceThreshold.Value) / (1 - c.PartyDominanceThreshold.Value) * dynErodeMul;
                 erosion += domErode;
@@ -333,7 +333,7 @@ public static class Politics
         var agg = Ideologies.National(w);
         double[] curCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
         double bourgeoisCoup = 0;
-        if (c.BourgeoisCoupWeight > 0 && w.ParliamentEnabled && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
+        if (c.BourgeoisCoupWeight > 0 && w.ParliamentEnabled && PolicyPreferences.HasLegislature(w.Polity)
             && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
         {
             var (_, modernPower, _) = InterestGroups.Blocs(w);
@@ -438,7 +438,7 @@ public static class Politics
         }
     }
 
-    private static bool IsReactionaryPolity(Polity p) => p is not (Polity.ConstitutionalMonarchy or Polity.Republic);
+    private static bool IsReactionaryPolity(Polity p) => !PolicyPreferences.HasLegislature(p);
 
     private static (bool trad, bool modern, bool mass) Dispossessed(Polity target) => target switch
     {
