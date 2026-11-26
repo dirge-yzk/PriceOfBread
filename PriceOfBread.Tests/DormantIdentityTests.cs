@@ -145,7 +145,7 @@ public class DormantIdentityTests
         // ★LandTaxFixedBasis（(937) c82lt 土地税の算定の基準 A-2・定額の国の凍結した基数）は 2026-11-08 の (958) c85lt・(964) c86lt で 1 に**点火**（1 回目 (945) は採らず）＝この表から外した。
         // ★CapSkipSellerPotential（(1277) c131pf 容量で飛ばした売り手の申し出を潜在量へ）は 2026-11-21 に 1 で**点火**（腕 B の前）＝この表から外した（旗 0 の経路の番人は CapSkipSellerPotentialTests の旗 0 の Assert）。
         "ImportPayerLive",              // (863) c71ip 輸入の払い手を人の居る POP に限る旗（0＝今の形・1 ビットも変わらない・番人 ImportPayerLiveTests）。点火時にこの表から外す
-        // ★ReentryShortageSameMonth（(1378) c146bk 倒産した工場の再開の品薄を同じ月の LastShortage で読む）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は BankruptReentryShortageTests）。
+        // ★ReentryShortageSameMonth（(1378) c146bk 倒産した工場の再開の品薄を同じ月の LastShortage で読む）は 2026-11-26 に 1 で腕 B の木へ・(1386) で旗と旧の枝を焼き込んだ＝この表から外した（番人は BankruptReentryShortageTests）。
         "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
         // ★EmptyPopEstate（(848) c69eh 人の居ない POP の在庫の相続 R1）は 2026-11-05 に 1 で**点火**＝この表から外した。
         // ★OpeningColonyDominanceFull（(952) c84kp 開幕の一括昇格の植民地の支配度を 1.0 から）は 2026-11-08 に 1 で**点火**＝この表から外した（番人 OpeningColonyDominanceTests）。
@@ -158,7 +158,7 @@ public class DormantIdentityTests
         // ★DestFoodSymmetric（(1349) c142ds 国内と越境の移民の行き先の値打ちに食の充足＝Territory.MoveValue）は 2026-11-25 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は DestFoodSymmetryTests＝旗を明示）。
         // ★ProtectedLawsReversible（(1344) c141lr 守られた法の不可逆を外す）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は ProtectedLawReversalTests）。
         // ★FemalePartLawFree（(1356) c143k59 構造の女性の参加率を FemalePartBase の 1 本に）は 2026-11-25 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は FemalePartLawFreeTests＝旗を明示）。
-        // ★WarWearyPoliticsCut（(1371) c145rv 厭戦の政治の側の 3 本の読みを外す旗）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は WarWearyPoliticsCutTests＝旗を明示）。(1377) c146wy
+        // ★WarWearyPoliticsCut（(1371) c145rv 厭戦の政治の側の 3 本の読みを外す旗）は 2026-11-26 に 1 で腕 B の木へ・(1386) で旗と旧の枝を焼き込んだ＝この表から外した（旗 0 と 1 の番人は WarWearyPoliticsCutTests＝旗を明示）。(1377) c146wy
         "SatReadersToDiscontent",       // (1371) c145rv 不満度から声の項を抜き参加と思想が D を読む旗（0＝今の式・番人 SatReadersToDiscontentTests）。点火は波146
         "ArrearsOnePredicate",          // (1284) c132df 本位の停止の門を不履行の導火線と同じ述語にして判定の前へ（0＝今の形・番人 ArrearsOnePredicateTests）。点火時にこの表から外す
         // ★LawPrefSinglePeaked（(1323) c138lp 法の好みの向き＝後退は 1 段下からの上げの好みの反転）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は LawPreferenceDirectionTests＝旗を明示）

@@ -2413,9 +2413,7 @@ public static class EconomyStep
             {
                 // 倒産中：採算回復 or 品薄（需要>供給＝数量ベース）なら操業再開。コブウェブで価格が希少性を反映しなくても数量で再開＝死のスパイラル防止・恐慌からの回復。
                 var rm = region.Markets[gi];
-                bool shortage = coef.ReentryShortageSameMonth > 0
-                    ? rm.LastShortage > 0   // (1378) 旗 1＝同じ月の清算の足りない量（需要−前の在庫−今月の産出の正の部分）＝前の在庫で満たした月は品薄でない・NaN は品薄でない側
-                    : rm.LastDemand > rm.LastProduced + rm.Stock;
+                bool shortage = rm.LastShortage > 0;   // (1378)(1386) 同じ月の清算の足りない量（需要−前の在庫−今月の産出の正の部分）＝前の在庫で満たした月は品薄でない・NaN は品薄でない側
                 if (margin > coef.FactoryReentryMargin || shortage) { s.Bankrupt = false; s.SmoothedMargin = 0; if (!eqS) s.Scale = coef.FactoryReentryScale; }   // FactoryReentryMargin〔履歴 EconomyStep.cs#349〕
             }
             // 免除は退出できない慢性赤字（肥料/甜菜糖/精密工作機械等＝倒産マージン割れで約200万生産者・月）の損失を資本家の負債（LossFinanced）へ垂れ流していた。〔履歴 EconomyStep.cs#350〕
