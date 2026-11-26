@@ -455,13 +455,13 @@ public static partial class Instruments
             a.DecayLoss += a.PreDecay - a.TPre; a.Months++;
         }
         /// <summary>(1386) 敷きの調達 1 回（州×財）：want・買えた量・呼ぶ前の在庫と値段と買い手の貯蓄を、BuyToward が持つ値のまま受け取る（計器は Procure を呼び直さない）。
-        /// 在庫 0（または値段 0）で Procure が 0 を返す財×月・貯蓄が min(在庫,want)×値段 に足りず削る財×月を、計器の定義で数える。</summary>
-        internal void Procured(Region r, double want, double bought, double stockBefore, double priceBefore, double savingsBefore)
+        /// 在庫 0（または値段 0）で Procure が 0 を返す財×月・買えた量が min(在庫,want) に届かない（＝貯蓄で削った）財×月を、計器の定義で数える。</summary>
+        internal void Procured(Region r, double want, double bought, double stockBefore, double priceBefore)
         {
             var a = RailOf(r);
             a.ProcWant += want; a.ProcGot += bought;
             if (stockBefore <= 1e-9 || priceBefore <= 1e-9) a.ProcStockZero++;
-            else if (Math.Min(stockBefore, want) * priceBefore > savingsBefore) a.ProcSavBind++;
+            else if (bought < Math.Min(stockBefore, want) * (1.0 - 1e-12)) a.ProcSavBind++;   // 在庫と値段が立つ側で、買えた量が min(在庫,want) に届かない＝貯蓄で削った月（Procure が削るのは貯蓄だけ）
         }
         /// <summary>敷きの後：G2（ΔT×地形＝買えた単位×CapPerUnit）・G7（need を超える州の月の積み）。</summary>
         internal void Post(Region r, double boughtUnits)
@@ -607,7 +607,7 @@ public static partial class Instruments
         foreach (var s in r.Producers) if (s.BuysLabor) cnt[s.LaborPopIndex] = cnt.TryGetValue(s.LaborPopIndex, out int k) ? k + 1 : 1;
         if (cnt.Count == 0) return double.NaN;
         int best = -1, bestN = 0;
-        foreach (var kv in cnt) if (kv.Value > bestN || (kv.Value == bestN && kv.Key < best)) { best = kv.Key; bestN = kv.Value; }
+        foreach (var (key, num) in cnt) if (num > bestN || (num == bestN && key < best)) { best = key; bestN = num; }
         double tot = 0, sink = 0;
         foreach (var s in r.Producers)
         {

@@ -82,10 +82,11 @@ public class InstrumentColumnTests
         var w = sim.Nations[0].World; var r = w.Regions[0];
         var rm = new Instruments.RailMonth(w, w.Coef);
         var a = Instruments.RailOf(r); a.Clear();
-        rm.Procured(r, 10.0, 0.0, 0.0, 2.0, 1000.0);   // 在庫 0
-        rm.Procured(r, 10.0, 4.0, 50.0, 2.0, 8.0);     // 貯蓄 8 ＜ min(50,10)×2＝20＝削る
-        rm.Procured(r, 5.0, 5.0, 50.0, 2.0, 1000.0);   // 満額
-        Assert.Equal(25.0, a.ProcWant); Assert.Equal(9.0, a.ProcGot);
+        rm.Procured(r, 10.0, 0.0, 0.0, 2.0);    // 在庫 0
+        rm.Procured(r, 10.0, 4.0, 50.0, 2.0);   // 買えた 4 ＜ min(50,10)＝10＝貯蓄で削った
+        rm.Procured(r, 5.0, 5.0, 50.0, 2.0);    // 満額
+        rm.Procured(r, 10.0, 3.0, 3.0, 2.0);    // 在庫が want に足りず在庫の全部を買った＝削っていない
+        Assert.Equal(35.0, a.ProcWant); Assert.Equal(12.0, a.ProcGot);
         Assert.Equal(1, a.ProcStockZero); Assert.Equal(1, a.ProcSavBind);
         a.Clear();
         Assert.Equal(0.0, a.ProcWant); Assert.Equal(0, a.ProcSavBind);
