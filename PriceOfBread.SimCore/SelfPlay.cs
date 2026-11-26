@@ -422,12 +422,17 @@ public sealed class UtilityAgent : INationAgent
 
     private static Stance ChooseStance(World w) => ChooseStance(w, out _);
 
+    /// <summary>(1385) c147wb AI の不穏。旗 SatReadersToDiscontent 1＝大衆の層の不満度の平均 D̄（Politics.AvgMassDiscontent・0.62 との差をやめる）／旗 0＝max(0, 0.62−満足度)（今の式）。
+    /// ChooseStance と社会保障の床の 2 か所が同じ関数を呼ぶ。</summary>
+    internal static double UnrestOf(World w, double sat)
+        => w.Coef.SatReadersToDiscontent > 0 ? Politics.AvgMassDiscontent(w) : Math.Max(0, UnrestSatisfactionThreshold - sat);
+
     internal static Stance ChooseStance(World w, out StanceBreakdown bd)
     {
         var doctrine = DoctrineFrom(w);
         double sat = NationalScore.MeanSatisfaction(w);
         double indRoom = IndustrializationRoomTarget * w.ModernizeReturnShare();
-        double unrest = Math.Max(0, UnrestSatisfactionThreshold - sat);
+        double unrest = UnrestOf(w, sat);
         double fiscalNeed = FiscalStressOf(w);
 
         double famine = Math.Max(0, 1.0 - w.FoodFill);
@@ -982,7 +987,7 @@ public sealed class UtilityAgent : INationAgent
 
         {
             double satNow = NationalScore.MeanSatisfaction(w);
-            double unrestNow = Math.Max(0, UnrestSatisfactionThreshold - satNow);
+            double unrestNow = UnrestOf(w, satNow);
             double ssFloor = Math.Min(1.0, UnrestSSPressure * unrestNow / UnrestSatisfactionThreshold);
             if (ssFloor > p.SocialSecurityTarget) p.SocialSecurityTarget = ssFloor;
         }

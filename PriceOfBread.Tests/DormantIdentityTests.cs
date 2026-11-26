@@ -158,7 +158,7 @@ public class DormantIdentityTests
         // ★DestFoodSymmetric（(1349) c142ds 国内と越境の移民の行き先の値打ちに食の充足＝Territory.MoveValue）は 2026-11-25 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は DestFoodSymmetryTests＝旗を明示）。
         // ★ProtectedLawsReversible（(1344) c141lr 守られた法の不可逆を外す）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は ProtectedLawReversalTests）。
         // ★FemalePartLawFree（(1356) c143k59 構造の女性の参加率を FemalePartBase の 1 本に）は 2026-11-25 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は FemalePartLawFreeTests＝旗を明示）。
-        // ★WarWearyPoliticsCut（(1371) c145rv 厭戦の政治の側の 3 本の読みを外す旗）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は WarWearyPoliticsCutTests＝旗を明示）。(1377) c146wy
+        // ★WarWearyPoliticsCut（(1371) c145rv 厭戦の政治の側の 3 本の読みを外す旗）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した。(1385) c147wb で旗ごと焼いた（番人 WarWearyPoliticsCutTests は旗なし）。(1377) c146wy
         "SatReadersToDiscontent",       // (1371) c145rv 不満度から声の項を抜き参加と思想が D を読む旗（0＝今の式・番人 SatReadersToDiscontentTests）。点火は波146
         "ArrearsOnePredicate",          // (1284) c132df 本位の停止の門を不履行の導火線と同じ述語にして判定の前へ（0＝今の形・番人 ArrearsOnePredicateTests）。点火時にこの表から外す
         // ★LawPrefSinglePeaked（(1323) c138lp 法の好みの向き＝後退は 1 段下からの上げの好みの反転）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は LawPreferenceDirectionTests＝旗を明示）
@@ -418,7 +418,7 @@ public class DormantIdentityTests
         foreach (var fld in typeof(Coefficients).GetFields())
         {
             if (!fld.IsPublic || fld.IsStatic) continue;
-            if (counts.GetValueOrDefault(fld.Name) <= 1) unread.Add(fld.Name);   // 1回＝宣言だけ
+            if (counts.GetValueOrDefault(fld.Name) <= 1 && fld.Name != "WarCoercionDrain") unread.Add(fld.Name);   // 1回＝宣言だけ。(1385) c147wb：WarCoercionDrain は Runner/Program.cs:3710（politics-ablation の名の表・文字列の読み）だけが読む＝Runner は 5 の束の持ち物＝束 5 が表の行と係数を一緒に消す（それまでの許可表の 1 行）
         }
         Assert.True(unread.Count == 0,
             $"読み手のない係数 {string.Join(", ", unread)}。使わないなら削除する（記録は墓標のコメントと docs へ）。休眠の器なら読む枝を置くこと");

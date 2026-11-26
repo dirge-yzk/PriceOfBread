@@ -4,7 +4,7 @@ public static class Credit
 {
     private const double HeatClampMax = 1.5;
 
-    public static void Step(World w, Coefficients c, (double NominalGdp, double AvgSat)? month = null, int days = 1)
+    public static void Step(World w, Coefficients c, (double NominalGdp, double SatOrD)? month = null, int days = 1)
     {
         var bank = w.Bank;
         if (bank is null) return;
@@ -13,7 +13,10 @@ public static class Credit
         double hoardRatio = !double.IsFinite(hoardRaw) ? c.CurrencyHoldingRatio.Value : hoardRaw < 0 ? 0 : hoardRaw;   // 上限は置かない（設計思想⑧）・非有限は既定の退蔵率へ（否定形）
         bank.Gold = new MoneyStock(Math.Max(0, w.BaseMoney.Value) * (1.0 - hoardRatio));
 
-        double avgSat = month?.AvgSat ?? NationalScore.MeanSatisfaction(w);
+        // (1385) c147wb 旗 SatReadersToDiscontent 1＝信任の不安は大衆の層の不満度 D̄（month.SatOrD も D̄）／旗 0＝max(0, ConfidencePivot−満足度)（今の式）
+        bool dBar = c.SatReadersToDiscontent > 0;
+        double avgSat = month?.SatOrD ?? (dBar ? Politics.AvgMassDiscontent(w) : NationalScore.MeanSatisfaction(w));
+        double unrest = dBar ? avgSat : Math.Max(0, c.ConfidencePivot - avgSat);
         List<Pop>? popsLazy = null;
         List<Pop> Pops()
         {
@@ -28,7 +31,7 @@ public static class Credit
         double debtDeflation = w.MonetaryEnabled ? c.DebtDeflationWeight * Math.Max(0, (-w.ExpectedInflationPerYear).Value) * bank.Heat : 0;
         double bondLoss = w.FiscalEnabled ? c.BondLossConfWeight * Math.Max(0, 1.0 - w.BondPrice) * PoliticalQuantities.Clamp01(Calendar.ToGdpYear(w.GovDebt, new MoneyPerYear(Math.Max(1.0, Calendar.PerMonthToPerYear(month?.NominalGdp ?? w.NominalGdpPerMonth.Value)))).Value) : 0;
         double overheatFragility = c.OverheatFragility * Math.Max(0, bank.Heat - c.OverheatFragilityThreshold);
-        double targetConf = PoliticalQuantities.Clamp01(1.0 - c.PanicSensitivity * Math.Max(0, c.ConfidencePivot - avgSat) - c.DrawdownPanic * w.GdpDrawdown.Value - fiscalDefault - debtDeflation - bondLoss - overheatFragility);
+        double targetConf = PoliticalQuantities.Clamp01(1.0 - c.PanicSensitivity * unrest - c.DrawdownPanic * w.GdpDrawdown.Value - fiscalDefault - debtDeflation - bondLoss - overheatFragility);
         double div = Calendar.DaysPerMonth;
         double spd = (targetConf < bank.Confidence ? c.PanicSpeed : c.ConfidenceSpeed) / div;
         if (days > 1) spd = Calendar.OverSteps(spd, days);
@@ -50,7 +53,7 @@ public static class Credit
             repayable = Calendar.PerMonthToPerYear(Math.Max(0, home.Pops[home.InvestorPopIndex].LastEarnedPerMonth.Value)) * c.CreditRepayableYears;
         if (Instruments.On) Instruments.CreditCap(w, maxLoans, repayable, days);
         if (repayable < maxLoans) maxLoans = repayable;
-        double run = PoliticalQuantities.ClampOr(c.BankRunSensitivity * Math.Max(0, c.ConfidencePivot - avgSat), 0, c.BankRunMax.Value, 0);
+        double run = PoliticalQuantities.ClampOr(c.BankRunSensitivity * unrest, 0, c.BankRunMax.Value, 0);
         bool crisis = bank.Heat > c.LolrHeatTrigger || w.GdpDrawdown.Value > c.LolrDrawdownTrigger.Value;
         if (crisis && w.FiscalFundingRatio > c.LolrMinFunding) run *= 1.0 - c.LolrStrength.Value;
         double lolrBoost = crisis && w.FiscalFundingRatio > c.LolrMinFunding ? c.LolrReserveBoost : 0;

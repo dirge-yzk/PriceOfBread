@@ -1447,13 +1447,13 @@ public sealed class Simulation
         ProbeCheck("日次建設");
         if (spanStart)
         {
-            (double NominalGdp, double AvgSat)? creditMonth = null;
+            (double NominalGdp, double SatOrD)? creditMonth = null;
             if (World.Bank is not null)   // World〔履歴 Simulation.cs#159〕
             {
                 bool fresh = !CreditMonth.TryGetValue(World, out var box);
                 if (box is null) { box = new(); CreditMonth.Add(World, box); }
                 if (fresh || _dayInQuarter % Calendar.DaysPerMonth == 0)   // 月の初日は旬の初日（h は30の約数）
-                    box.Value = (World.NominalGdpPerMonth.Value, NationalScore.MeanSatisfaction(World));
+                    box.Value = (World.NominalGdpPerMonth.Value, World.Coef.SatReadersToDiscontent > 0 ? Politics.AvgMassDiscontent(World) : NationalScore.MeanSatisfaction(World));   // (1385) 旗 1＝D̄
                 creditMonth = box.Value;
             }
             Credit.Step(World, World.Coef, creditMonth, hFlow);                     // 信用（与信・信頼）も旬次（旬の初日に h 日ぶん・速度は日数配分）

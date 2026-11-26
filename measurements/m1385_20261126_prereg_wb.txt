@@ -1,0 +1,29 @@
+m1385 事前登録（c147wb・(1385) 恒等の線・wy の焼き込み＋満足度の 2 つ目の半分の器）  2026-11-26
+基準木 0f9537d3e（基線 m1383・木 7e8dd6f97・INSRAW keep_1383/base_ins）。00一覧〈次の波（波147〜）〉0 の①。点火 SatReadersToDiscontent は波148（この線は旗 0 のまま）。
+
+[1] 恒等の線・予言 0
+- 素の 5 種と計器つき 10 種は m1383 と名乗り行を除いて全行一致・savetest OK・.cost +0（旗 0 の経路は式もビットも同じ）。
+- 項 A（焼き込み）：旗 WarWearyPoliticsCut（既定 1）の旧の道を消す。保持力＝BaseCoercion×正統性×支払い率（×1.0 を外す＝x*1.0==x でビット同じ）・闘争度の目標から warMilTerm（+0.0）を外す・天命の dynPerf から dmWar（+0.0）を外す。
+  - 符号つきゼロの点検（紙）：dmSat・dmFood が −0.0 になるのは重みが負のときだけ（係数は正）・0.5+dynPerf で消える。voice+minorityMil+famineMil に +0.0 を足す差は −0.0 の和だけ（闘争度は Clamp01→Toward＝符号は後段で消える）。ident で確かめる。
+- 項 B（器）：旗 SatReadersToDiscontent（既定 0）の 1 側だけ読みを替える。旗 0 の式は字面のまま。
+
+[2] 消す物と残す物
+- 消す（読み手の grep＝SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF・SaveGame の名の表）：
+  - WarWearyPoliticsCut（p02:95）・WarWearinessMilitancy（p02:96）・WarRallyCoercion・WarRallyDecayPoint（p06:41〜:42）・DynMandateWarWeight（p09:75）。読み手は Politics.cs の 3 か所・InstrumentsScalars.cs:38・試験 5 クラスと scripts/measurements の過去の台本（走らない・読むだけ）。Runner・App・Display に読み手 0。
+- 残す（5 の束へ名を報告）：WarCoercionDrain（p03:86・Runner/Program.cs:3710 politics-ablation の名の表が文字列で読む＝消すと実行時に例外）・Model.cs:130 MilWar の欄（Display/PopTables.cs:155・Runner/PlayHarness.cs:288・InstrumentsDiscontent.cs:46・InstrumentsScalars.cs:29 が読む・値は 0 のまま）。
+  - WarCoercionDrain は本体の読み手が 0 になる＝DormantIdentityTests〈係数は全て本体のどこかで読まれる〉が赤になる＝許可表の 1 行（Runner の文字列読みの注つき）を足す（番人を写しただけの例外・verdict に列挙）。束 5 が表の行と係数を一緒に消す。
+- 入れない読み手（名を報告）：天命（Q1）・犯罪 Crime.cs:23・:43（闘争度 3 項の段）・群 8 の 3 本（Politics.cs:263・:347・CrownParliament.cs:44＝R5）。
+- 器の読み手：AI の不穏（SelfPlay.cs の 2 か所を UnrestOf 1 本へ）・信任（Credit.cs の 3 か所＝avgSat と 2 つの Max を unrest 1 本へ・Simulation.cs の月の写し）。D̄ は既存の Politics.AvgMassDiscontent（大衆の層の Σ Size×D÷Σ Size・D は Politics.Discontent＝DiscontentOf と同じ）を呼ぶ＝同じ式の関数を新しく書かない（README §1-10）。PoliticalQuantities.cs は触らない（指示の〈1 本足す〉からの外れ・理由＝同じ関数が既にある）。月の写しは月に 1 回。四半期の共有層は作らない（保存しない・.cost +0・旗 1 の計算量は点火の線が測る）。
+- 信任の月の写しの組の欄名を AvgSat→SatOrD に改名（旗 1 では D̄ が入る）。タプルの名だけ＝型は同じ。Simulation.cs:1417 の宣言の名は触らない（持ち主の行の外）。
+
+[3] 足す試験・突然変異（盤面は試験の中・期待値は手のリテラル）
+- SatReadersToDiscontentTests T6：満足が同じで D が違う 2 国で不穏が D̄ に比例（0.08 と 0.24＝比 3）・旗 0 は 0.62−満足度。T7：信任が D̄ に従い、満足だけを変えても動かない（旗 0 は満足に従う対照）。
+- 移す試験：WarWearyPoliticsCutTests（旗の引数を消す＝旗 1 の側が今の規則・T4 と T5 の旗 0 の行は旧の規則を固定していた＝消す）・CoercionNowTests・ScalarDeletionTests（同じ）・RevoltIgnitionTests:31・:37（消えた係数の宣言と門の番人＝消す）・DormantIdentityTests:161 の注。
+- テストの数の予言：3281→3277（WarWeary −2・CoercionNow −3・ScalarDeletion −1・SatReaders +2）。
+- 突然変異：μ1 CoercionNow へ戦時の乗数を戻す→WarWeary T3・CoercionNow が赤／μ2 D̄ を満足へ戻す（UnrestOf と Credit の dBar を false）→T6・T7 が赤／μ3 旗の判定を外す（Credit の dBar を常に true）→T7 の旗 0 の対照と ident が非恒等。
+- ㉘ 走査の番人：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を ident の前に回す。許可表・new MoneyStock( の件数（変わらない）・route_anchors.tsv の鍵の行（触らない）・WriterRatchetTests の宣言の表（変わらない・.cost 0）。
+- ValueScan（㉑ 変わる件数の予言）：WarExhaustion の出力 34→31（Politics 3 か所〔保持力・闘争度の項・天命の項〕の読みが消える）・Militancy@pop 14/7/37 と DynasticMandate 2/1/4 は入力が欄の読みを数えるため動かない・DiscontentOf 2 のまま（新しい関数は呼ばない）。増えたら赤。
+
+[4] 恒等の判定：素の 5 種・計器つき 10 種（INSRAW keep_1383/base_ins）が全行一致（名乗り行を除く）・計器の列は足さない（InstrumentsScalars の dmWar の列は F(0.0)＝字は同じ）。
+[5] 〈判定: 恒等〉と savetest OK なら採る。一致しなければ該当の変更を外して報告に回す。
+[6] 重なり：rk（Politics.cs :136・:400〜:410・:494〜:504＝重ならない）・vs（Simulation.cs :1726〜:1880）・bb と RevoltIgnitionTests（rk は :335〜:355）・DormantIdentityTests（rk :159・bb :148 の隣）＝合流で解く。

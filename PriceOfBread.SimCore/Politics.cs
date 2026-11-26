@@ -118,15 +118,10 @@ public static class Politics
         => Math.Min(p.Consciousness, p.Literacy) * (1.0 - EffectiveVoice(w, c, p)) * distance;
 
     /// <summary>(1345) 保持力 Coercion の式（Step が毎四半期 w.Coercion へ書く式をそのまま移した関数＝掛ける順・AtWar の読みは Step にあった時と同じ）。
-    /// BaseCoercion × 正統性 × 支払い率 × 戦時の乗数。戦時の乗数＝1＋(戦時なら WarRallyCoercion×max(0, 1−疲弊/WarRallyDecayPoint))−WarCoercionDrain×疲弊。</summary>
+    /// BaseCoercion × 正統性 × 支払い率（(1385) c147wb：戦時の乗数は 1 で焼き込み済み＝厭戦も戦時も読まない）。</summary>
     internal static double CoercionNow(World w, Coefficients c)
     {
-        double warExh = w.SelfPower?.WarExhaustion ?? 0;
-        double warDrain = c.WarWearyPoliticsCut > 0 ? 1.0   // (1371) 旗 1＝戦時の乗数を 1 に（厭戦を保持力が読まない）
-            : 1.0
-            + (Government.AtWar(w) ? c.WarRallyCoercion * Math.Max(0, 1.0 - warExh / Math.Max(1e-9, c.WarRallyDecayPoint)) : 0)
-            - c.WarCoercionDrain * warExh;   // [PORT:P5] 戦時ドレイン→保持力の乗数（軍は内外を兼ねる一つの武力）
-        return w.BaseCoercion * w.Legitimacy * w.FiscalFundingRatio.Value * warDrain;
+        return w.BaseCoercion * w.Legitimacy * w.FiscalFundingRatio.Value;
     }
 
     public static void Step(World w, Coefficients c)
@@ -165,8 +160,6 @@ public static class Politics
             p.Consciousness = PoliticalQuantities.Toward(p.Consciousness, target, c.ConsciousnessSpeed);
         }
 
-        double warWeariness = w.SelfPower?.WarExhaustion ?? 0;
-        double warMilTerm = c.WarWearyPoliticsCut > 0 ? 0.0 : c.WarWearinessMilitancy * warWeariness;   // (1371) 旗 1＝闘争度の目標の厭戦の項を 0 に
         double[] regimeCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
         foreach (var milReg in w.Regions)
         {
@@ -184,11 +177,10 @@ public static class Politics
             // [PORT:P1] 闘争度targetへの寄与（加算項）＝法（政治）の隔たり／民族／厭戦／飢餓の**4本**（生活の失望は不満度だけが持つ＝闘争度の目標に入らない・★(431)(551)）。新規機構はこのポートに独立加算で接続する。
             {
                 p.MilVoice = voice;
-                p.MilWar = warMilTerm;
                 p.MilNation = minorityMil;
                 p.MilFamine = famineMil;
             }
-            double sum = voice + minorityMil + warMilTerm + famineMil;
+            double sum = voice + minorityMil + famineMil;
             double target = PoliticalQuantities.Clamp01(sum);
             p.Militancy = PoliticalQuantities.Toward(p.Militancy, target, c.MilitancySpeed);
             if (c.LivingRefSpeed > 0)
@@ -212,8 +204,7 @@ public static class Politics
             var (uneduShare, uneduSatAvg) = PoliticalQuantities.MandateBase(w);
             double dmSat = c.DynMandateSatWeight * ((uneduSatAvg >= 0 ? uneduSatAvg : w.MeanSatisfactionPol) - c.DynMandateSatPivot) / (1.0 - c.DynMandateSatPivot);
             double dmFood = c.DynMandateFoodWeight * Math.Min(0, w.FoodFill - c.DynMandateFoodAnchor);
-            double dmWar = c.WarWearyPoliticsCut > 0 ? 0.0 : -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0);   // (1371) 旗 1＝天命の厭戦の項を 0 に
-            double dynPerf = dmSat + dmFood + dmWar;
+            double dynPerf = dmSat + dmFood;
             double dmTarget = PoliticalQuantities.Clamp01(0.5 + dynPerf);
             w.DynasticMandate = PoliticalQuantities.Toward(w.DynasticMandate, dmTarget, c.DynMandateEmaRate);
             if (w.Explain != null)
@@ -224,7 +215,7 @@ public static class Politics
                 w.Explain.Add("DynasticMandate", "中立への回帰", r * (0.5 - dmPrev));
                 w.Explain.Add("DynasticMandate", "未教育層の満足(天命の母数)", r * dmSat);
                 w.Explain.Add("DynasticMandate", "飢えの評価", r * dmFood);
-                w.Explain.Add("DynasticMandate", "戦争疲弊の評価", r * dmWar);
+                w.Explain.Add("DynasticMandate", "戦争疲弊の評価", 0.0);
                 double dmClamp = r * ((dmTarget - 0.5) - dynPerf);
                 if (dmClamp != 0) w.Explain.Add("DynasticMandate", "評価の飽和", dmClamp);
             }

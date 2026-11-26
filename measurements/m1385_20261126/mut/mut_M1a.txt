@@ -1,0 +1,5 @@
+# M1a（44fc2c2ec）
+  失敗 PriceOfBread.Tests.WarWearyPoliticsCutTests.T1_旗1で闘争度の目標が厭戦に依らない [34 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国家の手動建設の段の変数は復活しない [525 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国庫の建設の予約の読み手と計器の列は復活しない [113 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い [55 ms]

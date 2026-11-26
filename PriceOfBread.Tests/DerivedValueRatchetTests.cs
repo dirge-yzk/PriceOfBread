@@ -68,7 +68,7 @@ public class DerivedValueRatchetTests
     [InlineData("Militancy@pop", false, 14, 7, 37)]        // 闘争度（Pop の側・力学 1・運搬 1・事件のスパイク・緩和）
     [InlineData("Militancy@colony", false, 2, 0, 3)]     // 闘争度（Colony の側）
     [InlineData("Legitimacy", false, 12, 10, 47)]       // 正統性（ドットなし 1 を含む）
-    [InlineData("WarExhaustion", false, 3, 7, 34)]     // 厭戦（段 1・2 で作り直し予定＝rd の材料）
+    [InlineData("WarExhaustion", false, 3, 7, 31)]     // 厭戦（段 1・2 で作り直し予定＝rd の材料）(1385) c147wb 出力 34→31＝厭戦の 3 つの読み〔保持力の戦時の乗数・闘争度の項・天命の項〕の焼き込み
     [InlineData("Consciousness", false, 2, 1, 14)]     // 政治意識（力学 1＋運搬 1）
     [InlineData("Satisfaction", false, 1, 2, 12)]      // 満足度（EconomyStep の 1 行）
     [InlineData("DynasticMandate", false, 2, 1, 4)]    // 天命（World.DynasticMandate・Politics の 2 行）
