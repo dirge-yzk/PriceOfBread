@@ -5,7 +5,7 @@ m1392 事前登録（(1392) c148ec・恒等・経済の一元化と bb の残り
   - 素の 5 種は b5_20261126_m1383 と名乗り行を除いて全行一致。
   - 計器つき 10 種は b10_20261126_m1383_ins と、region_s の workerSinkShareEnd の列を除いて一致（段 2・宣言した列の違い）。
   - savetest OK（最終行が savetest OK で始まり値の違い 0）。.cost は +0。
-  - テストの数は +3（InstrumentColumnTests に WorkerSinkShare・InputPricePerUnit の 2 本、既存の書き換えで増減なし）→ 3282 から 3284 の見込み。
+  - テストの数は +2（InstrumentColumnTests に WorkerSinkShare・InputPricePerUnit の 2 本、既存の書き換えで増減なし）→ 3282 から 3284 の見込み。（腕の前の誤記の訂正：初めの文は +3 と書いた）
   - .Value の数は減る向き（B05 で EconomyStep の 1 件が Remaining に変わる）。増えたら増やした項を外す。
 
 [2] 項と、消す物・残す物・読み手
