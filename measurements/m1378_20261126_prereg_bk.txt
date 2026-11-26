@@ -1,0 +1,104 @@
+# (1378) c146bk 事前登録（腕の前・最初のコミット）
+# 線：挙動・空き席 B08（リファクタの洗い出し D:/PoB_work/refactor_audit_1126/merged.tsv の B08・挙動・高）・3 回の規則の 1 回目
+# 形の種類：入口（再開の判定の述語の置き換え・新しい状態 0・新しい係数 0〔旗 1 本だけ〕）
+# 木：6584be56d（main）から枝 c146bk・worktree D:/PoB_work/wt_c146bk
+# 作者 2026-11-26（原文）「ソース全体のリファクタをしておきましょう」＝答え待ちではない。闘争度・正統性・天命の式には触れない。
+
+## 1. 置き換える旧の規則と形
+- 旧（EconomyStep.cs:2415）：倒産中の工場の〈品薄〉＝ LastDemand ＞ LastProduced ＋ Stock（Stock は売った後の残り）
+- 新（旗 ReentryShortageSameMonth＝1）：〈品薄〉＝ LastShortage ＞ 0（同じ月の清算の足りない量）。NaN は比べると偽＝品薄でない側。
+- 旗の宣言：Coefficients.cs:40（:39 FactoryReentryScale の隣）・既定 0。DormantIdentityTests の DormantZeroFields に 1 行（:148）。
+- 新しい状態 0・新しい係数 0・倒産の閾値は変えない・EconomyStep.cs の恒等の項目（A1-03〜A1-05・A1-16）は入れない。
+
+## 2. 最初の手順の結果（直す前の木で・盤面は試験の中）
+- 呼び順（grep で確かめた）：どちらも EconomyStep.Run（:693〜）の中。:800〜:801 で LastProduced・LastShortage を 0 にし、
+  清算の繰り返し（:1492〜）が全ての財で :1636 LastDemand・:1869 Stock・:1870 LastProduced・:1873 LastShortage を書く（繰り返しの頭に continue は無い）。
+  その後の生産者の繰り返しの :2415 が同じ月に読む。:1873〜:2415 の間に Stock・LastDemand・LastProduced・LastShortage の書き手は無い
+  （SimCore の Stock の書き手は BilateralMarket:1124・InternationalMarket:105・Simulation:558・:1374・:2435・:2473・OpeningBake:177＝どれも Run の外）。
+- 代数（available＝前の在庫 S0＋今月の産出 P・sold＝min(available, D)〔:1620〜:1626〕・Stock＝max(0, available−D)・LastShortage＝max(0, D−available)）：
+  - D ＞ P＋S0（本当に足りない）：Stock＝0 ⇒ 旧＝D＞P＝真・新＝真。一致。
+  - P＋S0/2 ＜ D ≦ P＋S0（前の在庫を取り崩して満たした月）：旧＝2D＞2P＋S0＝真・新＝偽。食い違う（旧だけが立つ）。
+  - D ≦ P＋S0/2（売れ残りのある月）：どちらも偽。一致。
+  - 新だけが立つ向き（洗い出しの読み〈在庫がある間は品薄にならず戻らない〉）は代数で無い＝洗い出しの向きの読みは逆（記録）。新は旧の部分集合＝再開は減る向きだけ。
+- 盤面の試験（PriceOfBread.Tests/BankruptReentryShortageTests.cs・6 本）を直す前の木（旗の宣言だけ足し、エンジンは旗を読まない＝旧の式）で回した：
+  失敗 2・合格 4（measurements/m1378_20261126/flag0_tests_red.txt）
+  - 赤：在庫を取り崩した月は品薄でない_旗1で倒産のまま（S0＝1.5×D）・旗1の再開は足りない量が正のときに限る_在庫の掃引（在庫 1.05×D で旧が再開）
+  - 緑（両方の式で同じ）：足りない量が正の月（S0＝0.4×D）・売れ残りのある月（S0＝3×D）・NaN（旧も NaN の比べで偽）・旗 0 の対照
+  ＝食い違いは取り崩しの向きだけ＝線を閉じない（同じ物ではない）。
+
+## 3. 紙の台本（今の盤面）
+- 仏の 1 国の盤面（種 1・2・1783 年から 40 年・旗 0・使い捨ての木 D:/PoB_work/wt_c146bk_probe で再開の枝に数えるだけの計器を足した＝scripts/instruments/c146bk/probe/）：
+  measurements/m1378_20261126/probe_france_flag0.tsv
+  倒産中の工場×月 23,610・旧の品薄 21・新の品薄 5・採算の再開 0・旧だけ 16・新だけ 0
+  ＝品薄による再開は 21→5（新÷旧 0.24）・新だけの向き 0（代数と一致）。
+- 世界の盤面 keep_1376/base_ins（scripts/instruments/c146bk/bk_paper.py・measurements/m1378_20261126/paper_base_keep1376.txt）：
+  倒産の数（計器の 9 国の和）の四半期あたりの平均 324.3（種 260.5〜375.0）・工場の数 24,703.6・倒産の数の増えた和 5,583.4／種・減った和 4,700.4／種（領土の移りを含む）・平易な労働の失業の割合の平均 0.0924。
+- 予言（記録・門ではない）：
+  - 再開の件数：減る（品薄の道の新÷旧 ≈0.24〈仏 2 種〉）。採算の道（margin ＞ −0.05）は変わらない。
+  - 倒産の数（bankruptMean）：増える向き（新÷旧 ＞1）。大きさは小さい（倒産は工場の約 1.3%・再開は稀）＝1.00〜1.30 の見込み〈推〉。
+  - 倒産の数の減った和（bankruptDown）：減る向き。
+  - 工場の数・失業の割合：雑音の内（新÷旧 0.97〜1.03 の見込み〈推〉）。
+  - 州の空洞化 1/4 未満の州：基線（M 8）の近く。線が原因と読める 1/10 未満は 0 の見込み。
+  - .cost：0 秒（述語 1 本の置き換え＝計算は増えない）。割り当て 0 秒（上限 248.5・m1362 の S11 で余り 約 15.2 秒）。
+
+## 4. 門（腕 B の採否）
+### 止める線（作者の止める線・この回の形をそのまま写す）
+- 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest（最終行が〈savetest OK〉で値の違い 0 の時だけ OK）・進行不能。
+- 発散：全ての国の価格水準が 1 四半期に 100 倍以上・非有限・開幕の 1e10 倍以上（stoplines906.sh・plvl_seeds.py）。建国の直後（系列の最初の行から 4 四半期以内）と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期はヌル腕（keep_1362/n1・n2）の件数と並べる（同じ台本で数え直す）。
+- 州の空洞化：ピークの 1/10 未満（an_h2.py -v4・規則 A2〔-ex rule〕）の名簿の外で、**この線が原因と読めた件だけ**＝基線 keep_1376/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めず記録の先頭へ。主要国の州と本国格の州は例外にしない。
+- 推定の計算量 ＞248.5 秒（.cost）。
+- 機構と不変条件を守る試験の赤（ソースを走査する番人を含む）。
+### 桁の線
+- ng.sh（基準 rd:measurements/ng1362_20261125:m1362・出力フォルダは D:/… の形）：新しい NG・外れた NG を数える。NG にするのは〈歴史的に正しい挙動だと確証がなく、かつバランスを破壊する〉の両方が揃った時だけ（この線の形は AI の推奨＝〈確証なし〉と名乗る）。
+### 単体の機構の試験（狙いどおり働いたか＝この線の主な門）
+- BankruptReentryShortageTests の 6 本が旗 1 の木で全て緑。旗 0（エンジンが旗を読まない木）で 2 本赤（§2 で確かめ済み）。
+### 記録だけ（門にしない）
+- nullgate.py（門 A′）・ヌル腕の幅・gdp_zero10（記録の段の先頭）・開幕の 1000 倍以上・英の国債の不履行の種の数・exact・near・NG の集合・補給崩壊の倍化・同じ盤面の新÷旧（bk_paper.py）。
+- 符号だけの門・〈最大以下〉の型の門・空洞化 1/4 未満の件数は置かない（記録）。
+
+## 5. 突然変異ごとにどの門で赤か（㉚・使い捨ての木で確かめて measurements/m1378_20261126/mut/ へ）
+| 突然変異 | 中身 | 赤になる試験 |
+|---|---|---|
+| M1 | 旗 1 の枝を旧の式（LastDemand ＞ LastProduced＋Stock）へ戻す | 在庫を取り崩した月…倒産のまま・在庫の掃引 |
+| M2 | 否定形を外す：!(rm.LastShortage <= 0)（NaN を品薄の側へ） | 足りない量が非有限なら品薄でない側へ |
+| M3 | 旗を見ない（旗 0 でも新の式） | 旗0は旧の式のまま_取り崩した月に再開する |
+| M4 | rm.LastShortage >= 0（足りない量が 0 でも品薄） | 売れ残りのある月…倒産のまま・在庫を取り崩した月…・在庫の掃引 |
+- 項を消した突然変異（M1＝新の述語を消す）と元の形の差は、盤面の試験で 2 本の赤＝働いている。
+
+## 6. ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表：この線は Industrialization を読まない＝変化 0。
+- `new MoneyStock(`：SimCore の差分に 0 件（試験のファイルに 2 件・UnitTypeTests の走査は SimCore を数える〈推〉＝変化 0 の予言）。
+- route_anchors.tsv（scripts/instruments/flow262/）：EconomyStep の鍵の行 0＝変化 0。
+- WriterRatchetTests の宣言の表：新しい書き手 0（局所の rm を読むだけ）＝変化 0。
+- ValueScan（ValueCountRatchetTests）：差分に `.Value` 0 件＝変化 0。
+- DormantIdentityTests：既定 0 の旗を DormantZeroFields に 1 行足す（〈既定ゼロの係数は休眠表か台帳のどちらかに載っている〉の番人）。旗 1 のコミットでこの行を消し、注の行（★…点火）へ置き換える。
+- 束：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests（＋ValueCountRatchetTests・BankruptReentryShortageTests）を器のコミットの直後に回す。
+
+## 7. 旗 1 の木でフルスイートの番人が旧の規則を固定していないか（㉜ の grep・6584be56d）
+- `FactoryReentry`：FactoryEquipmentTests.cs:390（注だけ・設備つきの工場は再開でも Scale を据え置く＝品薄の述語に依らない）。
+- `LastDemand > `：DiscoveryScoreTests:308・FactoryTierTests:136・FuelOperatingCostTests:71・:148・HousingGateSharedTests:37・LuxuryIncomeTests:109・:143・:146・:157＝どれも需要が立つかの前提で、再開の述語ではない。
+- `Bankrupt = true` を置く試験：BuyShadowInstrumentTests:202・FactoryEquipmentTests:97・:134・:154・:297・:387・:488・InpFillTests:76・TradeBilateralInstrumentTests:226＝倒産中の扱いの盤面。FactoryEquipmentTests:387 は 1 か月回して再開の後の Scale を読む（採算か品薄で再開する前提か〈推〉＝旗 1 で赤になり得る。赤なら原因を読んで、旧の規則の固定なら新しい規則で通る盤面へ書き換える〔㉜ の改め・作者 2026-11-19〕）。
+- 旧の規則そのものを固定する試験は見つからない（一覧に無い赤は〈試験のバグ〉か〈周りの壊れ〉かを調べて同じ線で直す）。
+
+## 8. 手順と腕
+- ① この事前登録 → ② 旗 0 の器（Coefficients・EconomyStep・試験・DormantZeroFields）→ 走査の番人の束 → ③ 腕 Z（ident.sh run c146bkz・旗 0・段は stage.py が決める・--tests-delta +6・別の worktree D:/PoB_work/wt_c146bk_z で回す＝㉙）→ ④ 突然変異 M1〜M4（使い捨ての木）→ ⑤ 旗 1 のコミット → 絞った試験（Tests/ の grep で当たったクラス・FullLength・㉘・savetest・leakhunt）→ 腕 B `INS=1 bash scripts/instruments/batch.sh run c146bkB 10`（表を絞る：止める線・NG・記録の読み手の表＋factory_s・labor_s）→ ⑤′ 腕 B のコミットの木でフルスイート。
+- 腕 Z の空きが無ければ、合流の旗 0 の腕 Z で兼ねる（★(1362)）。
+- D:：重い仕事の直前に shutil で〈35GB＋その量〉を測る（腕 B 約 12GB・腕 Z 段 2 約 30GB〈推〉）。
+- 形の変え直しは 1 回だけ。落ちたら採らないで止める（同じ腕で物差しを替えない）。
+
+## 9. 重なり（他の線の持ち主のファイル）
+- EconomyStep.cs：この線だけ（:2415〜:2418）。
+- Coefficients.cs：:40 の 1 行（他の線は p02 のファイル）。
+- DormantIdentityTests.cs：:148 の 1 行（kt は :159 の周り・wy は :160 を消す見込み）。
+- 空洞化の組（README ★(1348)）：wy と同じ州を押す見込み〈推〉＝合流が 2 本の単独の腕 B の空洞化 1/4 未満の州を突き合わせる（門は変えない）。
+
+## 10. 機構が狙いどおり働いたか（採否の報告に置く段）
+- 狙いの数字＝単体の試験：取り崩した月に再開しない・足りない量が正の月に再開する・NaN で再開しない・旗 0 は旧のまま。
+- 腕 B の記録：倒産の数の新÷旧（予言 ＞1）。外れても〈記録〉（大きさは門にしない）。
+
+## 追記 1（2026-11-26・旗 1 の木 3cf714437 の絞った試験の後・腕 B の前＝結果の後の追記と名乗る）
+- 絞った試験（38 クラス＋FullLength・551 本）で赤 1：WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34 DeadProdBankrupt)＝1 種 40 四半期の〈能力0・産出0の生産者×月（倒産）〉が 1353 件（宣言 1190・許し +2%）。
+- 区分：★(749) の〈計算量の宣言の表＝軌道の件数を写しただけの番人〉（機構の向き・大きさを主張しない・単価 0＝推定の計算量に出ない）。機構の赤でも ㊴ の〈試験のバグ〉でもない。
+- 向きは §3 の予言（倒産の数が増える＝再開が減る）と同じ。§6 の〈WriterRatchetTests の宣言の表＝変化 0〉の予言は外れた（書き手の表だけを見て、計算量の件数の行を見落とした）＝外れと名乗る。
+- 直し：表の行（WriterRatchetTests.cs:427）を旗 1 の木の実測 1190→1353（+13.7%）へ取り直し、注に前後の値と〈新しい計数の処理は無い〉を書く（前例 ★(1335) c140hf・★(1277) c131pf）。合流の木で値が違えば合流が 1 回だけ取り直す。SimCore には触れない。
+- 直した後：WriterRatchetTests を旗 1 の木で回して緑を確かめてから腕 B。

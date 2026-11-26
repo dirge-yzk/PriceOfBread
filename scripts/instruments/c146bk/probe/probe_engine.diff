@@ -1,0 +1,30 @@
+diff --git a/PriceOfBread.SimCore/EconomyStep.cs b/PriceOfBread.SimCore/EconomyStep.cs
+index bfafcbf15..5297efb0e 100644
+--- a/PriceOfBread.SimCore/EconomyStep.cs
++++ b/PriceOfBread.SimCore/EconomyStep.cs
+@@ -1909,6 +1909,7 @@ public static class EconomyStep
+         {
+             if (sleep[pi] == 1) continue;   // continue〔履歴 EconomyStep.cs#279〕
+             var s = region.Producers[pi];
++            if (s.Bankrupt && s.Output == 0 && s.DesiredOutput == 0) BkProbe.Unreach++;
+             if (s.Output == 0 && s.DesiredOutput == 0)
+             {   // ★(spi) 休んだ生産者（上の投入の段で飛ばした個体と同じ条件＝この 2 つの段の間に産出と作りたい量は書かれない）＝代金は全て 0（量が 0）・
+                 //   電力・石炭・効率化材の量も 0＝下の 3 つの充足の平滑は目標 0 へ同じ式で寄せる（状態はこの 3 つと投入費だけ）。
+@@ -2412,7 +2413,11 @@ public static class EconomyStep
+             if (s.Bankrupt)
+             {
+                 // 倒産中：採算回復 or 品薄（需要>供給＝数量ベース）なら操業再開。コブウェブで価格が希少性を反映しなくても数量で再開＝死のスパイラル防止・恐慌からの回復。
+-                bool shortage = region.Markets[gi].LastDemand > region.Markets[gi].LastProduced + region.Markets[gi].Stock;
++                var rm = region.Markets[gi];
++                bool shortage = coef.ReentryShortageSameMonth > 0
++                    ? rm.LastShortage > 0   // (1378) 旗 1＝同じ月の清算の足りない量（需要−前の在庫−今月の産出の正の部分）＝前の在庫で満たした月は品薄でない・NaN は品薄でない側
++                    : rm.LastDemand > rm.LastProduced + rm.Stock;
++                { bool o_ = rm.LastDemand > rm.LastProduced + rm.Stock, n_ = rm.LastShortage > 0, g_ = margin > coef.FactoryReentryMargin; BkProbe.Reached++; if (o_) BkProbe.Old++; if (n_) BkProbe.New++; if (g_) BkProbe.Margin++; if (o_ && !n_) BkProbe.OldOnly++; if (n_ && !o_) BkProbe.NewOnly++; if (!g_ && o_ && !n_) BkProbe.Decides++; }
+                 if (margin > coef.FactoryReentryMargin || shortage) { s.Bankrupt = false; s.SmoothedMargin = 0; if (!eqS) s.Scale = coef.FactoryReentryScale; }   // FactoryReentryMargin〔履歴 EconomyStep.cs#349〕
+             }
+             // 免除は退出できない慢性赤字（肥料/甜菜糖/精密工作機械等＝倒産マージン割れで約200万生産者・月）の損失を資本家の負債（LossFinanced）へ垂れ流していた。〔履歴 EconomyStep.cs#350〕
+@@ -2794,3 +2799,4 @@ public static class EconomyStep
+     /// 下層が基礎教育を先に買い、余剰が中流へ届く＝高等教育（専門職への転職資格）の表現。</summary>
+     internal static int ServiceRank(Pop p) => Politics.IsMassPop(p) ? 0 : p.IsModernElite ? 1 : 2;
+ }
++public static class BkProbe { public static long Reached, Old, New, Margin, OldOnly, NewOnly, Decides, Unreach; }

@@ -1,0 +1,16 @@
+France	seed1	year5blk0	reached=770	old=1	new=1	margin=0	oldOnly=0	newOnly=0	decides=0	unreach=770	bankruptNow=8	nonRgo=144
+France	seed1	year5blk1	reached=1453	old=2	new=0	margin=0	oldOnly=2	newOnly=0	decides=2	unreach=1453	bankruptNow=8	nonRgo=144
+France	seed1	year5blk2	reached=1475	old=2	new=0	margin=0	oldOnly=2	newOnly=0	decides=2	unreach=1475	bankruptNow=8	nonRgo=144
+France	seed1	year5blk3	reached=1539	old=0	new=0	margin=0	oldOnly=0	newOnly=0	decides=0	unreach=1539	bankruptNow=9	nonRgo=144
+France	seed1	year5blk4	reached=1629	old=2	new=0	margin=0	oldOnly=2	newOnly=0	decides=2	unreach=1629	bankruptNow=9	nonRgo=144
+France	seed1	year5blk5	reached=1521	old=3	new=2	margin=0	oldOnly=1	newOnly=0	decides=1	unreach=1521	bankruptNow=8	nonRgo=144
+France	seed1	year5blk6	reached=1543	old=2	new=0	margin=0	oldOnly=2	newOnly=0	decides=2	unreach=1543	bankruptNow=9	nonRgo=144
+France	seed1	year5blk7	reached=1633	old=1	new=0	margin=0	oldOnly=1	newOnly=0	decides=1	unreach=1633	bankruptNow=10	nonRgo=144
+France	seed2	year5blk0	reached=771	old=1	new=1	margin=0	oldOnly=0	newOnly=0	decides=0	unreach=771	bankruptNow=8	nonRgo=144
+France	seed2	year5blk1	reached=1495	old=1	new=0	margin=0	oldOnly=1	newOnly=0	decides=1	unreach=1495	bankruptNow=9	nonRgo=144
+France	seed2	year5blk2	reached=1510	old=2	new=0	margin=0	oldOnly=2	newOnly=0	decides=2	unreach=1510	bankruptNow=8	nonRgo=144
+France	seed2	year5blk3	reached=1552	old=0	new=0	margin=0	oldOnly=0	newOnly=0	decides=0	unreach=1552	bankruptNow=9	nonRgo=144
+France	seed2	year5blk4	reached=1691	old=1	new=0	margin=0	oldOnly=1	newOnly=0	decides=1	unreach=1691	bankruptNow=9	nonRgo=144
+France	seed2	year5blk5	reached=1588	old=2	new=1	margin=0	oldOnly=1	newOnly=0	decides=1	unreach=1588	bankruptNow=9	nonRgo=144
+France	seed2	year5blk6	reached=1729	old=0	new=0	margin=0	oldOnly=0	newOnly=0	decides=0	unreach=1729	bankruptNow=10	nonRgo=144
+France	seed2	year5blk7	reached=1711	old=1	new=0	margin=0	oldOnly=1	newOnly=0	decides=1	unreach=1711	bankruptNow=10	nonRgo=144

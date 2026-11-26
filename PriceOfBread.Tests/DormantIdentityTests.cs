@@ -145,6 +145,7 @@ public class DormantIdentityTests
         // ★LandTaxFixedBasis（(937) c82lt 土地税の算定の基準 A-2・定額の国の凍結した基数）は 2026-11-08 の (958) c85lt・(964) c86lt で 1 に**点火**（1 回目 (945) は採らず）＝この表から外した。
         // ★CapSkipSellerPotential（(1277) c131pf 容量で飛ばした売り手の申し出を潜在量へ）は 2026-11-21 に 1 で**点火**（腕 B の前）＝この表から外した（旗 0 の経路の番人は CapSkipSellerPotentialTests の旗 0 の Assert）。
         "ImportPayerLive",              // (863) c71ip 輸入の払い手を人の居る POP に限る旗（0＝今の形・1 ビットも変わらない・番人 ImportPayerLiveTests）。点火時にこの表から外す
+        // ★ReentryShortageSameMonth（(1378) c146bk 倒産した工場の再開の品薄を同じ月の LastShortage で読む）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は BankruptReentryShortageTests）。
         "TradeCheapSellSubsidy",        // ★(471) 〈安く売る〉の輸出奨励金（交-16・0＝旧＝清算は +1 しか読まない）。1 は −1 を +1 の鏡像として読む。腕 B で採否
         // ★EmptyPopEstate（(848) c69eh 人の居ない POP の在庫の相続 R1）は 2026-11-05 に 1 で**点火**＝この表から外した。
         // ★OpeningColonyDominanceFull（(952) c84kp 開幕の一括昇格の植民地の支配度を 1.0 から）は 2026-11-08 に 1 で**点火**＝この表から外した（番人 OpeningColonyDominanceTests）。

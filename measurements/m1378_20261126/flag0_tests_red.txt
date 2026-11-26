@@ -1,0 +1,5 @@
+[xUnit.net 00:00:00.81]     PriceOfBread.Tests.BankruptReentryShortageTests.在庫を取り崩した月は品薄でない_旗1で倒産のまま [FAIL]
+[xUnit.net 00:00:00.82]     PriceOfBread.Tests.BankruptReentryShortageTests.旗1の再開は足りない量が正のときに限る_在庫の掃引 [FAIL]
+   需要を前の在庫で満たした月に、倒産した工場が品薄として再開した（旧の式＝売った後の在庫を流れと比べる）
+   在庫 1.05×D：再開=True・足りない量=0（再開は足りない量が正の月に限る）
+失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 309 ms - PriceOfBread.Tests.dll (net10.0)
