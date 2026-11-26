@@ -31,3 +31,13 @@ m1399 事前登録 c149wx (1399) 恒等の線：段 2 の器（旗 WarExitFromCa
 
 [5] 〈判定: 恒等〉なら採る。浮動小数の順序が変わる箇所：なし（旗 0 は今の式のまま・旗 1 の式は旗 0 で通らない）。
 入れる項：1（器）を最初に。2〜11 は入る分だけ（入らなかった項の名は報告し〈次の波〉0 の② に残す）。
+
+[追記 2026-11-27・項 4〜10 の予言（腕の前・項 1 のコミットの後）]
+- 項 4（A1-05）：LandSale.SlotPop は EconomyStep.LandShareRecipient を呼ぶ 1 本へ。範囲の外の枠（クレルジー・投資家の添字が無い州）は持ち主へ寄る＝旧の SlotPop は -1。ビットが変わる可能性は 〈その枠の割合が正で添字が無い州〉だけ＝ident で見る。変われば外して報告。
+- 項 5（A1-16）：PrivateAbsorptionBlend の ×1.0 だけ外す（`1.0 + (pabs - 1.0) * 1.0` → `1.0 + (pabs - 1.0)`・×1.0 は厳密）。係数は門（>0）として残る。
+- 項 6（A1-10 の a）：Territory.cs:71・:74・Military.cs:223・MultiNationSim.cs:1081・InstrumentsMigcap.cs McEra の EraFactor（常に 1.0）の因子を外す。×1.0 は厳密。
+  TechLevelRemovalTests の許可表の予言（㉑・★(764) 静的な件数）：Military.cs 1→0（行を消す）・InstrumentsMigcap.cs 1→0（行を消す）・MultiNationSim.cs 7→6・Territory.cs 1 のまま。
+- 項 8（A2-07 の残り）：SelfPlay.cs:965・:993・InstrumentsLordstat.cs:75 を PolicyPreferences.HasLegislature へ（同じ集合）。Instruments.cs:1582 は該当の行が無い（Polity の語は :1534 の列だけ）＝名を報告。
+- 項 9：StateDigestToolTests の自己試験に、_coef の群を外した比べを足す（四半期 1 以内にシミュの状態のずれを拾う）。
+- 項 10：MultiNationSim.StepDay の DailyWall の End を並列の呼びの直後へ（逐次の DistributeWorldRealIncome と BuildCultureSplit を含まない）。状態は触らない。
+- 入れない（名を報告）：項 2（B13）・項 3（R16）・項 7（B05）・項 11（tk/po の突然変異の表）。理由：B13・R16・B05 は型の新設か演算子の新設が要り、UnitTypeTests の宣言の表と .Value の数の番人に触れる＝この回の枠で腕の前に確かめきれない。項 11 は tk/po の枝の突然変異の再実行が要る。
