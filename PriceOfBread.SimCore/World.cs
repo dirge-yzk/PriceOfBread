@@ -1196,8 +1196,9 @@ public sealed class World
                     s._siteRegion = r;   // 産出の書き込みの宛先（生産者は州をまたがない）
                     var good = r.GoodOf(s.GoodId);   // O(1) 直引き（旧 Goods.Find＝O(財数)の二重ループを解消）
                     if (good is null || good.Tier == GoodTier.Service) continue;
-                    g += s.Output * good.RefPrice;
-                    if (byOut) gr += s.Output * good.RefPrice;
+                    double outRef = s.Output * good.RefPrice;   // (1392) 2 回の同じ積を 1 回に（和の順は変えない）
+                    g += outRef;
+                    if (byOut) gr += outRef;
                 }
                 if (byOut) r.GdpOutputMemo = gr;
             }

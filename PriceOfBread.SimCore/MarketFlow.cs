@@ -321,13 +321,9 @@ public static class MarketFlow
         if (!conv || !(t > 0)) return false;
         double e0 = t0 - t;
         if (!(System.Math.Abs(e0) * L < PinnedClosedMaxDev)) return false;
-        x = t + c; xk = System.Math.Pow(x, k); b = 1 + xk; root = System.Math.Pow(b, 1.0 / k);
-        double rho = 1.0 / (root * b);
-        double s2 = -(k + 1) * (xk / x) / (root * b * b);
-        double a = s2 / (2 * rho * (1 - rho));
+        SecondOrderCoef(t, c, k, out double rho, out double a);
         if (!(System.Math.Abs(a * e0) < maxCurv)) return false;
-        double z = System.Math.Pow(rho, h) * (e0 + a * e0 * e0);
-        double eh = z - a * z * z;
+        double eh = SecondOrderEh(rho, a, e0, h);
         double p = rp * System.Math.Exp(sg * L * (t + eh));
         if (!(p > 0) || double.IsInfinity(p)) return false;
         P = p;
@@ -359,12 +355,8 @@ public static class MarketFlow
         if (!conv || !(t * L >= coef.PriceAmpLnScale)) return false;
         double e0 = t0 - t;
         if (!(System.Math.Abs(e0) * L < PinnedClosedMaxDev)) return false;
-        x = t + c; xk = System.Math.Pow(x, k); b = 1 + xk; root = System.Math.Pow(b, 1.0 / k);
-        double rho = 1.0 / (root * b);
-        double s2 = -(k + 1) * (xk / x) / (root * b * b);
-        double a = s2 / (2 * rho * (1 - rho));
-        double z = System.Math.Pow(rho, h) * (e0 + a * e0 * e0);
-        double eh = z - a * z * z;
+        SecondOrderCoef(t, c, k, out double rho, out double a);
+        double eh = SecondOrderEh(rho, a, e0, h);
         double p = rp * System.Math.Exp(L * (t + eh));
         if (!(p > 0) || double.IsInfinity(p)) return false;
         P = p;
@@ -381,6 +373,22 @@ public static class MarketFlow
         return hs;
     }
 
+    /// <summary>(1392) 軟らかい帯の 2 次の展開の係数（ServiceClosed と PinnedClosed で共通）＝t の近くの rho（1 刻みの縮み）と a（曲率）。x＝t＋c が正の前提（呼び手が確かめ済み）。</summary>
+    private static void SecondOrderCoef(double t, double c, double k, out double rho, out double a)
+    {
+        double x = t + c, xk = System.Math.Pow(x, k), b = 1 + xk, root = System.Math.Pow(b, 1.0 / k);
+        rho = 1.0 / (root * b);
+        double s2 = -(k + 1) * (xk / x) / (root * b * b);
+        a = s2 / (2 * rho * (1 - rho));
+    }
+
+    /// <summary>(1392) h 刻み後の差の 2 次の展開（e0＝初めの差・rho・a は SecondOrderCoef）。</summary>
+    private static double SecondOrderEh(double rho, double a, double e0, int h)
+    {
+        double z = System.Math.Pow(rho, h) * (e0 + a * e0 * e0);
+        return z - a * z * z;
+    }
+
     private static double SoftT(double t, double k, int h)
         => t / System.Math.Pow(1 + h * System.Math.Pow(System.Math.Abs(t), k), 1.0 / k);
 
@@ -391,7 +399,7 @@ public static class MarketFlow
         if (L <= Eps) return rp;
         double t = u / L;
         double k = sharpness;
-        double soft = t / System.Math.Pow(1 + System.Math.Pow(System.Math.Abs(t), k), 1.0 / k);
+        double soft = SoftT(t, k, 1);   // (1392) h=1 の SoftT（1×x は x と同じビット）
         return rp * System.Math.Exp(L * soft);
     }
 }

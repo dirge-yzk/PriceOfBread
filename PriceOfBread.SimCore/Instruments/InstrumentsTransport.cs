@@ -599,21 +599,30 @@ public static partial class Instruments
     /// <summary>(1386) region_s の末尾 7 列の見出し（RegionProdHeaderText の後）。</summary>
     internal const string RegionExtraHeaderText = "transportCapEnd\ttradeThrottleEnd\tregionShareEnd\tworkerSinkShareEnd\tstapleImportPerMonth\tstapleProducedPerMonth\tgdpOutputShareEnd";
 
-    /// <summary>(1386) 州の工場労働者（BuysLabor の生産者の LaborPopIndex の最多の POP・同数なら番号の小さい側）に乗る生産者の LaborWeight×Scale の和のうち、LastInputFill＜0.05 の生産者の分の割合。
-    /// 乗る重みが 0 以下なら nan。計器が自分で数える（エンジンの関数は呼ばない）。</summary>
+    /// <summary>(1392) workerSinkShareEnd の閾＝投入の充足 LastInputFill がこれ未満の生産者を吸い込みと数える（0.05＝c147bb の定義のまま）。</summary>
+    internal const double WorkerSinkFillThreshold = 0.05;
+
+    /// <summary>(1392) 吸い込みの母集合から外す生産者＝労働の財（IsLaborGood）と、設備つきで倒産した生産者（倒産は操業停止で Output 0・投入の充足の値が残るだけ）。
+    /// 設備つき＝BuysLabor かつ RGO でなく財の段が役務でない（FactoryEquipment.Eligible と同じ条件を計器が自分で書く）。</summary>
+    internal static bool WorkerSinkExcluded(Producer s)
+        => Catalog.IsLaborGood(s.GoodId)
+           || (s.Bankrupt && s.BuysLabor && !s.IsRgo && s.GoodId >= 0 && s.GoodId < Catalog.Goods.Length && Catalog.Goods[s.GoodId].Tier != GoodTier.Service);
+
+    /// <summary>(1386・1392 で母集合を直した) 州の工場労働者（BuysLabor の生産者の LaborPopIndex の最多の POP・同数なら番号の小さい側）に乗る生産者の LaborWeight×Scale の和のうち、LastInputFill＜WorkerSinkFillThreshold の生産者の分の割合。
+    /// 労働の財と設備つきの倒産の生産者は数えない。乗る重みが 0 以下なら nan。計器が自分で数える（エンジンの関数は呼ばない）。</summary>
     internal static double WorkerSinkShare(Region r)
     {
         var cnt = new Dictionary<int, int>();
-        foreach (var s in r.Producers) if (s.BuysLabor) cnt[s.LaborPopIndex] = cnt.TryGetValue(s.LaborPopIndex, out int k) ? k + 1 : 1;
+        foreach (var s in r.Producers) if (s.BuysLabor && !WorkerSinkExcluded(s)) cnt[s.LaborPopIndex] = cnt.TryGetValue(s.LaborPopIndex, out int k) ? k + 1 : 1;
         if (cnt.Count == 0) return double.NaN;
         int best = -1, bestN = 0;
         foreach (var (key, num) in cnt) if (num > bestN || (num == bestN && key < best)) { best = key; bestN = num; }
         double tot = 0, sink = 0;
         foreach (var s in r.Producers)
         {
-            if (s.LaborPopIndex != best) continue;
+            if (s.LaborPopIndex != best || WorkerSinkExcluded(s)) continue;
             double wgt = s.LaborWeight * s.Scale;
-            tot += wgt; if (s.LastInputFill < 0.05) sink += wgt;
+            tot += wgt; if (s.LastInputFill < WorkerSinkFillThreshold) sink += wgt;
         }
         return tot > 0 ? sink / tot : double.NaN;
     }

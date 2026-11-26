@@ -63,7 +63,7 @@ public static class EconomyStep
         int lp = -1; double cap = 0;
         foreach (var s in region.Producers)
         {
-            if (s.GoodId != Catalog.FarmLaborId || s.RecipeName.Length != 0 || s.Inputs.Count != 0 || s.Bankrupt) continue;
+            if (s.GoodId != Catalog.FarmLaborId || !IsHumanLaborSupply(s) || s.Bankrupt) continue;   // (1392) 人力の絞り込みは IsHumanLaborSupply と 1 本
             if (lp < 0) lp = s.LaborPopIndex;
             if (s.Capacity > 0) cap += s.Capacity;
         }
@@ -770,7 +770,7 @@ public static class EconomyStep
         }
         // 投資家は投資枠（貯蓄の IndInvestmentFrac）を消費予算から控除＝消費と投資が同じ貯蓄を二重に使わない（貯蓄が負にならない）。
         if (cap && region.InvestorPopIndex >= 0)
-            region.Pops[region.InvestorPopIndex].RemainingBudget *= 1.0 - coef.IndInvestmentFrac.Value;
+            region.Pops[region.InvestorPopIndex].RemainingBudget = coef.IndInvestmentFrac.Remaining(region.Pops[region.InvestorPopIndex].RemainingBudget);   // (1392) 残りの割合は型の Remaining（x×(1−割合) と同じビット）
         // budgetStartDiag〔履歴 EconomyStep.cs#91〕
         double budgetStartDiag = 0;
         bool insOn = Instruments.On && world is not null;   // insOn〔履歴 EconomyStep.cs#92〕
