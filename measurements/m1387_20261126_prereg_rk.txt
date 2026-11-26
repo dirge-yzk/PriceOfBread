@@ -1,0 +1,55 @@
+(1387) c147rk 事前登録（恒等の線・腕の前の最初のコミット）＝断裂の窓 RuptureWindowQuarters の削除と、kt・rf の残り（試験と道具の穴）
+木：0f9537d3e（m1383 の合流）から枝 c147rk。基準＝m1383（INSRAW keep_1383/base_ins・TESTS_NONFULL 3281・推定 229.3 秒）。
+
+[1] 恒等の線・予言 0
+ ・挙動を変えない。窓は書き手 3 本・読み手 0 の死んだ欄（エンジンの読み手は無い）。ビットが変わる箇所は無い＝浮動小数の順序が変わる箇所 0（紙の台本で旧と新の食い違い 0 は自明＝式を 1 つも書き換えない・削除だけ）。
+ ・素の 5 種＝b5_20261126_m1383 と名乗り行を除いて全行一致。計器つき 10 種＝b10_20261126_m1383_ins と lrlock_s の 1 列（ruptureWindowQuarters）を除いて全表バイト一致。
+ ・savetest OK（最終行が〈savetest OK〉で始まり値の違い 0）・.cost 推定 +0（件数の行も同じ）・テストの数＝Category!=FullLength は 3281 のまま（消すテストも足すテストも無い＝試験は Assert の行だけを外す）。FullLength 3。
+ ・lrlock_s は列を消す〈推〉（0 を書く案は、全部 0 の列を残す＝死んだ列を残すので採らない）。読む台本＝scripts/instruments/c142lr/lr_count.py・r1360/q1_trace.py・q1_trace2.py・q4_classify.py・q4_other.py・q4_pairs.py・c119nd/mut_nd.sh の M4（突然変異の文字列）・m184/inj_serf184.py（別の盤面を注入する旧の道具）は閉じた線の読み手＝触らない（列が無くなると KeyError になる＝報告に名を書く）。ident へは --removed-cols lrlock:ruptureWindowQuarters を渡す。
+
+[2] 消す物と残す物
+ 消す物（名前・ファイル:行・0f9537d3e）
+  ・World.RuptureWindowQuarters の欄：World.cs:713
+  ・書き手 3 本：Politics.cs:136（減らす）・:405（IsSeizure の時に開ける。ExecuteRegimeChange の `if (violent) { … }` の中身はこの 1 行だけ＝ブロックごと消す。IsSeizure の関数は :371・:374・:375 が読むので残す）・:499（SettleRevolt の鎮圧の側で開ける）
+  ・係数 RuptureWindowQuartersOnCrush：Coefficients.p06_rank_discovery.cs:32（読み手は Politics.cs:405・:499 だけ＝書き手と一緒に消える）
+  ・計器の列 ruptureWindowQuarters：InstrumentsLrlock.cs:7（見出し）・:18（値）
+  ・注の直し：Simulation.cs:1715（〈戦時・断裂の窓のみ可〉→〈戦時のみ可〉）・Government.cs:395（死んだ枝＝BlockedByIrreversibility が塞ぐのは SerfEmancipation と LandReform だけ＝ShorterHours と ChildLabor はこの行へ来ない＝三項の左の枝は到達不能。到達不能の枝を畳む＝結果の文字列は他の軸では同じ）
+ 残す物
+  ・Politics.cs:371・:374・:375 の IsSeizure（窓以外の読み手あり）・ExecuteRegimeChange の引数 violent（呼び手の署名を変えない）
+  ・p09:43 の RevoltIgnitionIntensity の注（他の線の行）・docs/history/*（履歴の記録）・台帳 S15-45・断裂の窓の行（docs/機能の台帳.md:226・:242＝印は合流が付ける）
+ 読み手の grep（0f9537d3e・名＝RuptureWindow／ruptureWindow）
+  ・SimCore：World.cs:713・Politics.cs:136・:405・:499・Coefficients.p06:32・Instruments/InstrumentsLrlock.cs:18（読み手は計器の列だけ）。エンジンの読み手＝0（Government.BlockedByIrreversibility は窓を読まない・:456〜:460）。
+  ・Runner 0・App 0・Display 0・XAML 0。
+  ・Tests：GenderTests.cs:70・:104／ProtectedLawReversalTests.cs:16・:61・:66・:83／RevoltIgnitionTests.cs:339・:350（全て窓の代入か窓の Assert）。
+  ・scripts：c119nd/mut_nd.sh:29・c142lr/lr_count.py:26・narrow_lr.sh（名の言及）・r1360/q1_trace.py・q1_trace2.py・q4_classify.py・q4_other.py・q4_pairs.py（列名の読み）・m1383/doc_rows.py（文章）・m184/inj_serf184.py（注入の文字列）。measurements の台本＝読み手なし（結果の表と記録だけ）。
+  ・POB_COEF の名前の解決＝scripts に RuptureWindowQuartersOnCrush の名前は 0 件（上の grep の当たり以外に無い）。SaveGame＝欄の名前を文字列で持たない（リフレクションで全欄を触る＝欄が消えるだけ・旧版との互換は要らない）。
+ 他の線との重なり（行）：c147wb は Politics.cs:118〜:131・:160〜:220・RevoltIgnitionTests:25〜:130・DerivedValueRatchetTests の数。rk は Politics.cs:136・:400〜:410・:494〜:504・RevoltIgnitionTests:335〜:355＝行が重ならない（:136 は wb の :118〜:131 の外・:160 の手前）。Simulation.cs:1715 は注の 1 行（vs は :1726〜）。DormantIdentityTests は rk が :160 の注 1 行（指示の :159 は 0f9537d3e では :160＝指示の行番号のずれを名乗る）、wb は :161〜:162。
+
+[3] 足す試験と突然変異・㉘ の点検・書き換える件数の予言（㉑）
+ 試験（Assert の行だけを外す・盤面は同じ・★(743) ① 消したメンバーの試験）：GenderTests.cs:70・:104／ProtectedLawReversalTests.cs:16・:61・:66・:83／RevoltIgnitionTests.cs:339（`pw.RuptureWindowQuarters = 0` の代入）・:350（窓の Assert）。前の 3 本の試験の名と他の Assert・母集合は変えない。
+ kt の残り（試験の道具だけ・ValueScan.cs と DormantIdentityTests:160 の注）
+  ・指紋の突然変異 dmFood が緑のまま（★(790)）：LocalFedFingerprint の深さを 2 へ直すと指紋の値（DerivedValueRatchetTests の表）が全て動く＝wb が同じ表を下げる＝**直さずに ValueScan.cs の頭の注へ〈穴〉として名乗る**（深さ 1＝書き手の右辺の局所変数の定義の文までで、その定義の中の局所変数の定義は拾わない）。μ3（深さ 2 の突然変異）は直した時だけ＝この線では取らない（直さないと予言）。
+  ・複数の宣言とメソッドの外の同名：定義の探索は〈書き手より前で最も近い同名の宣言〉＝別のメソッドの同名の宣言や、同名のフィールドを拾いうる。直すと指紋が動きうる＝同じく穴として注に名乗る。
+  ・補間の文字列の中の .Value：Strip が文字列の中身を空にするので数えない＝直すと CountValue が動く（ValueCountRatchetTests の数）。エンジンの本体で補間の中の `.Value` は 2 本（Coefficients.p10_ai_silver_overrides.cs:134 の o.Value は Overrides の項〔単位型でない可能性〕・SaveGame.cs:59 の ux.Value）。**数が動きうるので直さず穴として名乗る**。
+  ・DormantIdentityTests.cs:160 の注：FemalePartLawFree の旗は (1379) c146kt で焼いて消えた＝〈1 で腕 B の木へ＝この表から外した・旗 0 と 1 の番人は旗を明示〉は事実と違う＝〈(1379) c146kt で旗を焼いた・番人 FemalePartLawFreeTests は旗なし〉へ直す（注だけ）。台帳 S10-H030a の直しは合流（台帳）。
+  ・FemalePartProperty（p02:48）：名を報告するだけ（femp_s の旧の列だけが読む）。
+ rf の残り
+  ・selftest_savetest.py：scripts/instruments/c146rf/ から scripts/instruments/ident/ へ git mv（ident_check.py と同じ場所＝sys.path の相対を直す）し、4 つ目の例〈値の違い 0 で最終行が不一致〉を足す。
+  ・ValueScan は補間の文字列の中の .Value を数えない＝上のとおり穴として名乗る。
+  ・Runner の savetest の注は 5 の束へ回す（触らない）。
+ 突然変異（使い捨ての木で・結果は measurements/m1387_*_mut_rk.txt にコミット）
+  μ1：lrlock の見出しだけ残して値の列を消す（InstrumentsLrlock.cs の :18 の `I(w.RuptureWindowQuarters),` を消し、見出しは残す）→ 列の番人（InstrumentsTests の見出しと行の列の数を突き合わせる試験）が赤になるかを確かめる。lrlock_s の列の番人が無ければ〈穴〉と名乗り、同じ線で機構の試験を 1 本足して赤を確かめる（★(790)）。
+  μ2：selftest の最終行の判定（ident_check.cmp_saveleak の `last.startswith('savetest OK') and`）を外す → 4 つ目の例で selftest が赤（3 つの旧の例は緑のまま＝旧の 3 例では拾えなかった穴を 4 つ目が拾う）。
+  μ3：直さないので取らない。
+ ㉘ の点検（腕の前）
+  ・走査の番人の束 `FullyQualifiedName~IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests`（隔離ビルド D:/PoB_work/c147rk_art）を器のコミットの直後に回す。
+  ・点検の grep（0f9537d3e）：工業化度の読み手の許可表＝窓は無関係（0 件）・`new MoneyStock(` の件数＝触らない・route_anchors.tsv の鍵の行＝窓の名は 0 件・WriterRatchetTests の宣言の表＝窓の名は 0 件（Politics.cs の行の移動は表が〈ファイル:行〉でなく名前で数えるかを束で確かめる）。
+ 書き換える件数の予言（㉑）：ValueCountRatchetTests の数＝動かない（.Value を足さない・消さない）・DerivedValueRatchetTests の数と指紋＝動かない（窓は導いた値の表に無い）・WriterRatchetTests の数＝動かない。動いたら直さずに名乗って窓の削除を外す。
+ 係数の件数を数える試験（Coefficients のフィールド数）があって動く場合は ★(749)・★(764) の範囲＝〈軌道の件数を写しただけ〉なら取り直して verdict に列挙する。
+
+[4] 合否
+ ・素の 5 種・計器つき 10 種が m1383 と名乗り行を除いて全行一致（計器の表の差＝lrlock_s の列 ruptureWindowQuarters の 1 本だけ・宣言 --removed-cols lrlock:ruptureWindowQuarters）。
+ ・ident 段 1 の判定が〈恒等〉・.cost 一致・テスト 3281・FullLength 3（--tests-delta 0）。lrlock_s 以外で不一致なら段 2（--work D:/PoB_work/ident_c147rk --saveleak）で savetest と leakhunt を取る。段 1 で --saveleak も回す（セーブの欄が消えるため）。
+
+[5] 〈判定: 恒等〉なら採る（測った種で一致）。一致しなければ、その変更を外して報告に回す。
+ 作ったフォルダ：D:/PoB_work/wt_c147rk・D:/PoB_work/c147rk_work・D:/PoB_work/ident_c147rk・D:/PoB_work/c147rk_art。
