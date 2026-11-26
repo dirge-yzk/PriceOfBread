@@ -1,0 +1,94 @@
+m1400 事前登録 (1400) c149pm 挙動：国内価格の刻みを月へ（PriceOnlyStepDays 15→30・3 回の規則の 1 回目〈推〉）  基準=m1383  木=474338d35  （腕の前・最初のコミット）
+出発：作者 2026-11-26「なるほど、では旬でいきましょう。」（刻みは日・旬・月・四半期・年の 5 段・処理は要る中で一番粗い段へ＝AI の推奨の読み・確証なし）。
+形の型：入口（全ての州×財の値段の歩の間隔を変える＝尾ではない）。
+
+[0] 指示文の読みの直し（腕の前・ソースで確かめた）
+  (a) 指示の〈値段が参照から 0.83〜2.08 倍の財〉は、MarketFlow.AmpOf の増幅 amp の値（0.8333〜2.0833）で、値段の比ではない。
+      値段÷(参照×物価) に直すと 2.20〜5.59 倍と 0.18〜0.45 倍（台本 scripts/instruments/c149pm/paper_pm.py の末尾の行）。
+  (b) 計器 InstrumentsUrx.cs:245 の窓 `tick - pv.Tick <= Calendar.DaysPerMonth` は直さない。読み手 UrxMkt は MonthSettle の中（Simulation.cs:2045 UrxPd）から
+      月 1 回呼ばれ、World.Tick は日次の相で 1 日 1 つ進む（Simulation.cs:1464）＝前の月との差は刻みに依らず 30＝窓は国内価格の刻みと関係が無い。
+      ＝μ2 は対象が無い（記録）。持ち主の行 InstrumentsUrx.cs:238〜:250 は触らない。
+  (c) 換算（1−(1−k)^n）が要る率は無い。MarketFlow.StepDay は h 日を受け取り、1 日あたりの率（adj＝FlowAdjustSpeed×flow/30・留保賃金の Toward の
+      1 日あたりの速度）を h 回（または閉じた式で h 日分）当てる＝刻みを変えても時間あたりの率は同じ。＝μ3 は対象が無い（記録）。
+  (d) 指示の〈月の頭だけで動く〉は、日 29（0 始まり・月次の締め MonthSettle の直前・同じ日）の 1 回＝月の境で動く。日 0〜28 の読み手は前の月の終わりの値段を読む。
+  (e) 腕 Z／ident は回さない：旗を倒す前のコミットは試験と台本と measurements だけ＝SimCore の差分 0 行（ident の対象が無い・腕の枠と D: を使わない）。
+
+[1] 形
+  Coefficients.p02_borrow_polity_epidemic.cs:93 PriceOnlyStepDays の既定 15→30（この値そのものが旗・旧の道 0 と 15 は残る）。
+  Simulation.cs:1425〜:1430 の約数の検査は変えない（30 は 30 の約数）。他の SimCore の行は変えない。
+  30 の時の形（ソースから）：priceDay＝IsSpanEndDay(d,30)＝日 29 だけ・monthStartSpan＝DayInMonth<30＝常に真
+   ＝眠った財（FlowAsleep）を飛ばす枝（MarketFlow.cs:61 の !monthStart）は通らない＝生きた財は毎月 1 回ずつ全て歩く（旧は 1 回目＝全て・2 回目＝眠りを除く）。
+
+[2] 予言（観測量・符号と大きさ）
+  ①小刻み（閉じた式の SubStep）の月あたりの回数（基線の生 keep_1397/base_ins の pxgoods＝国×財×月の中央値の比で数えた・州ごとではない＝近似）：
+     帯の内側 170230 行のうち 2→2 60.96%・6→3 24.80%・6→5 10.08%・6→6 1.81%・10→10 2.35%（measurements/m1400_20261127_paper_pm.txt）。
+     6→3（値段÷参照 2.20〜3.54 倍か 0.28〜0.45 倍）と 6→5（3.54〜5.59 倍か 0.18〜0.28 倍）の 34.9% が減る。帯の外（10 倍・1/10 の外）は日次の写像のまま。
+  ②最低賃金の床（MinimumWageFloor.AbsFloor→BasketPerPerson・MinimumWageFloor.cs:18〜:30）と LaborClosed の機会（MarketFlow.cs:106・h−1＝29 日の閉じた式）：
+     呼び出しが月 2 回→1 回。床は月の境の値段の籠で 30 日（旧は日 14 の値段で後半 15 日を求め直した）。
+  ③月の途中に値段の入力（LastDemand・Stock ほか）を書くのは、プレイヤーの侵略（InternationalMarket.Procure :96〜:106＝World.Invade から）と
+     プレイヤーの払い下げ（World.cs:2017〜:2023）だけ（Simulation.cs:1415 の注と指示文の洗い）＝その入力が値段に映るのは日 14 でなく日 29。AI の腕では起きない。
+  ④建設の日 20（spanStart の hFlow＝10・World.StepConstruction の EconomyStep.BundleCost＝建材の束の値段）と ConstructionAfford（World.cs:1577・工場の着工の判断）は、
+     日 14 の値段を読まなくなる（日 0・10・20 とも前の月の終わりの値段）。信用（Credit.Step）は値段を読まない（Credit.cs に .Price 0 件・月の頭の箱を読む）。
+  ⑤.cost（台帳の件数）：PriceGoods（MarketFlow.cs:219）は呼び出しごとの（生きた財−眠った財）＝旧は月に 生×(2−a)（a＝2 回目の眠りの割合）・新は 生×1
+     ＝新÷旧＝1/(2−a)＝0.5〜1.0（基線 126,913,933・推定 28.64 秒→14.3〜28.6 秒）。PriceDailyRuns（:220）は日次の写像の日数＝向きは読めない（帯の端の財は 1 回で
+     30 日を回す・眠りの枝が無い分は増える）＝記録。MinimumWageBasketScans は約半分。DeadMarketMonth（月の頭の 1 回）は軌道の分だけ。
+     ⚠台帳の件数の半減は CPU の半減ではない＝1 歩ごとの固定の手間（EnsureLiveGoods・Prefetch・州の巡回・帯の式の前置き）の分しか減らない。
+  ⑥速さ（POB_TIME の段の秒・measurements/m1397_20261127/time/stages.tsv・素の 1 種）：国内価格は StepDayDaily（国ごとの和の CPU 56.1 秒・並列の壁 9.3 秒）の中
+     （Market.Step 64.6 秒は国際市場＝この線は触れない）。見込み StepDayDaily の CPU −5〜−20 秒・壁 −1〜−4 秒。台帳の数だけで〈速くなった〉と書かない＝合流が素の 1 種を静かに測る。
+  ⑦推定の計算量（計器つき 10 種の .cost）：229.3 秒→214〜229 秒（下がる向き）。割り当て 0 秒（上限 248.5 秒）。
+  ⑧同じ盤面の新÷旧の行（試験の中で数える）：PriceMonthStepTests が日ごとに動いた市場を数える＝旧 15 は日 14 と日 29・新 30 は日 29 だけ。
+
+[3] 門（腕の前に固定・ループの中で変えない）
+  機構の試験（盤面を試験の中で置く・PriceOfBread.Tests/PriceMonthStepTests.cs）：
+   T1 既定の刻みで、日 1〜28（建設と信用の旬の初日 10・20 を除く）に値段が動いた市場 0・日 29 に >0。対照：刻み 15 は日 14 に >0。
+   T2 既定の刻みで、最低賃金の床（台帳 MinimumWageBasketScans が増えた日）が日 1〜29 で 1 回・日 29。対照：刻み 15 は 2 回。
+   旗 0（今の既定 15）で T1・T2 とも赤（試験を入れたコミットで回して記録する）。
+  止める線（作者）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上の〈それ以外〉（建国の直後＝系列の最初の行から 4 四半期以内と、
+   政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期は区分してヌル腕の件数と並べる＝㊳）・1e10 倍以上・空洞化 1/10 未満で〈線が原因〉の物・推定の計算量 ＞248.5 秒・
+   機構と不変条件を守るテストの赤（ソースを走査する番人を含む）。
+  空洞化の判定の基準（結果を見る前に写す）：`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`（既定 -ex rule＝植民地格・緯度の絶対値 55 度以上・
+   world.json の開幕の人口 20 千人未満＝7 州）でピークの 1/10 未満。主要国の州・本国格の州は例外にしない。1 件ごとに基線の同じ種・同じ州を keep_1397/base_ins で読み、
+   基線ですでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭・そうでなければ〈線が原因〉＝止める。
+  史実の桁の線（10 倍）：記録（ng.sh・基準 ng1383_20261126）。
+  記録だけ（採否に使わない）：S11（合流が a11 の 82 表で回す）・世界規模の補給崩壊・貿易÷GDP・分離独立（前例の脆い量＝種を並べた頻度で書く）・exact・near・NG・
+   nullgate.py の O・ヌル腕の幅・開幕の 1000 倍以上（同じ国が半分以上の種なら NG）・名目 GDP 0 の続き（gdp_zero10.py・先頭）・英の国債の不履行の種の数。
+  事前登録の点検（★(675)）：〈補給崩壊…倍〉〈10pt〉〈NG の正味〉の門は置いていない（上は全て記録）。符号だけの門は置いていない。
+
+[4] 突然変異ごとの門の表（㉚・使い捨ての木で確かめて measurements/m1400_20261127_mut_pm.txt へ）
+   μ1 既定を 15 に戻す → T1 赤（日 14 に動く）・T2 赤（2 回）。
+   μ1′ 既定を 10 にする（30 の別の約数）→ T1 赤（日 9・19 に動く）・T2 赤（3 回）。
+   μ2 Urx の窓を戻す → 対象なし（[0](b)・窓は変えない）。
+   μ3 換算を抜く → 対象なし（[0](c)・換算を入れない）。
+
+[5] 周辺の点検の節（既にある生とソースだけで読む・月の境の値段で困らないか）
+   清算（MonthSettle の国内清算）：日 29 の値段の歩の後に同じ日で読む＝新旧とも 30 日分を積んだ値段を読む（新は 1 回の歩で 30 日・旧は 15 日×2）＝古い値段を読まない。
+   信用：値段を読まない（[2]④）。
+   最低賃金：床は月の境の籠の値段で 30 日固定（[2]②）。籠の値段が月の中で大きく動く財（帯の端）は床が 1 か月遅れる＝記録（腕 B の lwk 表の床と賃金の比を新÷旧で読む）。
+   建設：日 20 の建材の束が日 14 の値段でなく前の月の終わりの値段（最大 20 日古い）＝月の建設の 1/3 の旬の分だけ＝記録。
+   AI の判断（QuarterStart・日 0）：前の四半期の終わりの値段を読む＝新旧とも同じ（日 29 の歩の後）。
+
+[6] ソースを走査する番人の点検（㉘・474338d35 で grep）
+   工業化度の読み手の許可表：SimCore の行を足さない＝変わらない。`new MoneyStock(` の件数 SimCore 64＝変わらない。scripts/instruments/flow262/route_anchors.tsv の鍵の行＝触らない。
+   WriterRatchetTests の計算量の宣言の表（1 種 40 四半期の件数）：PriceGoods（:343・9,931,110）・PriceDailyRuns（:345）・MinimumWageBasketScans・ClearingFills ほか
+   軌道の件数の行は動く見込み（予言：PriceGoods は 0.5〜1.0 倍＝許しの下側を割れば下げる・他は軌道の分）＝★(749)〈軌道の件数を写しただけの番人〉の取り直しとして
+   旗 1 の木の 1 種 40 四半期の実測で取り直し、行と前と後を verdict に列挙する（新しい計数の処理は無い）。
+
+[7] 旗 1 の木でフルスイートの番人が旧の規則を固定していないかの grep（㉜）
+   PriceOnlyStepDays・MinimumWageBasketScans・CostLedger.PriceGoods・PriceDailyRuns・IsSpanEndDay・MarketFlow.StepDay・DeadMarketMonth を Tests/ で grep＝
+   CalendarDayTests・ClearingFillInstrumentTests・EconomyTests・LaborClosedTests・MinimumWageAiFloorTests・PriceStepDaysTests・SecessionLaborLawInstrumentTests・
+   ServiceClosedTests・StateEduDemandTests・StateProcureLedgerTests・TradeClearingTests・WriterRatchetTests・ZeroPopSkipTests。
+   置き換える旧の規則＝〈国内価格は月に 2 回（日 14・日 29）〉。これを既定の値として固定する試験は見つからない（PriceStepDaysTests は 15 を明示して置く・
+   他は MarketFlow.StepDay を日数つきで直に呼ぶ）。旧の規則の番人が赤になれば ㉜ の改めのとおり新しい規則の試験へ書き換える。軌道に依る試験の赤は区分を名乗って直す。
+   絞った試験＝上のクラス＋PriceMonthStepTests＋㉘ の束＋FullLength＋savetest＋leakhunt（赤は trx で読む）。
+
+[8] 重なり（他の線の持ち主の一覧と grep）
+   c149rn は Coefficients.p02_borrow_polity_epidemic.cs の :72〜:74 だけ（この線は :93 だけ）。c149sd は Simulation.cs:1448〜:1460（この線は Simulation.cs に触れない）。
+   DormantIdentityTests.cs・WriterRatchetTests.cs は自分の行だけ（WriterRatchet の取り直しの行は [6]）。App・Display・Runner は 0 行。
+   App の読み手：GameViewModel.cs:352 の注〈PriceFlowStepDays 日ごと〉は名を〈次の波〉5 の束へ報告する（触らない）。Runner/Program.cs:575 の表示は PriceFlowStepDays を名乗る＝5 の束へ。
+
+[9] 腕と順
+   ①この事前登録 ②試験（旗 0＝既定 15 で T1・T2 赤を記録）③突然変異 μ1・μ1′（使い捨ての木）④旗を倒すコミット（既定 30）→絞った試験（[7]）
+   ⑤腕 B `INS=1 bash scripts/instruments/batch.sh run c149pmB 10`（計器つき 10 種・種 1〜10・POB_WORK=D:/PoB_work/c149pm_work・表は keep_1383/a11 の 87 表＋pxstep に絞る・
+    起こす直前に D: が 35GB＋14GB 以上）⑥両側の門・新÷旧・nullgate（記録）・an_h2・pxjump（100 倍・1e10・基準とヌル腕を同じ台本で数え直す）・gdp_jump1330・gdp_zero10・.cost・ng.sh・mon
+   ⑦腕 B のコミットの木でフルスイート 1 回（Category!=FullLength・Ui・FullLength を分けて --list-tests と突き合わせ・--logger trx）。形の変え直しは 1 回だけ。
+   腕 B の生は合流の判断まで消さない。
