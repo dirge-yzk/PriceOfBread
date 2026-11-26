@@ -1,0 +1,44 @@
+== M
+1 month 22 year 1784 cols 29 claimArmyPerMonth,claimAdminPerMonth,claimSoldierPayPerMonth,claimTotalPerMonth,claimItemGapPerMonth,adminClaimFiscalPerMonth,adminSimMeanMulShare,adminFiscalMeanMul
+2 month 25 year 1785 cols 1 ledgerResidualPerMonth
+3 month 51 year 1787 cols 4 directTaxNetPerMonth,govBondRatePerYear,ledgerTaxPerMonth,ledgerResidualPerMonth
+4 month 48 year 1786 cols 1 ledgerResidualPerMonth
+5 month 36 year 1785 cols 1 ledgerResidualPerMonth
+6 month 25 year 1785 cols 1 ledgerResidualPerMonth
+7 month 34 year 1785 cols 1 ledgerResidualPerMonth
+8 month 22 year 1784 cols 7 claimArmyPerMonth,claimSoldierPayPerMonth,ledgerArmyPerMonth,treasuryEndStock,treasuryDeltaPerMonth,ledgerSumPerMonth,ledgerResidualPerMonth
+9 month 24 year 1784 cols 1 ledgerResidualPerMonth
+10 month 22 year 1784 cols 27 claimArmyPerMonth,claimAdminPerMonth,claimSoldierPayPerMonth,claimTotalPerMonth,claimItemGapPerMonth,adminClaimFiscalPerMonth,adminFiscalMeanMul,adminFillShare
+== wyB
+1 month 22 year 1784 cols 29 claimArmyPerMonth,claimAdminPerMonth,claimSoldierPayPerMonth,claimTotalPerMonth,claimItemGapPerMonth,adminClaimFiscalPerMonth,adminSimMeanMulShare,adminFiscalMeanMul
+2 month 82 year 1789 cols 36 claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimSoldierPayPerMonth,claimTotalPerMonth,claimItemGapPerMonth,adminClaimFiscalPerMonth
+3 month 91 year 1790 cols 40 claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimSoldierPayPerMonth,claimTotalPerMonth,claimItemGapPerMonth,adminClaimFiscalPerMonth
+4 month 100 year 1791 cols 35 claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimSoldierPayPerMonth,claimTotalPerMonth,adminClaimFiscalPerMonth,adminFillShare
+5 month 100 year 1791 cols 2 claimItemGapPerMonth,ledgerResidualPerMonth
+6 month 85 year 1790 cols 34 claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimSoldierPayPerMonth,claimTotalPerMonth,claimItemGapPerMonth,adminClaimFiscalPerMonth
+7 month 94 year 1790 cols 30 claimArmyPerMonth,claimAdminPerMonth,claimSoldierPayPerMonth,claimTotalPerMonth,claimItemGapPerMonth,adminClaimFiscalPerMonth,adminSimMeanMulShare,adminFiscalMeanMul
+8 month 22 year 1784 cols 7 claimArmyPerMonth,claimSoldierPayPerMonth,ledgerArmyPerMonth,treasuryEndStock,treasuryDeltaPerMonth,ledgerSumPerMonth,ledgerResidualPerMonth
+9 month 79 year 1789 cols 39 claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimSoldierPayPerMonth,claimTotalPerMonth,claimItemGapPerMonth,adminClaimFiscalPerMonth
+10 month 22 year 1784 cols 27 claimArmyPerMonth,claimAdminPerMonth,claimSoldierPayPerMonth,claimTotalPerMonth,claimItemGapPerMonth,adminClaimFiscalPerMonth,adminFiscalMeanMul,adminFillShare
+== bkB
+1 month 35 year 1785 cols 2 claimItemGapPerMonth,ledgerResidualPerMonth
+2 month 25 year 1785 cols 1 ledgerResidualPerMonth
+3 month 51 year 1787 cols 4 directTaxNetPerMonth,govBondRatePerYear,ledgerTaxPerMonth,ledgerResidualPerMonth
+4 month 48 year 1786 cols 1 ledgerResidualPerMonth
+5 month 36 year 1785 cols 1 ledgerResidualPerMonth
+6 month 25 year 1785 cols 1 ledgerResidualPerMonth
+7 month 34 year 1785 cols 1 ledgerResidualPerMonth
+8 month 26 year 1785 cols 2 claimItemGapPerMonth,ledgerResidualPerMonth
+9 month 24 year 1784 cols 1 ledgerResidualPerMonth
+10 month 31 year 1785 cols 1 claimItemGapPerMonth
+== N1
+1 month 2 year 1783 cols 49 claimInterestPerMonth,claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimInfraPerMonth,claimElecInfraPerMonth,claimSoldierPayPerMonth
+2 month 2 year 1783 cols 49 claimInterestPerMonth,claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimInfraPerMonth,claimElecInfraPerMonth,claimSoldierPayPerMonth
+3 month 2 year 1783 cols 49 claimInterestPerMonth,claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimInfraPerMonth,claimElecInfraPerMonth,claimSoldierPayPerMonth
+4 month 2 year 1783 cols 49 claimInterestPerMonth,claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimInfraPerMonth,claimElecInfraPerMonth,claimSoldierPayPerMonth
+5 month 2 year 1783 cols 47 claimInterestPerMonth,claimTradePolicyPerMonth,claimArmyPerMonth,claimAdminPerMonth,claimInfraPerMonth,claimElecInfraPerMonth,claimSoldierPayPerMonth,claimLastMonthEducationPerMonth
+6 month 2 year 1783 cols 48 claimInterestPerMonth,claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimInfraPerMonth,claimElecInfraPerMonth,claimSoldierPayPerMonth
+7 month 2 year 1783 cols 49 claimInterestPerMonth,claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimInfraPerMonth,claimElecInfraPerMonth,claimSoldierPayPerMonth
+8 month 2 year 1783 cols 51 claimInterestPerMonth,claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimInfraPerMonth,claimElecInfraPerMonth,claimSoldierPayPerMonth
+9 month 2 year 1783 cols 48 claimInterestPerMonth,claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimInfraPerMonth,claimElecInfraPerMonth,claimSoldierPayPerMonth
+10 month 2 year 1783 cols 49 claimInterestPerMonth,claimTradePolicyPerMonth,claimArmyPerMonth,claimNavyPerMonth,claimAdminPerMonth,claimInfraPerMonth,claimElecInfraPerMonth,claimSoldierPayPerMonth

@@ -1,0 +1,9 @@
+(1388) c147rb 読む線の計画（腕 0 本・コミットしない・置き場 D:/PoB_work/r1388_work・台本は scripts/instruments/r1388/＝コミットしない）
+読む生：
+ M     D:/PoB_work/keep_1383/base_ins（木 7e8dd6f97・wy1 bk1・種 1-10）
+ N1/N2 D:/PoB_work/keep_1383/n1・n2（同じ木・種 1-10・87 表）
+ S11   D:/PoB_work/keep_1383/a11（同じ木・種 11-20・87 表）
+ 基準M E:/PoB_archive/keep_1362/base_ins（読むだけ）
+ S11 の基準：成績表 b10s11_20261125_m1362_ins と measurements の表だけ
+ 線の腕：measurements/m1377_*（wy）・m1378_*（bk）・成績表 c146wyB・m1378bkB
+問い：(a) 英の国債 0 の種の四半期の並び (b) S11 の分離独立・内戦分裂 0・0 の理由 (3) 直す線か記録か

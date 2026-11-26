@@ -1,0 +1,2 @@
+base	payRateMeanShare 戦 1.000/平 1.000	foodMetShare 戦 0.938/平 0.944	needMetShare 戦 0.475/平 0.483	adminFillMeanShare 戦 0.559/平 0.616	securityThreatShare 戦 0.498/平 0.530	件 戦 24604 平 140979
+M	payRateMeanShare 戦 1.000/平 1.000	foodMetShare 戦 0.940/平 0.945	needMetShare 戦 0.483/平 0.488	adminFillMeanShare 戦 0.586/平 0.637	securityThreatShare 戦 0.502/平 0.531	件 戦 25891 平 141388

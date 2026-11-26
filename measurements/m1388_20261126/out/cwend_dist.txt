@@ -1,0 +1,8 @@
+base	n=84	secessionType=3	blankSplit=5	verdict={'0': 5, '1': 27, '2': 52}	endPath={'collapse': 68, 'decisive': 6, 'weary': 10}	collapse=0	monthsMed=8	exhParentMed=0.80	exhRebelMed=0.66
+bN1	n=88	secessionType=3	blankSplit=3	verdict={'0': 6, '1': 33, '2': 49}	endPath={'collapse': 65, 'decisive': 14, 'forced': 3, 'weary': 6}	collapse=0	monthsMed=9	exhParentMed=0.76	exhRebelMed=0.66
+bN2	n=107	secessionType=12	blankSplit=5	verdict={'0': 9, '1': 47, '2': 51}	endPath={'collapse': 74, 'decisive': 21, 'forced': 4, 'weary': 8}	collapse=0	monthsMed=12	exhParentMed=0.72	exhRebelMed=0.64
+wyB	n=50	secessionType=6	blankSplit=0	verdict={'1': 16, '2': 34}	endPath={'decisive': 32, 'weary': 18}	collapse=34	monthsMed=12	exhParentMed=0.61	exhRebelMed=0.54
+M	n=49	secessionType=1	blankSplit=3	verdict={'0': 3, '1': 19, '2': 27}	endPath={'decisive': 28, 'weary': 21}	collapse=32	monthsMed=14	exhParentMed=0.63	exhRebelMed=0.56
+N1	n=63	secessionType=3	blankSplit=0	verdict={'0': 1, '1': 24, '2': 38}	endPath={'decisive': 37, 'forced': 1, 'weary': 25}	collapse=44	monthsMed=13	exhParentMed=0.65	exhRebelMed=0.58
+N2	n=57	secessionType=1	blankSplit=1	verdict={'0': 1, '1': 18, '2': 38}	endPath={'decisive': 31, 'weary': 26}	collapse=39	monthsMed=13	exhParentMed=0.65	exhRebelMed=0.56
+S11	n=62	secessionType=0	blankSplit=0	verdict={'1': 29, '2': 33}	endPath={'decisive': 40, 'weary': 22}	collapse=47	monthsMed=12	exhParentMed=0.60	exhRebelMed=0.59

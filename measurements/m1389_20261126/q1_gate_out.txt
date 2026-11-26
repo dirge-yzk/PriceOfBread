@@ -1,0 +1,5 @@
+厭戦で閉じた月（scalars の 22 国どうし・緊張>=140・組は交戦していない） {'closedW_peace': 17580, 'closedW_war': 14801, 'G2keep_peace': 3199, 'G2keep_war': 1807, 'G2skeep_peace': 95, 'G2skeep_war': 73}
+6 か月以上の塊（門が開く見込み） {'G1': {'peace': 364, 'war': 301}, 'G2': {'peace': 332, 'war': 283}, 'G2s': {'peace': 363, 'war': 302}}
+warband {'start_main': 1469, 'submits': 11253}  開戦の率 start_main/(start_main+submits) 0.115
+warpair の開戦と屈服 {'starts': 7420, 'submits': 11253, 'start_any_crisis': 1123, 'start_both_crisis': 48, 'start_any_crisis_prev': 1038, 'start_both_crisis_prev': 60, 'start_civil_side': 12, 'start_known': 7220, 'sub_any_crisis': 551, 'go_months': 60917, 'go_any_crisis': 3041, 'go_both_crisis': 38}
+交戦中の国×四半期 36045 国難 5.6% 内訳(内戦・食・支払い・正統性) ['1.2%', '0.4%', '0.0%', '4.0%']  厭戦>0.5 の交戦中（22 国） 8161 国難 8.8%

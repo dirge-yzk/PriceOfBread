@@ -1,0 +1,4 @@
+WarExhaustion: writers 3 inputs 7 outputs 34  inputs=['local:airRaid', 'local:blockade', 'local:casTerm', 'local:chem', 'local:econEx', 'local:exBase', 'local:fiscal']
+DynasticMandate: writers 2 inputs 1 outputs 4  inputs=['local:dmTarget']
+Legitimacy: writers 11 inputs 8 outputs 47  inputs=['AfterLegitimacy', 'local:_legitimacy', 'local:absScore', 'local:actual', 'local:actualCost', 'local:forgiveRatio', 'local:legClamped', 'local:legFloor']
+DiscontentOf: calls 2

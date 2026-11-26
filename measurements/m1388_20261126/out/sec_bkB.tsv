@@ -1,0 +1,11 @@
+tag	seed	secRows	secGo	secMarginMax	m>=-0.5	m>=-0.2	m>=-0.1	m>=-0.05	m>=0.0	secMilMean	goYears	cwEnd	cwEndSecession	cwEndBlankSplit	cwVerdict	civilWars	interWars	newNationsEver	newNationsAlive	newAliveNames	milWar	milPeace	milWarP90	ignViolent	ignPeaceful	coup	revoltShareP99
+bkB	1	0	0	-9e+09	0	0	0	0	0	nan		0	0	0		23	848	18	5	立憲王政イギリス|立憲王政オスマン|立憲王政両シチリア|第2立憲王政オスマン|統領制イギリス	0.2197	0.1176	0.3868	NA	NA	NA	NA
+bkB	2	0	0	-9e+09	0	0	0	0	0	nan		0	0	0		9	840	7	1	立憲王政カリフ国	0.199	0.1125	0.3452	NA	NA	NA	NA
+bkB	3	0	0	-9e+09	0	0	0	0	0	nan		0	0	0		10	855	8	0		0.2154	0.122	0.3519	NA	NA	NA	NA
+bkB	4	0	0	-9e+09	0	0	0	0	0	nan		0	0	0		18	658	14	1	立憲王政イギリス	0.2369	0.1127	0.4082	NA	NA	NA	NA
+bkB	5	0	0	-9e+09	0	0	0	0	0	nan		0	0	0		15	714	10	4	共和制コンゴ|立憲王政イギリス|立憲王政両シチリア|第2立憲王政イギリス	0.2133	0.1127	0.3703	NA	NA	NA	NA
+bkB	6	0	0	-9e+09	0	0	0	0	0	nan		0	0	0		17	795	12	0		0.2195	0.1131	0.3856	NA	NA	NA	NA
+bkB	7	0	0	-9e+09	0	0	0	0	0	nan		0	0	0		19	601	11	0		0.2077	0.1066	0.3487	NA	NA	NA	NA
+bkB	8	0	0	-9e+09	0	0	0	0	0	nan		0	0	0		4	686	4	0		0.2265	0.1158	0.3706	NA	NA	NA	NA
+bkB	9	0	0	-9e+09	0	0	0	0	0	nan		0	0	0		24	607	13	0		0.2072	0.1084	0.3459	NA	NA	NA	NA
+bkB	10	0	0	-9e+09	0	0	0	0	0	nan		0	0	0		16	650	12	0		0.2159	0.1171	0.3695	NA	NA	NA	NA
