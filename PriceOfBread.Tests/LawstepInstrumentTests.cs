@@ -135,14 +135,60 @@ public class LawstepInstrumentTests
         Assert.All(all, rows => Assert.Empty(rows));
     }
 
+    /// <summary>(1379) 派閥の譲歩（Politics.SettleRevolt → ConcedeToFaction）を本物の入口から通す。要求の軸と向きは盤面の選好から出る＝試験は軸を決めず、
+    /// 前後の hook が書いた行（writer 4）が出ることと、その軸の段が実際に動いていることを見る。突然変異「ConcedeToFaction の LawstepSideEnd を消す」で赤。</summary>
+    [Fact]
+    public void L3b_派閥の譲歩の本物の入口を通ると_4_の行が出る()
+    {
+        var all = Run((b, flush) =>
+        {
+            var w = b.W;
+            Pin(b); Step(b); flush();
+            int concededBlocs = 0;
+            for (int bloc = 0; bloc < 3; bloc++)
+            {
+                var f = new FactionState { Region = w.Regions[0], Bloc = bloc };
+                if (FactionSnapshot.ComputeDemands(w, bloc).Count == 0) continue;
+                concededBlocs++;
+                Politics.SettleRevolt(w, w.Coef, true, w.Polity, f, System.Array.Empty<Pop>());
+                Pin(b); Step(b); flush();
+            }
+            Assert.True(concededBlocs >= 1, "要求の出る派閥が盤面に無い＝試験の前提が崩れた");
+        });
+        var rows = all.Skip(1).SelectMany(x => x).Where(r => Col(r, "writerCode") == "4").ToList();
+        Assert.True(rows.Count >= 1, "譲歩の入口を通ったのに writer 4 の行が無い");
+        foreach (var r in rows) Assert.NotEqual(Col(r, "fromStage"), Col(r, "toStage"));
+    }
+
     [Fact]
     public void L5_計器を切ると何も作られない()
     {
         string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_lawstep_" + System.Guid.NewGuid().ToString("N"));
-        Instruments.Configure(null, null); Instruments.SelectTables(null);
-        var b = Make();
-        Step(b); Parliament.TargetDemand(b.W, PolicyAxis.ShorterHours, true); Step(b);
-        Assert.Empty(Instruments.LawstepPeek(b.Sim));
-        Assert.False(System.IO.File.Exists(System.IO.Path.Combine(dir, $"lawstep_s{Seed}.tsv")));
+        string file = System.IO.Path.Combine(dir, $"lawstep_s{Seed}.tsv");
+        MultiNationSim? sim = null;
+        try
+        {
+            // 1 度 On にして出力の場所を決める（行が出て、ファイルが作られることを先に確かめる＝切った後の「無い」が空振りでない）
+            Instruments.SelectTables("lawstep_s");
+            Instruments.Configure(dir, "*");
+            var b = Make(); sim = b.Sim;
+            Instruments.Phase(b.Sim, Seed, "open");
+            Pin(b); Step(b);
+            b.W.WorkHours = (WorkHours)(((int)b.W.WorkHours + 1) % 4);   // 施行の外の書き手＝次の施行で 1 行
+            Pin(b); Step(b);
+            Instruments.Quarter(b.Sim, Seed, 0);
+            Assert.Single(Instruments.LawstepPeek(b.Sim));
+            Assert.True(System.IO.File.Exists(file), "On の間に出力が作られていない（試験の前提）");
+            Instruments.Close(b.Sim);
+            // 切る：切っている間に段を動かして施行を通しても、行は溜まらない（On に戻して四半期の末を書いても出ない）
+            Instruments.Configure(null, null); Instruments.SelectTables(null);
+            b.W.WorkHours = (WorkHours)(((int)b.W.WorkHours + 1) % 4);
+            Pin(b); Step(b);
+            Instruments.SelectTables("lawstep_s");
+            Instruments.Configure(dir, "*");
+            Instruments.Quarter(b.Sim, Seed, 1);
+            Assert.Empty(Instruments.LawstepPeek(b.Sim));
+        }
+        finally { if (sim != null) Instruments.Close(sim); Instruments.Configure(null, null); Instruments.SelectTables(null); try { System.IO.Directory.Delete(dir, true); } catch { } }
     }
 }

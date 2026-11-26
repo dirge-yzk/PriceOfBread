@@ -1,0 +1,50 @@
+(1379) c146kt 事前登録（恒等の線・最初のコミット）  2026-11-26  木 6584be56d・枝 c146kt
+署名：Claude Sonnet 5.5。〈証明〉〈承認〉とは書かない。判定は〈恒等の判定（測った種で一致）〉。
+
+[1] 恒等の線・予言 0
+ 挙動を変えない。素の 5 種（基準 b5_20261125_m1362）と計器つき 10 種（基準 b10_20261125_m1362_ins）は、名乗り行の SOURCE-HASH を除いて全行一致。
+ savetest：最終行が〈savetest OK〉で始まり値の違い 0 の時だけ OK。.cost の推定は +0。
+ 浮動小数の順序が変わる箇所：無し。項 A は三項の旗 1 の枝（FemalePartBase 1 本）だけを残す＝旗の既定 1.0 の経路と同じ式（係数のリテラルを書き換えない・計算の順序を変えない）。
+ 紙の台本：旗 1 の枝は `World.Coef.FemalePartBase` の代入 1 本で、旧の三項の真の枝と同じ値＝旧≠新の行は 0（同じ盤面で数えるまでもなく式が同一）。
+ 区分：項 A＝区分 I（点火済みの旗の旧の枝の焼き込み・採って 2 波以上）。項 B・C＝試験と走査の番人の穴（エンジンに触れない）。
+
+[2] 消す物と残す物
+ 消す物
+  ・係数 FemalePartLawFree（Coefficients.p02_borrow_polity_epidemic.cs:49・既定 1.0）。読み手は Simulation.cs:1815 の三項だけ。
+   grep（SimCore・Runner・App・Display・Tests・scripts・POB_COEF の名前・SaveGame）：Tests は FemalePartLawFreeTests・SaveRoundTripTests:145（Assert）だけ。
+   scripts／measurements の当たりは記録（c143k59・m1362・m1369 の stprobe・cfg1362.py の注）＝触らない。SaveGame は欄をリフレクションで触る＝欄が消えるだけ（旧版との互換は要らない）。
+  ・Simulation.cs:1815 の旧の枝 `FemalePartBase + (FemalePartProperty − FemalePartBase) × WomenWageRetention`。
+ 残す物（名を報告）
+  ・FemalePartProperty（p02:48）：計器 InstrumentsFemp.cs:4・:21 の〈旧〉の列だけが読む。femp_s の列は変えない＝死んだ係数の候補として名を報告（この線では消さない）。
+  ・DormantIdentityTests.cs:159 の注（旗の履歴の注）は触らない。
+ 他の線との重なり：c146wy は Politics.cs・p02:96・InstrumentsScalars.cs:38＝重ならない。c146kt は p02:48〜:49 と Simulation.cs:1815 だけ。c146rf は Simulation.cs:1935・:2384＝行が違う。c146bk は EconomyStep.cs・Coefficients.cs の旗の宣言＝重ならない。
+ 試験：FemalePartLawFreeTests（旗 0 の枝の試験は今の盤面へ移す＝★(826) ②・T1〜T3 の 3 本のまま）・GenderTests.cs:38（注だけ）・SaveRoundTripTests.cs:140〜:145（旗の Assert と注の旗の名を外す・盤面は同じ）。
+
+[3] 足す試験・直す試験と、赤にする突然変異（使い捨ての作業ツリーで当てて戻す・Politics.cs と EconomyStep 等はコミットしない）
+ 項 B（sm の穴）
+  ・ValueScan.cs の頭の注を直す（ドットなしの書き込みは数える）。受け手の指定がある量（@pop・@colony）のドットなしの書き手は、その型（Pop・Colony）の宣言の本体の中だけで数える。
+   予言：表の数は今のまま（Militancy@pop 14・7・37、@colony 2・0・3）＝現在 Pop・Colony の中にドットなしの書き込みは 0 件。
+  ・M1b：Model.cs の Pop の中に `void Z() { Militancy = 0; }` を足す → 導いた値の書き手と入力と出力は表を超えない(Militancy@pop) が赤（書き手 15）。旧の数え方では緑のままだった。
+  ・M12 に追加：型つきの人工の文面で @pop 1・@colony 2・他の型は数えない／局所変数の定義を変えると指紋が変わる。突然変異「BareWritersOf の型の絞りを外す」で M12 赤。
+  ・LocalFedFingerprint：右辺に加え、局所変数の定義の文（書き手より前で最も近い `var／double／float／int／long 名 = …;`）を指紋に入れる。
+   予言（取り直した新しい値）：Militancy@pop 5:caa4320678ac・Militancy@colony 0:e3b0c44298fc（変わらず）・Legitimacy 8:d94e04138a65・WarExhaustion 2:d3723a024ea5・Consciousness 1:5f3bdc7fec61・Satisfaction 0:e3b0c44298fc（変わらず）・DynasticMandate 1:7728e74e495a。
+   （件数の前の数は変わらない＝入力の数は動かない。指紋の値は実測で取り直した＝紙の予言ではなく取り直しの値を表へ書く。）
+  ・突然変異 Pf：Politics.cs:214 の `Math.Min(0, w.FoodFill …)` を `Math.Min(1, …)` → 局所変数を通る入力は文の指紋で守る(DynasticMandate) が赤（右辺は同じで定義の文だけが変わる）。
+ 項 C（ts の穴）
+  ・L3b：派閥の譲歩の本物の入口（Politics.SettleRevolt → ConcedeToFaction）を通し、writer 4 の行が出て段が動くことを見る。突然変異 L3：Politics.cs:708 の LawstepSideBegin を消す → L3b 赤（前の段が置かれず SideEnd が行を作らない）。:717 の SideEnd を消しても赤。
+  ・L5：計器を一度 On にして出力の場所を決め、ファイルが作られたことを確かめてから切る。切っている間に段を動かして施行を通し、On に戻して四半期の末を書いても行が出ない。突然変異 L5：切る行（Configure(null, null)）を外す → L5 赤。
+ 項 A
+  ・μ1：Simulation.cs:1815 を旧の式（Base＋(Property−Base)×賃金保持）へ戻す → FemalePartLawFreeTests の T1・T2 が赤。
+  ・μ3：LaborSupply.cs:10 の困窮の項から賃金保持を外す → T3 赤。
+ 走査の番人（㉘）：器のコミットの直後に IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests と、DerivedValueRatchetTests・ValueCountRatchetTests・LawstepInstrumentTests・FemalePartLawFreeTests・FempInstrumentTests・GenderTests・SaveRoundTripTests を回す。
+  事前の点検：`new MoneyStock(` は SimCore に 64 件・この線は増減 0。WriterRatchetTests の宣言の表・route_anchors.tsv の鍵の行・工業化度の読み手の許可表はこの線で触らない（書き換える件数 ㉑ ＝ 0）。
+  DormantIdentityTests の休眠の表に FemalePartLawFree の行は無い（点火のとき外し済み）＝件数の変化 0。
+ 試験の数の予言：3256（Tests 3024〔スキップ 2〕＋Ui 232）→ 3257（Tests 3025＋Ui 232）。増減：L3b +1・他は 0（FemalePartLawFreeTests は 3 本のまま・M12 は本の数のまま中身を足す）。FullLength は 3。
+ 書き換える試験の区分（README ★(743) ・★(826)）：FemalePartLawFreeTests（旗 0 の枝を今の盤面へ・②）・SaveRoundTripTests:145（旗の Assert を外す・②）・DerivedValueRatchetTests の指紋の値（★(764) の静的な値の番人＝入力ハッシュに触れた表だけ・予言は上の値と一致するときだけ）。Assert の向きと母集合は変えない。
+
+[4] 素の 5 種・計器つき 10 種
+ `bash scripts/instruments/ident/ident.sh run c146kt --tree D:/PoB_work/wt_c146kt --saveleak`（--work D:/PoB_work/ident_c146kt）。基準 m1362（baseDesc）。計器の表の差は宣言だけ（計器のコードは触らない＝0）。
+ 〈判定: 恒等〉・savetest OK（値の違い 0）・.cost +0 の時だけ採る。
+
+[5] 〈判定: 恒等〉なら採る。一致しなければ項 A を外して報告に回す（項 B・C は試験だけ＝エンジンのビットに触れない）。
+ 保留：事前登録で選ばないと書いた道を結果の後に選ぶ時は線の中で決めず合流へ申し送る。
