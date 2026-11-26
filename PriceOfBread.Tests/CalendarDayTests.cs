@@ -18,8 +18,9 @@ public class CalendarDayTests
             Assert.Equal((d + 1) % 30 == 0, Calendar.IsMonthEndDay(d));
             Assert.Equal(d % 30, Calendar.DayInMonth(d));
             Assert.Equal((d + 1) % 90, Calendar.NextDayInQuarter(d));
-            foreach (int h in new[] { 1, 2, 3, 5, 6, 10, 15, 30 })
+            for (int h = 1; h <= 30; h++)
             {
+                if (30 % h != 0) continue;   // 旬の長さ＝30 の約数（1・2・3・5・6・10・15・30）
                 Assert.Equal(d % h == 0, Calendar.IsSpanStartDay(d, h));
                 Assert.Equal((d + 1) % h == 0, Calendar.IsSpanEndDay(d, h));
             }
