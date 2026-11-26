@@ -1,3 +1,5 @@
 2026-11-26 12:34:09 消した：D:/PoB_work/ident_m1383z（この回に作った腕 Z の作業フォルダ・判定: 恒等の後・要約 keepsum_ident_m1383z_ins.tsv・rsum_ident_m1383z.tsv）
 2026-11-26 13:26:02 消した：m1383_work/src_m1383p5・src_m1383S11・src_m1383M（腕の木の写しとビルド・腕は終わった）・suite/tmp（フルスイートの計器の試験の一時ファイル・D: が満杯で ㊴ の 1 本が IOException）
 2026-11-26 13:26:10 外した：worktree D:/PoB_work/wt_m1383z（腕 Z の木・結果は測った物を写してコミット済み・枝 m1383z は残す＝片付けで消す）
+2026-11-26 14:15:20 消した：D:/PoB_work/keep_1376（旧の INSRAW・新しい ident.cfg の push 79805f5f3 の後・INSRAW でも KEEPNULL でもない・作者 2026-11-11「再開」で推奨 (a) を採った指示文のとおり・要約は measurements/m1376_20261126/keepsum_insraw1376.tsv）
+2026-11-26 14:41:49 消した：m1383_work/src_m1383N1・src_m1383N2（ヌル腕の木の写しとビルド・腕は終わった）

@@ -11,5 +11,5 @@ python -X utf8 -I "$S/m1362/hrmax.py" "$INS" > "$OUT/hrmax.txt" 2>&1; echo "hrma
 python -X utf8 "$S/hol/an_h2.py" "$INS" -v4 > "$OUT/hol_v4.txt" 2>&1; echo "hol rc=$?"
 python -X utf8 -I "$S/m808/gdp_zero10.py" arm=$INS base=$BASE > "$OUT/gdp_zero10.txt" 2>&1; echo "gdpz rc=$?"
 python -X utf8 -I "$S/m975/ukdef975.py" "$INS" 1 > "$OUT/ukdef.txt" 2>&1; echo "ukdef rc=$?"
-bash "$S/ng.sh" "$INS" "$TAG" "$OUT/ng" rd:$R/measurements/ng1362_20261125:m1362 > "$OUT/ng.txt" 2>&1; echo "ng rc=$?"
+bash "$S/ng.sh" "$INS" "$TAG" "$OUT/ng" rd:$R/measurements/ng1383_20261126:m1383 > "$OUT/ng.txt" 2>&1; echo "ng rc=$?"
 echo READDONE
