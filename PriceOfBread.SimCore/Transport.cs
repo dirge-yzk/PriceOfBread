@@ -200,7 +200,10 @@ public static class Transport
                 var m = r.Markets[gi];
                 double mult = (!rail && gi == c.ShipTier2GoodId) ? steamMult : 1.0;
                 double want = perGood / mult;
+                double stk0 = 0, pr0 = 0, sav0 = 0;
+                if (rm is not null) { stk0 = m.Stock; pr0 = m.Price; sav0 = investor.Savings.Value; }   // (1386) 計器の受け口（呼ぶ前の値を読むだけ）
                 double buy = InternationalMarket.Procure(w, r, gi, want, investor);
+                if (byReg) rm?.Procured(r, want, buy, stk0, pr0, sav0);
                 if (buy <= 1e-9) continue;
                 double add = buy * c.TransportCapPerUnit * mult;
                 if (byReg) { r.RailTrack += add / terrLay; boughtUnits += buy; }

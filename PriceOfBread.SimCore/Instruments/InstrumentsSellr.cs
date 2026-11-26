@@ -4,7 +4,7 @@ namespace PriceOfBread.SimCore;
 // 力学の値を 1 つも書かない・乱数を引かない・エンジンに欄を足さない。〔履歴 InstrumentsSellr.cs#1〕
 public static partial class Instruments
 {
-    internal const string SellrHeaderText = "year\tq\tregion\townerNation\tgood\tlastDemand\tprevExportAll\tprevImportAll\tlastProduced\tstock\ttargetStock\tlaborWeight\trentR\tsellROld\tsellRBoth\trentRMul";   // SellrHeaderText〔履歴 InstrumentsSellr.cs#2〕
+    internal const string SellrHeaderText = "year\tq\tregion\townerNation\tgood\tlastDemand\tprevExportAll\tprevImportAll\tlastProduced\tstock\ttargetStock\tlaborWeight\trentR\tsellROld\tsellRBoth\trentRMul\tprice\tinputPricePerUnit";   // SellrHeaderText〔履歴 InstrumentsSellr.cs#2〕
 
     /// <summary>
     /// 計器自身の写し。〔履歴 InstrumentsSellr.cs#3〕
@@ -13,6 +13,14 @@ public static partial class Instruments
 
     sealed class SrSink { public System.IO.StreamWriter? W; }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<MultiNationSim, SrSink> SrSinks = new();
+
+    /// <summary>(1386) 投入の地元の値段×名前どおりの量（QtyPerOutput）の和（EffectiveQty は使わない・計器が自分で足す）。</summary>
+    internal static double InputPricePerUnitOf(Region r, int goodId)
+    {
+        double s = 0;
+        foreach (var inp in Catalog.Goods[goodId].Inputs) if (inp.GoodId >= 0 && inp.GoodId < r.Markets.Length) s += r.Markets[inp.GoodId].Price * inp.QtyPerOutput;
+        return s;
+    }
 
     /// <summary>1 行の値（試験が合成の盤面で突き合わせる）。</summary>
     internal static (double SellROld, double SellRBoth) SellrOf(Market m, double floor)
@@ -48,7 +56,7 @@ public static partial class Instruments
                     var (sOld, sBoth) = SellrOf(m, floor);
                     double rentR = m.Price - EconomyStep.InputCostPerUnit(p, r, r, w.Coef);
                     sk.W.WriteLine(string.Join('\t', I(yearLabel), I(q), r.Name, nm, Catalog.Goods[g].Name,
-                        FR(m.LastDemand), FR(m.PrevExport), FR(m.PrevImport), FR(m.LastProduced), FR(m.Stock), FR(m.TargetStock), FR(p.LaborWeight), FR(rentR), FR(sOld), FR(sBoth), FR(RentRMulOf(rentR))));
+                        FR(m.LastDemand), FR(m.PrevExport), FR(m.PrevImport), FR(m.LastProduced), FR(m.Stock), FR(m.TargetStock), FR(p.LaborWeight), FR(rentR), FR(sOld), FR(sBoth), FR(RentRMulOf(rentR)), FR(m.Price), FR(InputPricePerUnitOf(r, g))));
                 }
         }
     }

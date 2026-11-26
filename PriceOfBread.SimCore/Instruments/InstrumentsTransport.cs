@@ -358,9 +358,10 @@ public static partial class Instruments
         public double PrevPost = double.NaN, RunStartE, PreDecay, TPre, NeedPre;   // 年をまたいで持つ（Clear で消さない）
         public double MoveBefore = double.NaN;   // (1125) 割譲・分離・返還の時点の州の線路＝受け手の次の月の輸送の頭で読み直す（G4）。年をまたいで持つ
         public int RunLen;
+        public double ProcWant, ProcGot; public long ProcStockZero, ProcSavBind;   // (1386) 敷きの調達の want・買えた量・在庫 0 で 0 の財×月・貯蓄で削った財×月（Clear で 0）
         public double NeedUsedShare = double.NaN;   // (1137) その年の最後の敷きの月にエンジンが使った need÷計器の目標（Clear で nan）
         public long GnOutViol, G1FormulaOutViol;    // (1137) 計器が自分で組んだ〈産出の比〉の need・φ の混ぜの式と、エンジンの need・倍率が合わない月・側の数
-        public void Clear() { Bought = LaidTerr = DecayLoss = WarLoss = InsRail = PaidRail = PaidRailForeign = 0; Months = G2Rows = G2Viol = G7Excess = G7Fell = G7Lock = G7Hold12 = G1ZeroSides = G1ZeroViol = G1Jump = G1PosSides = G1FormulaViol = G3NoShare = G4Moves = G4Viol = 0; NeedUsedShare = double.NaN; GnOutViol = G1FormulaOutViol = 0; }
+        public void Clear() { Bought = LaidTerr = DecayLoss = WarLoss = InsRail = PaidRail = PaidRailForeign = 0; Months = G2Rows = G2Viol = G7Excess = G7Fell = G7Lock = G7Hold12 = G1ZeroSides = G1ZeroViol = G1Jump = G1PosSides = G1FormulaViol = G3NoShare = G4Moves = G4Viol = 0; NeedUsedShare = double.NaN; GnOutViol = G1FormulaOutViol = 0; ProcWant = ProcGot = 0; ProcStockZero = ProcSavBind = 0; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, RailAcc> RailAccs = new();
     internal static RailAcc RailOf(Region r) => RailAccs.GetValue(r, _ => new RailAcc());
@@ -452,6 +453,15 @@ public static partial class Instruments
             double want = Target * (OutShare.TryGetValue(r, out double so) ? so : double.NaN);
             if (!(Math.Abs(need - want) <= 1e-9 * Math.Abs(want))) a.GnOutViol++;
             a.DecayLoss += a.PreDecay - a.TPre; a.Months++;
+        }
+        /// <summary>(1386) 敷きの調達 1 回（州×財）：want・買えた量・呼ぶ前の在庫と値段と買い手の貯蓄を、BuyToward が持つ値のまま受け取る（計器は Procure を呼び直さない）。
+        /// 在庫 0（または値段 0）で Procure が 0 を返す財×月・貯蓄が min(在庫,want)×値段 に足りず削る財×月を、計器の定義で数える。</summary>
+        internal void Procured(Region r, double want, double bought, double stockBefore, double priceBefore, double savingsBefore)
+        {
+            var a = RailOf(r);
+            a.ProcWant += want; a.ProcGot += bought;
+            if (stockBefore <= 1e-9 || priceBefore <= 1e-9) a.ProcStockZero++;
+            else if (Math.Min(stockBefore, want) * priceBefore > savingsBefore) a.ProcSavBind++;
         }
         /// <summary>敷きの後：G2（ΔT×地形＝買えた単位×CapPerUnit）・G7（need を超える州の月の積み）。</summary>
         internal void Post(Region r, double boughtUnits)
@@ -560,7 +570,7 @@ public static partial class Instruments
     }
 
     const string TrRailHeader = "year\tnation\tregion\tterrainCode\twaterFlag\trailTrackEnd\tneedEnd\tphiEnd\tmonthsCount\tboughtCapPerYear\tlaidCapTimesTerrainPerYear\tg2Rows\tg2Viol\tdecayLossPerYear\twarLossPerYear\t"
-        + "g7ExcessRows\tg7FellRows\tg7LockRows\tg7Hold12Rows\tg1ZeroSides\tg1ZeroViol\tg1JumpRows\tg1PosSides\tg1FormulaViol\trailFreightInsGoldPerYear\trailFreightPaidGoldPerYear\tg3NoShareRows\tg4Moves\tg4Viol\tneedOutShareEnd\tneedUsedShareEnd\tgnOutViol\tg1FormulaOutViol\trailFreightForeignPaidGoldPerYear";
+        + "g7ExcessRows\tg7FellRows\tg7LockRows\tg7Hold12Rows\tg1ZeroSides\tg1ZeroViol\tg1JumpRows\tg1PosSides\tg1FormulaViol\trailFreightInsGoldPerYear\trailFreightPaidGoldPerYear\tg3NoShareRows\tg4Moves\tg4Viol\tneedOutShareEnd\tneedUsedShareEnd\tgnOutViol\tg1FormulaOutViol\trailFreightForeignPaidGoldPerYear\tprocureWantUnitsPerYear\tprocureStockZeroGoodMonths\tprocureSavingsBindGoodMonths\tprocureGotUnitsPerYear\ttPreEnd";
 
     /// <summary>年の終わり：全ての国の全ての州の行（州の線路・計器の need と φ・門の数）。旗 0 の世界でも書く（線路は 0・G1 の T＝0 の側の数）。</summary>
     static void TrRailRows(Sink sk, MultiNationSim sim, int year)
@@ -581,10 +591,66 @@ public static partial class Instruments
                 sk.TrRail.WriteLine(string.Join('\t', TrI(year), nation, r.Name, TrI((int)r.Terrain), RailInsWater(r, c) ? "1" : "0", F(r.RailTrack), F(needG), F(RailInsPhi(r.RailTrack, tg * share)),
                     L(a.Months), F(a.Bought), F(a.LaidTerr), L(a.G2Rows), L(a.G2Viol), F(a.DecayLoss), F(a.WarLoss),
                     L(a.G7Excess), L(a.G7Fell), L(a.G7Lock), L(a.G7Hold12), L(a.G1ZeroSides), L(a.G1ZeroViol), L(a.G1Jump), L(a.G1PosSides), L(a.G1FormulaViol), F(a.InsRail), F(a.PaidRail), L(a.G3NoShare), L(a.G4Moves), L(a.G4Viol),
-                    F(outSh[r]), F(a.NeedUsedShare), L(a.GnOutViol), L(a.G1FormulaOutViol), F(a.PaidRailForeign)));
+                    F(outSh[r]), F(a.NeedUsedShare), L(a.GnOutViol), L(a.G1FormulaOutViol), F(a.PaidRailForeign), F(a.ProcWant), L(a.ProcStockZero), L(a.ProcSavBind), F(a.ProcGot), F(a.TPre)));
                 a.Clear();
             }
         }
+    }
+    /// <summary>(1386) region_s の末尾 7 列の見出し（RegionProdHeaderText の後）。</summary>
+    internal const string RegionExtraHeaderText = "transportCapEnd\ttradeThrottleEnd\tregionShareEnd\tworkerSinkShareEnd\tstapleImportPerMonth\tstapleProducedPerMonth\tgdpOutputShareEnd";
+
+    /// <summary>(1386) 州の工場労働者（BuysLabor の生産者の LaborPopIndex の最多の POP・同数なら番号の小さい側）に乗る生産者の LaborWeight×Scale の和のうち、LastInputFill＜0.05 の生産者の分の割合。
+    /// 乗る重みが 0 以下なら nan。計器が自分で数える（エンジンの関数は呼ばない）。</summary>
+    internal static double WorkerSinkShare(Region r)
+    {
+        var cnt = new Dictionary<int, int>();
+        foreach (var s in r.Producers) if (s.BuysLabor) cnt[s.LaborPopIndex] = cnt.TryGetValue(s.LaborPopIndex, out int k) ? k + 1 : 1;
+        if (cnt.Count == 0) return double.NaN;
+        int best = -1, bestN = 0;
+        foreach (var kv in cnt) if (kv.Value > bestN || (kv.Value == bestN && kv.Key < best)) { best = kv.Key; bestN = kv.Value; }
+        double tot = 0, sink = 0;
+        foreach (var s in r.Producers)
+        {
+            if (s.LaborPopIndex != best) continue;
+            double wgt = s.LaborWeight * s.Scale;
+            tot += wgt; if (s.LastInputFill < 0.05) sink += wgt;
+        }
+        return tot > 0 ? sink / tot : double.NaN;
+    }
+
+    /// <summary>(1386) 主食（財の段が Staple）の州の輸入と産出の和（月あたり＝PrevImport・LastProduced）。</summary>
+    internal static (double Import, double Produced) StapleFlows(Region r)
+    {
+        double imp = 0, prod = 0;
+        for (int g = 0; g < Catalog.Goods.Length && g < r.Markets.Length; g++)
+        {
+            if (Catalog.Goods[g].Tier != GoodTier.Staple) continue;
+            imp += r.Markets[g].PrevImport; prod += r.Markets[g].LastProduced;
+        }
+        return (imp, prod);
+    }
+
+    /// <summary>(1386) 州の産出（役務でない財の Output×RefPrice）の和。国の州の和で割る分子と分母に同じ関数を使う。</summary>
+    internal static double RegionOutputRef(Region r)
+    {
+        double y = 0;
+        foreach (var s in r.Producers) { var g = r.GoodOf(s.GoodId); if (g is null || g.Tier == GoodTier.Service) continue; y += s.Output * g.RefPrice; }
+        return y;
+    }
+
+    /// <summary>(1386) region_s の末尾 7 列（州ごとの値を tab で連ねた文字列）。regionShareEnd は国ごとに ShareBasis を 1 回だけ作る。gdpOutputShareEnd は w.GdpPerMonth を呼ばない（台帳と控えを動かさない）。</summary>
+    internal static Dictionary<Region, string> RegionExtraRows(World w)
+    {
+        var res = new Dictionary<Region, string>(w.Regions.Count, ReferenceEqualityComparer.Instance);
+        var basis = Transport.ShareBasis(w, w.Coef);
+        double tot = 0; var outs = new double[w.Regions.Count];
+        for (int i = 0; i < outs.Length; i++) { outs[i] = RegionOutputRef(w.Regions[i]); tot += outs[i]; }
+        for (int i = 0; i < outs.Length; i++)
+        {
+            var r = w.Regions[i]; var (imp, prod) = StapleFlows(r);
+            res[r] = string.Join('\t', F(r.LastTransportCap), F(r.LastTradeThrottle), F(Transport.RegionShare(basis, r)), F(WorkerSinkShare(r)), F(imp), F(prod), F(tot > 1e-9 ? outs[i] / tot : double.NaN));
+        }
+        return res;
     }
     static string L(long v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
 }
