@@ -278,8 +278,8 @@ public static class Politics
             w.Legitimacy = legFloor;
         }
         bool eroding = w.Legitimacy < legStart;
-        w.DefeatShock *= c.DefeatShockKeepPerQuarter;
-        w.VictoryShock *= c.DefeatShockKeepPerQuarter;
+        w.DefeatShock = c.DefeatShockDecayPerQuarter.Remaining(w.DefeatShock);
+        w.VictoryShock = c.DefeatShockDecayPerQuarter.Remaining(w.VictoryShock);
         w.FamineMemory = w.FamineMemory * c.FamineMemoryKeepPerQuarter + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill);
 
         w.Coercion = CoercionNow(w, c);
