@@ -461,9 +461,7 @@ public static class Government
 
     internal static bool AtWar(World w)
     {
-        if (w.Diplomacy is not { } dip || w.SelfPower is not { } sp) return false;
-        foreach (var war in dip.Wars) if (war.A == sp || war.B == sp) return true;
-        return false;
+        return w.AtWarNow;   // A2-10：World.AtWarNow（Diplomacy.AtWarAny）と同じ手書きの写しを 1 本へ
     }
 
     private static int StepLevel(int ci, int ti, World w, PolicyAxis a)
