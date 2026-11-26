@@ -300,7 +300,7 @@ public class UnitTypeTests
         (typeof(Coefficients), "PlantationRentShare", typeof(Share)),
         // ★(355) 割合の型の残り その10＝EconomyStep を読み手に持つ物（アヘンの線が済んだので）と、閾値・上限・取り分・床の係数 21 本（Share 20・RatePerMonth 1〔IndInvestmentFrac＝毎月の予算が貯蓄の在庫に掛かる月率〕）。
         (typeof(Coefficients), "ReignitionDemandFrac", typeof(Share)),
-        (typeof(Coefficients), "IndInvestmentFrac", typeof(RatePerMonth)),
+        (typeof(Coefficients), "IndInvestmentFrac", typeof(FractionPerMonth)),   // (1392) B05：残りの割合（1−x）に使う＝月あたりの割合の型（Remaining を持つ）へ
         (typeof(Coefficients), "FactoryMaterialFrac", typeof(Share)),
         (typeof(Coefficients), "ResearcherFrac", typeof(Share)),
         (typeof(Coefficients), "NationalizationStateShare", typeof(Share)),
