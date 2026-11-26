@@ -50,12 +50,15 @@ public class StateDigestToolTests
         Assert.NotEqual(H(a), H(d));
     }
 
-    static (int Q, string Group)? FirstDiff(IEnumerable<(int, SortedDictionary<string, ulong>)> a, IEnumerable<(int, SortedDictionary<string, ulong>)> b)
+    /// <summary>(1399) 係数の欄（_coef を含む群の名）は比べから外す＝係数を動かした木が四半期 0 で係数の群だけ分かれて緑になる（シミュの状態のずれを拾えていない）のを防ぐ。
+    /// 比べるのはシミュの状態の群だけ（名の判定は skipCoef）。</summary>
+    static (int Q, string Group)? FirstDiff(IEnumerable<(int, SortedDictionary<string, ulong>)> a, IEnumerable<(int, SortedDictionary<string, ulong>)> b, bool skipCoef = false)
     {
+        static bool Keep(string g, bool skip) => !(skip && g.Contains("_coef"));
         foreach (var ((q, x), (_, y)) in a.Zip(b))
         {
-            if (x.Count != y.Count) return (q, "群の数");
-            foreach (var (g, h) in x) if (!y.TryGetValue(g, out var h2) || h2 != h) return (q, g);
+            if (x.Keys.Count(g => Keep(g, skipCoef)) != y.Keys.Count(g => Keep(g, skipCoef))) return (q, "群の数");
+            foreach (var (g, h) in x) if (Keep(g, skipCoef) && (!y.TryGetValue(g, out var h2) || h2 != h)) return (q, g);
         }
         return null;
     }
@@ -69,5 +72,9 @@ public class StateDigestToolTests
         var diff = FirstDiff(Run(1789, 1, 4, null).ToList(), Run(1789, 1, 4, c).ToList());
         Assert.NotNull(diff);
         Assert.True(diff!.Value.Q <= 1 && diff.Value.Group.StartsWith("sim"), $"{diff}");
+        // (1399) 係数の欄を外しても、シミュの状態（係数ではない群）のずれが四半期 1 以内に拾える（係数の群だけで緑にならない）
+        var state = FirstDiff(Run(1789, 1, 4, null).ToList(), Run(1789, 1, 4, c).ToList(), skipCoef: true);
+        Assert.NotNull(state);
+        Assert.True(state!.Value.Q <= 1 && !state.Value.Group.Contains("_coef"), $"シミュの状態のずれを拾えない：{state}");
     }
 }
