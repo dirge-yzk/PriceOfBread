@@ -128,7 +128,6 @@ public static class Politics
     {
         if (!w.PoliticsEnabled) return;
 
-        if (w.RuptureWindowQuarters > 0) w.RuptureWindowQuarters--;
         if (w.LostRegionsCumulative > 1e-9)
             w.LostRegionsCumulative *= 1.0 - w.ReplacementRate(Calendar.MonthsPerQuarter);
 
@@ -391,10 +390,6 @@ public static class Politics
 
     internal static void ExecuteRegimeChange(World w, Coefficients c, Polity target, bool violent)
     {
-        if (violent)
-        {
-            if (IsSeizure(target)) w.RuptureWindowQuarters = Math.Max(w.RuptureWindowQuarters, (int)c.RuptureWindowQuartersOnCrush);
-        }
         CrownParliament.ApplyRegime(w, c, target);
         if (Instruments.On) Instruments.CrownSource(w, 1);
         RaiseFoundingInstitutions(w, allowRevoke: true, c);
@@ -487,7 +482,6 @@ public static class Politics
         else
         {
             foreach (var p in rebels) p.Militancy *= c.ReformMilitancyRelief;
-            w.RuptureWindowQuarters = Math.Max(w.RuptureWindowQuarters, (int)c.RuptureWindowQuartersOnCrush);
         }
         SpendRevolt(w, movement);
     }

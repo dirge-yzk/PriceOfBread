@@ -334,7 +334,7 @@ public class RevoltIgnitionTests
         };
         pw.Factions.Add(spent);
         pw.RevoltingFaction = spent;
-        pw.Legitimacy = 0.5; pw.RuptureWindowQuarters = 0;
+        pw.Legitimacy = 0.5;
         var returning = new System.Collections.Generic.List<Region>(rw.Regions);   // 返還される州（＝闘争度の緩和の対象）
         var home = new System.Collections.Generic.List<Region>(pw.Regions);        // 親の元からの州（＝緩和しない・作者裁定 d）
         foreach (var r in returning) foreach (var p in r.Pops) p.Militancy = 0.5;
@@ -345,7 +345,6 @@ public class RevoltIgnitionTests
         Assert.Null(pw.RevoltingFaction);
         foreach (var r in returning) foreach (var p in r.Pops) Assert.Equal(0.5 * c.ReformMilitancyRelief, p.Militancy, 12);   // 返還州だけが静まる
         foreach (var r in home) foreach (var p in r.Pops) Assert.Equal(0.4, p.Militancy, 12);                                  // 親の元からの州は触らない
-        Assert.Equal((int)c.RuptureWindowQuartersOnCrush, pw.RuptureWindowQuarters);   // 反動の窓（1849年）
         Assert.Equal(0.5, pw.Legitimacy);             // 正統性は削らない（旧経路の鎮圧の行に無い）
     }
 

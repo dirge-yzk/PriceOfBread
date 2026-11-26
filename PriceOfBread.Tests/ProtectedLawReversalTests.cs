@@ -13,7 +13,6 @@ public class ProtectedLawReversalTests
     {
         var w = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent()).World;
         w.PoliticalLockEnabled = false;        // 純支持 1＝政治資本の費用 0（普通の費用を払える盤面）・不可逆の規則だけが後退を塞ぐ
-        w.RuptureWindowQuarters = 0;           // 断裂の窓は閉じている
         return w;
     }
 
@@ -58,12 +57,10 @@ public class ProtectedLawReversalTests
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent());
         var w = sim.World;
-        w.RuptureWindowQuarters = 0;
         w.ChildLaborAllowed = true; w.Policy.ChildLaborAllowed = true;   // 法は合法へ戻った
         w.ChildLaborLegal = 0.0;                                         // 社会の浸透は禁止のまま
         Assert.False(Government.AtWar(w), "前提が崩れた：平時でない");
         sim.Run(1);
-        Assert.True(w.RuptureWindowQuarters == 0, "前提が崩れた：窓が開いた");
         Assert.True(w.ChildLaborLegal > 0.0, $"平時の再合法化が進まない（合法度={w.ChildLaborLegal}）");
         Assert.True(w.ChildLaborLegal < 1.0, $"1 四半期で飛び移った（Toward でない・合法度={w.ChildLaborLegal}）");
     }
@@ -80,7 +77,6 @@ public class ProtectedLawReversalTests
     public void T5_守られた法の後退の費用は支持の負の量に払い率を掛けただけ()
     {
         var w = new Simulation(NationConfig.America().ToScenario(67), new NullAgent()).World;
-        w.RuptureWindowQuarters = 0;
         w.PoliticalLockEnabled = true;                       // 費用は純支持の負の量から出る
         w.WomenRights = WomenRightsLaw.Suffrage;             // この盤面で後退の純支持が負（約 −0.097）
         double net = PolicyPreferences.NetSupport(w, PolicyAxis.WomenRights, false);
