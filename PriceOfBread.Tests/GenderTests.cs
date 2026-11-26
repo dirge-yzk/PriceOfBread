@@ -59,13 +59,13 @@ public class GenderTests
     {
         // 旧＝Government.Step が「目標が Universal で女性の権利が選挙権未満なら目標を AdultMale へ書き換える」1行を持っていた。
         //   登る側は LawPrereq（case Suffrage）が既に塞いでいるので、その1行の固有の産物は**降りる側だけ**＝
-        //   断裂の窓（内戦・クーデタの直後は不可逆が解除される）に女性の権利が剥がれた国で、誰も選んでいない参政権の降格が黙って起きた。
+        //   内戦・クーデタの直後（断裂の窓は (1387) で削除した＝当時の事象の記録）に女性の権利が剥がれた国で、誰も選んでいない参政権の降格が黙って起きた。
         // 新＝目標はそのまま渡す＝現行＝目標で StepEnum が即 return（前提は登る側の門が持つ）。
         var w = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent()).World;
         w.PoliticalLockEnabled = false;                  // 純支持ではなく「目標の書き換え」だけを測る
         w.Suffrage = Suffrage.Universal;                 // 既に男女普通選挙が成立している国
         w.Policy.Suffrage = Suffrage.Universal;          // 誰も降格を選んでいない
-        w.WomenRights = WomenRightsLaw.Education;        // 反動が女性の権利を選挙権未満へ剥がした（内戦の譲歩・断裂の窓）
+        w.WomenRights = WomenRightsLaw.Education;        // 反動が女性の権利を選挙権未満へ剥がした（内戦の譲歩）
         w.Policy.WomenRights = WomenRightsLaw.Education;
         Assert.False(w.WomenSuffrage, "前提が崩れた：女性の権利が選挙権のまま＝降格の経路を測れない");
         for (int q = 0; q < 8; q++) Government.Step(w, w.Coef);
