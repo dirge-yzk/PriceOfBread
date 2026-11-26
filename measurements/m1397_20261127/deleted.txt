@@ -1,0 +1,6 @@
+(1397) 合流が D:/PoB_work で消した物と移した物（2026-11-27）
+- 消した（rmraw.sh・要約は measurements/m1397_20261127/keepsum_ident_c148*.tsv＝各フォルダの直下のファイルだけ・out_ib_10/ins の表の要約は取れていない＝合流の渡し方の誤り）：ident_c148tk・ident_c148ec（約 12G）・ident_c148po（約 11G）＝線の ident の生（3 線とも〈判定: 恒等〉・反証役が読み終えていた・指示の〈判定: 恒等の後の ident の生は keepsum を取ってから消してよい〉）。
+- 移した：ident_m1397z/out_ib_10/ins → keep_1397/base_ins（新しい INSRAW・keepsum は keepsum_insraw1397.tsv）。
+- 消した（合流が作った）：ident_m1397z（INSRAW を移した後・残り 1.5G）。片付けで m1397_art・m1397_work・wt_m1397 を消す。
+- 消していない：keep_1383（KEEPNULL）・keep_1390（古い INSRAW＝消してよかったが rmraw.sh が keep_* を拒む＝作者のセッションへ）・keep_1390_rej（vs の腕 B の生＝V-01 の 2 回目と rv の根 A の線が読むかもしれない）。線の作業フォルダ（c148*_work・c148*_art ほか・statediff_*・r1394〜r1396_work・wt_c148*）は線の物で触っていない。
+- 合流の main の作業ツリーの未追跡 scripts/instruments/r1394/*.py 4 本（rv の担当が置いた物）は、写したコミットの物とバイトが同じことを git hash-object で確かめてから消し、main を早送りした（同じ中身が追跡のファイルとして戻った）。
