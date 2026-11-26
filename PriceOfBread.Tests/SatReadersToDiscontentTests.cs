@@ -6,6 +6,7 @@ namespace PriceOfBread.Tests;
 /// <summary>(1371) c145rv 旗 SatReadersToDiscontent：不満度 D＝Clamp01(WantWeight×Pos(R−s))（声の項を抜く・案 D1）・参加と思想は D だけを読む（闘争度を読まない）。
 /// 盤面は試験の中で置く（仏 1789・全 POP の意識と識字 0.9・満足度 0.5）。期待値は手計算のリテラル（WantWeight＝0.8）で本体と同じ式から作らない。
 /// 旗 0＝今の式（声の項あり・参加は max(D, 闘争度)）＝T1・T2 が赤になる対照を T1・T2 の中に持つ。
+/// (1385) c147wb：T6（AI の不穏が D̄）・T7（信任が D̄）を足した。突然変異 μ2（D̄ を満足へ戻す）→T6・T7 赤。
 /// 突然変異 M4 声の項を戻す→T1 赤・M5 参加の max を戻す→T2a 赤・M6 思想の闘争度を戻す→T2b 赤（事前登録 m1371 の表）。</summary>
 [Collection("Instruments")]
 public class SatReadersToDiscontentTests
@@ -86,5 +87,51 @@ public class SatReadersToDiscontentTests
         }
         var wn = Board(1, -0.2, 0.0);   // R＜s（成長期）＝Pos で 0
         foreach (var p in Active(wn)) Assert.Equal(0.0, Politics.Discontent(wn, wn.Coef, p, PoliticalQuantities.DriftedPolityCoord(wn.Polity, wn.Suffrage, wn.Coef), 0));
+    }
+
+    // ── (1385) c147wb 2 つ目の半分の器：AI の不穏と信任が大衆の層の不満度の平均 D̄ を読む（旗 1）。期待値は試験の中のリテラル（D＝0.8×(R−s)・D̄＝その平均） ──
+    private static World BoardSR(double flag, double s, double r)
+    {
+        var w = Board(flag, 0.0, 0.0);
+        foreach (var reg in w.Regions) foreach (var p in reg.Pops) { p.Satisfaction = s; p.LivingRef = r; }
+        return w;
+    }
+
+    [Fact]
+    public void T6_AIの不穏は満足が同じでDが違う2国でD平均に比例する_旗0は今の式()
+    {
+        var a = BoardSR(1, 0.5, 0.6); var b = BoardSR(1, 0.5, 0.8);   // D̄＝0.08 と 0.24（満足度 0.5 は同じ）
+        Assert.Equal(NationalScore.MeanSatisfaction(a), NationalScore.MeanSatisfaction(b), 12);   // 前提：満足度は同じ
+        double ua = UtilityAgent.UnrestOf(a, NationalScore.MeanSatisfaction(a)), ub = UtilityAgent.UnrestOf(b, NationalScore.MeanSatisfaction(b));
+        Assert.Equal(0.8 * 0.1, ua, 9);
+        Assert.Equal(0.8 * 0.3, ub, 9);
+        Assert.Equal(3.0, ub / ua, 9);
+        // 旗 0＝今の式（0.62−満足度・満足度が同じなら同じ値）
+        var a0 = BoardSR(0, 0.5, 0.6); var b0 = BoardSR(0, 0.5, 0.8);
+        Assert.Equal(0.62 - NationalScore.MeanSatisfaction(a0), UtilityAgent.UnrestOf(a0, NationalScore.MeanSatisfaction(a0)), 12);
+        Assert.Equal(UtilityAgent.UnrestOf(a0, NationalScore.MeanSatisfaction(a0)), UtilityAgent.UnrestOf(b0, NationalScore.MeanSatisfaction(b0)), 12);
+    }
+
+    private static double ConfAfterCredit(double flag, double s, double r)
+    {
+        var sim = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent());
+        sim.Run(1);
+        var w = sim.World; w.Coef.SatReadersToDiscontent = flag;
+        foreach (var reg in w.Regions) foreach (var p in reg.Pops) { p.Satisfaction = s; p.LivingRef = r; }
+        w.Bank!.Confidence = 1.0;
+        PriceOfBread.SimCore.Credit.Step(w, w.Coef);
+        return w.Bank.Confidence;
+    }
+
+    [Fact]
+    public void T7_信任の目標はD平均に従い_満足だけを変えても動かない_旗0は満足に従う()
+    {
+        double a = ConfAfterCredit(1, 0.5, 0.6), b = ConfAfterCredit(1, 0.3, 0.4), c = ConfAfterCredit(1, 0.5, 0.8);   // D̄ が a＝b＜c
+        Assert.True(a < 1.0, $"前提：信任が動く盤面でない {a}");
+        Assert.Equal(a, b, 12);                 // 満足度だけが違い D̄ が同じ＝同じ
+        Assert.True(c < a - 1e-6, $"D̄ が大きいのに信任が下がらない {a} {c}");
+        // 旗 0＝満足度で動く（対照）：D̄ が同じでも満足度が違えば違う
+        double a0 = ConfAfterCredit(0, 0.5, 0.6), b0 = ConfAfterCredit(0, 0.3, 0.4);
+        Assert.True(b0 < a0 - 1e-6, $"旗 0 で満足度に感度が無い {a0} {b0}");
     }
 }
