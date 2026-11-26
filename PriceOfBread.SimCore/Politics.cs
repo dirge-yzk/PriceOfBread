@@ -887,7 +887,7 @@ public static class Politics
                 if (!(rc.Lat == 0 && rc.Lon == 0))
                 {
                     double km = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
-                    if (km > 0 && double.IsFinite(km)) proj = 1.0 / (1.0 + c.DistanceWarDecay * km / Diplomacy.DistanceNormKm);
+                    if (km > 0 && double.IsFinite(km)) proj = 1.0 / Fiscal.AdminDistanceMulOfKm(km, c.DistanceWarDecay);
                 }
                 double eff = hold * (1.0 + c.SecessionHoldProjection * (proj - 1.0));
                 double margin = pressure - eff;
@@ -1027,7 +1027,7 @@ public static class Politics
         if (rc.Lat == 0 && rc.Lon == 0) return 1.0;
         double km = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
         if (!(km > 0) || !double.IsFinite(km)) return 1.0;
-        double v = 1.0 / (1.0 + c.DistanceWarDecay * km / Diplomacy.DistanceNormKm);
+        double v = 1.0 / Fiscal.AdminDistanceMulOfKm(km, c.DistanceWarDecay);
         return !(v > 0 && v <= 1.0) ? 1.0 : v;
     }
 
