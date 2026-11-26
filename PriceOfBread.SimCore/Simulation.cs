@@ -1941,7 +1941,7 @@ public sealed class Simulation
             unopenedRoom = deficit - devalueRoom;
             if (devalueRoom > 1e-9)
             {
-                var allPopsList = new List<Pop>(); double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) { allPopsList.Add(dp); totalSav += Math.Max(0, dp.Savings.Value); }   // (1391) V-04：一覧を 1 回で作る（和は同じ順）
+                var allPops = new List<Pop>(); double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) { allPops.Add(dp); totalSav += Math.Max(0, dp.Savings.Value); }   // (1391) V-04：一覧を 1 回で作る（和は同じ順）
                 // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。〔履歴 Simulation.cs#240〕
                 double devalueCap = totalSav * World.Coef.DevaluationCapFracPerMonth.Value;   // 貯蓄の月の上限（旧の式の第2項と同じ式）
                 double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap);   // 切りを超える余地は余地そのもの・それ以外は Math.Min(余地, 貯蓄×上限)〔履歴 Simulation.cs#241〕
@@ -1955,7 +1955,7 @@ public sealed class Simulation
                     // 台帳 CumulativeFiatIssued は発行の分だけ（BaseMoney の正当な増加源＝Invariants 算入）。〔履歴 Simulation.cs#242〕
                     if (haircut > 1e-12)
                     {
-                        haircut = World.Transfer((World, allPopsList), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);   // ★(351) 払い手の保有の合計は上の totalSav と同じ順の同じ和（間に何も書かない）
+                        haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);   // ★(351) 払い手の保有の合計は上の totalSav と同じ順の同じ和（間に何も書かない）
                     }
                     else haircut = 0;
                     issue = World.Transfer((null, null), (World, null, null), issue, TreasuryCat.Devalue, outside: World.Outside.Fiat);

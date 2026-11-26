@@ -40,7 +40,7 @@ public class StateDigestToolTests
     [Fact]
     public void 指紋は数の違いを拾い辞書の順に依らない()
     {
-        static ulong H(Probe p) => StateDigest.Digest(p, 2)["sim"];
+        static string H(Probe p) => string.Join(",", StateDigest.Digest(p, 2).Select(kv => $"{kv.Key}={kv.Value:x}"));
         var a = new Probe { X = 1.0, N = 3 }; a.D["あ"] = 1; a.D["い"] = 2;
         var b = new Probe { X = 1.0, N = 3 }; b.D["い"] = 2; b.D["あ"] = 1;
         var c = new Probe { X = System.BitConverter.Int64BitsToDouble(System.BitConverter.DoubleToInt64Bits(1.0) + 1), N = 3 }; c.D["あ"] = 1; c.D["い"] = 2;
