@@ -1,0 +1,8 @@
+(1381) c146bt 読む線の計画（2026-11-26・担当 Opus 5.5・腕 0・コミット 0・worktree なし）
+作業の場所：D:/PoB_work/r1381_work/（出力）・台本は scripts/instruments/r1381/（コミットしない・合流が写す）
+読む生（読むだけ）：
+- M＝D:/PoB_work/keep_1376/base_ins（木 9a32a320c の腕 Z・m1362 と全行一致）種 2：prodcap・recipeout・factory・region・popclose・migration・trrail・railspend・sellr・tsreg・cearn・inpf・inpb・capskip・goods・nation・wars・labor
+- ヌル腕＝D:/PoB_work/keep_1362/n1・n2 の種 2（同じ表があれば）
+- 他の種＝keep_1376/base_ins の種 1〜10（freq_bham.tsv で 0.25 未満の種）・keep_1362/a11（region のみ）
+- 要約＝measurements/m1374_20261126/（report・v_corrections・trrail_uk_s2・sellr_bham_s2・tsreg_bham_s2・decomp_M2）
+問いの順：1 財と生産者の四半期の並び → 2 需要・供給・外の切り分け → 3 ヌル腕と他の種 → 4 0 の⑤ の計器の素案
