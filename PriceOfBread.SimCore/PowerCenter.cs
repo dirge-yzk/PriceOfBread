@@ -55,8 +55,6 @@ internal static class PowerCenter
         double FExec, double FPart, double FArmy, double FRev, double Sum, double SumParts,
         double SExec, double SPart, double SArmy, double SRev, double SRegime, double Safety);
 
-    private static double Clamp01(double x) => x > 0 ? (x < 1 ? x : 1.0) : 0.0;
-
     internal static Result Evaluate(in Inputs x, BudgetLaw k)
     {
         double g = x.G > 0 ? x.G : 0.0, q = x.Q > 0 ? x.Q : 0.0;
@@ -66,8 +64,8 @@ internal static class PowerCenter
         double dl = x.Loyal, da = x.Army, dv = x.Revolt;
         double sRev0 = sum > 0 ? (g * dv + q * mExt) / sum : 0.0;
         double appointExec = k == BudgetLaw.Parliamentary ? 0.0 : 1.0;
-        double valve = Clamp01(0.5 * ((1.0 - appointExec) + (1.0 - sRev0)));
-        double mA = Clamp01(x.Push) * (1.0 - valve);
+        double valve = PoliticalQuantities.Clamp01(0.5 * ((1.0 - appointExec) + (1.0 - sRev0)));
+        double mA = PoliticalQuantities.Clamp01(x.Push) * (1.0 - valve);
         double w = Wallet(k, x.InterestShare, x.TaxYearShare, x.RevenuePositive);
         double aA = da * mA, regime = dl + da * (1.0 - mA), aV = dv;
         double aE = k == BudgetLaw.Parliamentary ? 0.0 : regime, aP = k == BudgetLaw.Parliamentary ? regime : 0.0;

@@ -637,10 +637,14 @@ def cmp_saveleak(W):
     if not (os.path.exists(s) and os.path.exists(l)):
         miss('savetest か leakhunt の出力が無い'); return
     ts, tl = open(s, encoding='utf-8', errors='replace').read(), open(l, encoding='utf-8', errors='replace').read()
-    if 'savetest OK' in ts:
+    # (1380) 最終行が 'savetest OK' で始まる時だけ OK（途中の行に OK が混ざっても通さない）。'値の違い' が 0 でない行があれば不一致。
+    tl_lines = [x for x in ts.splitlines() if x.strip()]
+    last = tl_lines[-1] if tl_lines else ''
+    bad_vals = [x for x in tl_lines if '値の違い' in x and not re.search(r'値の違い 0・', x)]
+    if last.startswith('savetest OK') and not bad_vals:
         ok('savetest OK')
     else:
-        fail('savetest が OK でない')
+        fail('savetest 不一致（最終行が savetest OK で始まらないか、値の違いが 0 でない）：' + last[:60])
     if '保存則違反なし' in tl and '人口 0四半期' in tl and '基礎貨幣 0四半期' in tl:
         ok('leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0')
     else:

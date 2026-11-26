@@ -15,7 +15,7 @@ public static class Privileges
     public static double EstateDegree(World w) => EstateDegreeFor(w.Bureaucracy);
     public static double EstateDegreeFor(BureaucracyLaw b) => b switch { BureaucracyLaw.Spoils => 1.0, BureaucracyLaw.MeritExam => 0.5, _ => 0.0 };
     public static double LandReformDegreeFor(ReformLevel lr) => lr switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
-    public static double SeigneurialDegree(World w) => w.SerfEmancipation switch { ReformLevel.None => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
+    public static double SeigneurialDegree(World w) => LandReformDegreeFor(w.SerfEmancipation);
     public static double IntermediaryDegree(World w) => IntermediaryDegreeFor(w.Bureaucracy, w.LandReform);
     public static double IntermediaryDegreeFor(BureaucracyLaw b, ReformLevel lr) => System.Math.Max(EstateDegreeFor(b), LandReformDegreeFor(lr));
     public static double GuildDegree(World w) => w.Guild switch { GuildLaw.Full => 1.0, GuildLaw.Limited => 0.5, _ => 0.0 };

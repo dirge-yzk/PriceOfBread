@@ -98,7 +98,7 @@ public static class Fiscal
         if (Instruments.On) Instruments.Revenue(w, revenue, indirectRevenue);
         w.LastRevenuePerMonth = new MoneyPerMonth(budgetBase); w.LastInterestPerMonth = new MoneyPerMonth(interest);
         w.LastAdminClaimPerMonth = new MoneyPerMonth(adminClaim);
-        w.FiscalCapacityPerMonth = new MoneyPerMonth(w.FiscalCapacityPerMonth.Value < 1e-9 ? surplus : w.FiscalCapacityPerMonth.Value + c.FiscalCapacitySmoothing * (surplus - w.FiscalCapacityPerMonth.Value));
+        w.FiscalCapacityPerMonth = new MoneyPerMonth(w.FiscalCapacityPerMonth.Value < 1e-9 ? surplus : PoliticalQuantities.Toward(w.FiscalCapacityPerMonth.Value, surplus, c.FiscalCapacitySmoothing));
 
 
         if (w.CurrencyReformCooldown > 0) w.CurrencyReformCooldown--;
@@ -215,7 +215,7 @@ public static class Fiscal
         {
         if (w.MonetaryEnabled)
         {
-            double coverage = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
+            double coverage = w.SpecieCoverRatio();
             if (w.OnGoldStandard)
             {
                 if (!w.MetallicStandardLaw || fundingTrip || coverage < c.GoldCoverMin.Value)
@@ -272,7 +272,7 @@ public static class Fiscal
         }
         else w.LastWelfareCostPerMonth = new MoneyPerMonth(0);
 
-        double pensionLevel = w.Pension switch { ReformLevel.Full => 1.0, ReformLevel.Limited => 0.5, _ => 0.0 };
+        double pensionLevel = InternationalMarket.CornFactor(w.Pension);
         if (pensionLevel > 1e-9)
         {
             double oldSize = 0; foreach (var p in pops) oldSize += p.Size * p.AgeShare(60, double.PositiveInfinity);
@@ -361,9 +361,8 @@ public static class Fiscal
         if (!(shortfall > 0) || !BorrowGateOpen(w, c)) return 0;
         double nominalGdp = w.NominalGdpPerMonth.Value;
         double borrowWant = Math.Min(BorrowTicket(nominalGdp, c), shortfall);
-        var capitalists = new List<Pop>();
-        foreach (var (_, p) in w.AllPopsWithRegion()) if (CapitalMarket.IsInvestor(p)) capitalists.Add(p);
-        double capSavings = 0; foreach (var p in capitalists) capSavings += Math.Max(0, p.Savings.Value);
+        var capitalists = CapitalMarket.Investors(w);
+        double capSavings = CapitalMarket.InvestorSavings(w);
         double openness = w.CapitalControlLaw ? PoliticalQuantities.Clamp01(c.CapitalControlOpenness.Value) : 1.0;
         double domesticPool = capSavings * c.BondAppetite.Value;
         double foreignPool = openness * c.ForeignBondCapacity.Value * Math.Max(0, nominalGdp) * Math.Clamp(c.BondBaseRatePerYear.Value / Math.Max(1e-9, w.GovBondRatePerYear.Value), 0, ForeignBondYieldRatioCap);

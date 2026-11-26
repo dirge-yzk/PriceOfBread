@@ -643,7 +643,7 @@ public sealed class UtilityAgent : INationAgent
         bool goldWish = GoldWishFromBoard(w);
         w.Policy.MonetaryTarget = goldWish ? 2 : 1;
         {
-            double cover = w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0;
+            double cover = w.SpecieCoverRatio();
             w.Policy.CapitalControlTarget = cover < w.Coef.GoldCoverMin.Value;
         }
         if (w.SelfPower is { } mSelf && w.Diplomacy is { } mDip)

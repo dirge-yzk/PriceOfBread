@@ -1,0 +1,6 @@
+(1380) c146rf 突然変異の記録（使い捨ての木＝c146rf の作業木を 1 行ずつ書き換えて戻した・RefactorBundle1Tests を絞って回した）
+M1 World.SpecieCoverRatio の床 1e-9 を 0.0 へ → 赤 1（覆い率は広義の貨幣が床以下なら1_…）。
+   ※最初の形（国庫を触らない盤面）は緑のままだった＝穴を名乗り、国庫を SetTreasuryRaw(5.0) に置いて基礎貨幣≠広義にした形へ直して赤になることを確かめた（試験の中の盤面の直し・Assert の文は同じ）。
+M3 CapitalMarket の cr を debtTerm * (goldTerm * fxCredit) * bondConf へ → 赤 1（与信の評価は4項の積と左からの順でビットまで同じ）。
+M2 ident_check に不一致の行を読ませる → scripts/instruments/c146rf/selftest_savetest.py：一致 fail 0／不一致の行 fail 1／途中に OK＋最終が不一致 fail 1（自己試験 OK）。
+戻した後の RefactorBundle1Tests：12 件緑。

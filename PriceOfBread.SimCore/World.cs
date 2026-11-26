@@ -741,6 +741,9 @@ public sealed class World
     /// </summary>
     public MoneyStock OutstandingLoans => (Bank?.Loans ?? default) + (Bank?.HouseholdLoans ?? default);
     public MoneyStock BroadMoney => TotalMoney;
+
+    /// <summary>正貨の覆い率＝基礎貨幣÷広義の貨幣（広義が 0 なら 1.0）。(1380) A2-09：Fiscal・Government・PlayText・SelfPlay・Simulation の 6 か所の同じ式をここへ寄せた（Credit.cs の gcCoverage はガード条件が別なので別）。</summary>
+    public double SpecieCoverRatio() => BroadMoney.Value > 1e-9 ? BaseMoney / BroadMoney : 1.0;
     public double FinancialHeat => Bank?.Heat ?? 0.0;   // 金融過熱度（恐慌の予兆ゲージ・ガラス箱）
 
     // --- 国庫・財政（§9-F／§6.2・段4b）---
@@ -1342,7 +1345,7 @@ public sealed class World
         CostPriceLevel = PoliticalQuantities.Toward(CostPriceLevel, PriceLevel, c.MonetaryTrendSpeed);   // ★自己費用の物価＝P の遅い趨勢（M/Y の趨勢と同じ速さ・(73)）
         // #2 期待インフレ（年率・平滑）＝直近の物価騰落。名目金利が乗せる（Fisher）。
         double infl = before > 1e-9 ? Calendar.PerQuarterToPerYear(PriceLevel / before - 1.0) : 0;   // 四半期→年率
-        ExpectedInflationPerYear += new RatePerYear(Coef.InflationExpectationSmoothing * (infl - ExpectedInflationPerYear.Value)); if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, trend0, cyclical, before, pEma, pFiat, convTarget, fiatP, false);   // EMA。〔履歴 World.cs#221〕
+        ExpectedInflationPerYear = new RatePerYear(PoliticalQuantities.Toward(ExpectedInflationPerYear.Value, infl, Coef.InflationExpectationSmoothing)); if (Instruments.On) Instruments.PriceStep(this, broad, baseM, money, gdp, ratio, trend0, cyclical, before, pEma, pFiat, convTarget, fiatP, false);   // EMA。〔履歴 World.cs#221〕
 
         // 為替レート（第3a段・兌換連続化）：完全兌換は平価1.0／不換は PPP(1/P)＋貿易収支でオーバーシュート。兌換可能性で目標を補間（部分兌換＝平価に半ば縛られる）。
         double tradeBal = (CumulativeTradeFlow - _prevTradeFlow).Value; _prevTradeFlow = CumulativeTradeFlow;   // 当期の対外金収支（黒字>0＝流入）

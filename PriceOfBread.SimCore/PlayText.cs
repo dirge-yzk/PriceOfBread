@@ -116,7 +116,7 @@ public static class PlayText
     public static string EducationSpendingText(World w) => $"教育費（予算の割合） {w.Policy.EducationSpendingTarget:P0}　実効 {w.EducationSpending:P0}" + (w.Coef.ScholarshipTopStage > 0 ? $"　奨学金 {EconomyStep.ScholarshipCover(w.Region, w.Coef):P0}" : "");
 
     public static string CoverText(World w)
-        => w.Bank is null ? "—" : $"{(w.BroadMoney.Value > 1e-9 ? w.BaseMoney / w.BroadMoney : 1.0):P0}";
+        => w.Bank is null ? "—" : $"{w.SpecieCoverRatio():P0}";
 
     public static string PoliticalCapitalText(World w)
     {

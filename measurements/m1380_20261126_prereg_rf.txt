@@ -1,0 +1,34 @@
+(1380) c146rf 事前登録（最初のコミット）：恒等のリファクタの束 1 本目・基 6584be56d・基線 m1362
+形：恒等の線（挙動の予言 0・尾でも入口でもない）。〈判定: 恒等〉なら採る。〈証明〉とは書かず〈測った種で一致〉と書く。
+
+[1] 恒等の線・予言 0
+  素の 5 種と計器つき 10 種が m1362（b5_20261125_m1362・b10_20261125_m1362_ins）と名乗り行を除いて全行一致。savetest は最終行が〈savetest OK〉で始まり値の違い 0。.cost +0（推定は変わらない）。
+  試験の数：Tests 3024 → 3024＋足した（RefactorBundle1Tests＝Fact 3＋Theory 3 行＋3 行＋6 行……＝12 件）。Ui 232 は不変。→ ident の --tests-delta は +12（数え直して名乗る）。
+
+[2] 項と消す物・残す物（読み手は SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名前・SaveGame のリフレクションを grep 済み）
+  1 D-06 Runner/Program.cs の savetest の枝：旧の枝（引数 4 つ以下・2 量だけ比べる）を消した。4 つ以下の呼びは〈保存の日 0・state の比べ〉の枝へ回す（使い方の印字では止めない＝c130rc/c131cr の suite.sh と ivf536 の台本が 4 つ以下で呼ぶ＝そのまま動く）。
+     一致の行は〈savetest OK：…〉のまま。一致しない行の頭を〈savetest 乖離〉→〈savetest 不一致〉へ。
+     読む道具：ident_check.py の cmp_saveleak を〈最終行が savetest OK で始まる・値の違いの行が全て 0〉へ（途中の行に OK が混ざっても通さない）。ident.sh:13・saveleak.sh は呼び方（… 300 12 0,45,75 state）のまま＝変えない。suite_*.sh の `grep -h 'savetest' | tail -1` は写すだけ＝変えない（不一致の行も最終行に出る）。mk_table_m241.py は印字の写し（読み手ではない）＝変えない。
+     自己試験：scripts/instruments/c146rf/selftest_savetest.py（一致＝fail 0・不一致の行＝fail・途中に OK＋最終が不一致＝fail）。
+  2 V01 CapitalMarket.cs:50〜:61：cr を debtTerm*goldTerm*fxCredit*bondConf の左からの順で 1 回だけ（CreditDebtTerm・CreditGoldTerm は同じ局所変数を書く）。
+  3 A2-09 World.SpecieCoverRatio()（新しい 1 関数・既存の似た物は grep で 0 件＝BroadMoney.Value>1e-9 の式の写しだけだった）へ 6 か所：Fiscal.cs・Government.cs・PlayText.cs・SelfPlay.cs・Simulation.cs 2 か所。Credit.cs:43 はガード条件が別（OnGoldStandard・GoldStandardLaw と同じ if）＝触らない。
+  4 R08 Fiscal.cs:101 → PoliticalQuantities.Toward（x + k*(t−x) と同じ演算の順）。
+  5 R09＝C11 World.cs の期待インフレ → Toward（x + k*(t−x)）。+= の和は new RatePerYear(x.Value + k*(..)) と同じ値。
+  6 A2-11 Diplomacy.cs：private CountDependents を消し DependentCount 1 本（呼び手 1 か所を付け替え）。Diplomacy.cs は CRLF のまま。
+  7 A1-08 Fiscal.cs:364〜:366 → CapitalMarket.Investors(w)・InvestorSavings(w)。和の順は同じ（AllPopsWithRegion の順・Math.Max(0, ·)）＝同じ。
+  8 A1-07 Fiscal.cs:275 pensionLevel → InternationalMarket.CornFactor(w.Pension)（Full 1・Limited 0.5・他 0 の同じ表）。Privileges.SeigneurialDegree → LandReformDegreeFor(w.SerfEmancipation)（None 1・Limited 0.5・他 0 の同じ表）。
+  9 A2-17 Ideology.SetCultureSplit・Regional を消す：全域の grep（SimCore・Tests・Runner・App・Display・XAML・scripts・文字列・リフレクション）で呼び手 0・文字列の参照 0。
+ 10 A2-18 PowerCenter.cs の private Clamp01 を消し PoliticalQuantities.Clamp01 へ：NaN→0・x≦0→0・x≥1→1・それ以外 x で全値が同じ（試験で固定）。
+  .Value の増減（予言）：項 3 −5（6 か所の BroadMoney.Value が 1 関数の 1 へ）・項 4 −1・項 7 −1・項 5 0・他 0＝SimCore 758 → 751（Display 48 は不変）。
+  他の線との重なり：c146wy は Politics.cs・Coefficients.p02 の別の行・c146bk は EconomyStep.cs・c146kt は Simulation.cs:1815 と Coefficients.p02:48〜49＝この線は Simulation.cs:1935・:2384 だけ＝行は重ならない。ValueCountRatchetTests の SimCore の数の行は c146kt の ValueScan と同じファイルを触りうる＝合流で数え直す。
+
+[3] 足す試験（PriceOfBread.Tests/RefactorBundle1Tests.cs）と突然変異
+  M1 覆い率の関数の床 1e-9 を 0.0 へ → 〈覆い率は広義の貨幣が床以下なら 1〉が赤。
+  M2 ident_check に不一致の行を読ませる → selftest_savetest.py が fail を出す（ident_check が fail）。
+  M3 V01 の掛ける順を入れ替える（debt*(gold*fx)*bond）→ 〈与信の評価は 4 項の積と左からの順でビットまで同じ〉が赤。
+  浮動小数の順序が変わる箇所の点検：V01（順は同じ）・R08/R09（x+k*(t−x) の同じ形）・A1-08（和の順は同じ）。同じ盤面で旧と新の比べは RefactorBundle1Tests の〈寄せる式〉と〈与信〉で 0 件の食い違い。
+  ㉘ 走査の番人：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・DerivedValueRatchetTests・ValueCountRatchetTests（SimCore 758→751 の 1 行の書き換え＝下げるだけ・★(764) の②の型）。`new MoneyStock(` の件数は変えない・route_anchors.tsv の鍵の行は触らない・WriterRatchetTests の宣言の表は触らない。
+
+[4] 比べる物：素の 5 種（b5_20261125_m1362）・計器つき 10 種（b10_20261125_m1362_ins）を名乗り行を除いて全行一致。NG は ng.sh で 101 の同じ集合。
+[5] 〈判定: 恒等〉と savetest OK と突然変異のとおりの赤と .Value が増えていないなら採る。一致しない項は外して名を報告する。
+外した物（束 2 以後）：A1-10 EraFactor・A1-11・BilateralMarket の A1-01・A1-02・A2-02・EconomyStep の A1-03〜A1-05・A1-16・V-02〜V-04・Politics.cs の A2-06・A2-21・B13・R10。

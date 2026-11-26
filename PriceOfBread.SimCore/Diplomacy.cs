@@ -1296,9 +1296,8 @@ public sealed class Diplomacy
         }
     }
 
-    private int CountDependents(Power s) { int k = 0; foreach (var _ in DependentsOf(s)) k++; return k; }
     /// <summary>この宗主が抱えている従属の数（<see cref="Coefficients.MaxDependents"/> の物差し）。単一ゲート（World.CanInvade）が読む＝AI・プレイヤー共通。</summary>
-    public int DependentCount(Power s) => CountDependents(s);
+    public int DependentCount(Power s) { int k = 0; foreach (var _ in DependentsOf(s)) k++; return k; }
 
     // 緊張が高まった同盟は崩れる（強国は同盟相手にも警戒され孤立する）
     private void BreakStrainedAlliances(Coefficients c)
@@ -2809,7 +2808,7 @@ public sealed class Diplomacy
                     }
                 }
                 // 1戦争1件＝漸進。〔履歴 Diplomacy.cs#323〕
-                if (crushing && CountDependents(winner) < c.MaxDependents)
+                if (crushing && DependentCount(winner) < c.MaxDependents)
                 {
                     Power? take = null; double bestReach = 0;
                     foreach (var d in DependentsOf(loser))
