@@ -1,0 +1,31 @@
+m1391 事前登録 c148tk（波148・恒等の線・基点 870ce5520）  〔AI の推奨・作者「全て推奨で」で推奨を採った〕
+[1] 恒等の線・予言（挙動を変える項は 0）
+  - 素の 5 種・計器つき 10 種は m1383（b5_20261126_m1383・b10_20261126_m1383_ins）と名乗り行の SOURCE-HASH を除いて全行一致。
+  - savetest OK（最終行が savetest OK で始まり値の違い 0）。.cost の推定は +0 秒（足す計時は閉じている時に 0・台帳の行は足さない）。
+  - テスト数：+4 前後（StateDigestToolTests 2・暦の関数 1〜2・ValueScan 深さ 2 の自己試験 1）。--list-tests で数える。
+  - .Value の数：0 本の増減（ValueScan は走査の道具の側で Strip を変えない／SimCore に .Value を足さない）。ValueCountRatchetTests の n <= baseline は動かない。
+  - DerivedValueRatchetTests の指紋（深さ 2 で局所変数の定義の中の定義も拾う）：入力の数の表（CountInputs）は動かさない。指紋の行は局所変数を通る 5 行
+    （Militancy@pop・Legitimacy・WarExhaustion・Consciousness・DynasticMandate）が変わりうる・空の 2 行（colony・Satisfaction＝0:e3b0c44298fc）は動かない。
+    新しい指紋は走査の道具の出力を書き写す（★(764) の焼き直し・入力ハッシュに触れた表だけ）。
+[2] 消す物・残す物・項
+  項0 短い確かめの道具＝新規：SimCore/StateDigest.cs（保存の欄を群ごとに指紋）・SaveGame.FieldsOf を private→internal（1 語）・Tests/StateDigestToolTests.cs・scripts/instruments/statediff/。読み手＝試験と台本だけ（シムの道・Runner・App・Display から呼ばない）。
+  項1 暦の関数＝Calendar.cs に整数だけの述語を足し、Simulation.cs と MultiNationSim.cs の剰余の式を置き換える（grep し直して Simulation 12 か所・MultiNationSim 6 か所・豊凶の年 1・外交の月の索引 1）。回す順序と式の演算は同じ（整数）。
+  項2 州への写しを読む日だけに＝【外す】。読み手の表（grep の結果）：Region.PriceLevel の読み手に月の途中の日で読む物がある。
+        World.StepConstruction（旬の初日＝日 0・10・20・30…に呼ぶ＝priceDay〔日 14・29〕とずれる）が World.cs:1509・:1537・:1583 で r.PriceLevel を読む。
+        日 30 の旬の初日は日 29 の月次決算の後に World.PriceLevel が動いた値を、毎日の写しなら読み、間引けば前の写しを読む＝非恒等。
+        ほか：EconomyStep.cs:2499・:2588・:2634（建設と発注の見積もり）・SelfPlay.cs:786・MarketFlow.cs:72（priceDay）・ProductionDiag.cs:25・OpeningBake.cs・App GameViewModel.Production.cs:1045・Runner（診断）。
+        月の途中の読み手が 1 つでもある＝規則どおり項 2 を外し、名を報告する（FarmRentCap・CrowdingPremium・FinancialHeat・CivilWarActive は読み手の洗い出しの前に外す＝同じ foreach）。
+  項3 速さの計器＝POB_TIME（既にある）の下で段ごとの Stopwatch。閉じている時は何も数えない・台帳の行は足さない。MultiNationSim.cs:595〜700 と Diplomacy.Step の計時の行だけ。
+  項4 Simulation.cs の小物＝V-02（:1856〜 の SumPopulation 3 回→局所 1 回・(s/np) の括弧を保つ）・V-03（SpendableRevenue を州のループの外へ。ループ〔:1759〜〕の中に国庫と請求書を書く文が無いことは grep 済み・OpulenceLineOf は読むだけ）・V-04（AllPopsWithRegion の 2 回→1 回の一覧・同じ順の和）・欄名 AvgSat→SatOrD・注 3 か所。
+  項5 ValueScan の深さ 2＝LocalFedFingerprint が局所変数の定義の文の中の局所変数の定義も拾う。
+  項6 文書＝オーダーの上限の規則（README_線の担当 §計算量の予算・README の同じ節）・古い門の行の打消し線。コードなし。
+  他の線との重なり：c148ec と c148po は Simulation.cs を触らない（持ち主の表）。MultiNationSim.cs は ec が :1073・po が :65 だけ＝tk の :595〜700・:860〜875・:1010〜1020 と行が重ならない。Diplomacy.cs は po が Step の外・tk は Step の計時の行だけ。DormantIdentityTests・WriterRatchetTests は触らない。
+[3] 足す試験と突然変異
+  T1 StateDigestToolTests.自己試験（同じ木は一致・SupplySlope を 1e-8 動かした木は 1 四半期以内に群の名を出す）。突然変異 μ0＝Digest が double を数えない→赤。
+  T2 暦の関数の試験（0..89 の全日で旧の式と新の関数が一致）。μ1＝IsMonthEndDay を 1 日ずらす→T2 赤・statediff が赤・ident が非恒等。
+  T3 ValueScan 深さ 2 の自己試験。μ4＝深さ 2 の拾いを外す→赤。
+  μ2＝写しを四半期首の日だけ落とす→項 2 を外したので対象外（記録）。μ3＝計時の数えを TimeOn の外へ→POB_TIME 無しでも Stopwatch を呼ぶ＝番人（計時の閉じ）で赤。
+  ㉘ 走査の番人：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests を器の直後に回す。new MoneyStock( の件数は動かさない（予言 0）。WriterRatchetTests の宣言の表・route_anchors.tsv の鍵の行は触らない。
+  ㉑ 書き換える件数の番人：DerivedValueRatchetTests の指紋の行 最大 5（上記）。他は 0。
+[4] 比べる先：m1383 の素の 5 種・計器つき 10 種（計器の表の差は宣言だけ＝計時の表は閉じている時に出ない）。
+[5] 〈判定: 恒等〉なら採る。浮動小数の順序が変わる箇所：V-02 の (s/np) の外出しは同じ式の値の再利用（順序は変わらない）・V-04 の和は同じ順・他は整数。紙の台本で旧と新の食い違い 0 を確かめる（項 1 は 0..89 の全日の表で）。
