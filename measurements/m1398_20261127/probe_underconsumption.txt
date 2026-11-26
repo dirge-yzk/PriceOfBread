@@ -1,0 +1,1 @@
+flag=0 worker=511.7 farmer=671.9 cap=5519.9 ratio=10.787 urban 0.3000->0.1133; flag=1 worker=1686.3 farmer=1900.3 cap=7878.9 ratio=4.672 urban 0.3000->0.1133; 
