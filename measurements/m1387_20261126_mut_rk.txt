@@ -1,0 +1,5 @@
+(1387) c147rk 突然変異の記録（使い捨て＝作業木の 1 行を書き換えて戻した）
+μ1 InstrumentsLrlock.cs の値の列から `atWar ? "1" : "0",` を消して見出しは残す → LrlockInstrumentTests が赤（行の列の数が見出しと違う：Assert.All 2/2 件が不一致）。
+   ※事前登録の時点で lrlock_s の列の番人は Tests に 0 本（grep で 0）＝穴だった。同じ線で LrlockInstrumentTests を 1 本足し、緑（旗なしの通常）と μ1 の赤を確かめた。
+μ2 ident_check.cmp_saveleak の `last.startswith('savetest OK') and` を外す → scripts/instruments/ident/selftest_savetest.py の 4 つ目の例〈値の違い 0・最終行が不一致〉が赤（assert で止まる・出力 `値0+最終行不一致=0`）。旧の 3 例（一致・不一致・途中 OK＋不一致）は μ2 でも緑のまま＝旧の 3 例では拾えなかった穴を 4 つ目が拾う。
+μ3 取らない（指紋の深さ 2 は直さずに ValueScan.cs の頭の注へ名乗ったため）。
