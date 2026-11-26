@@ -261,7 +261,6 @@ public class DormantIdentityTests
         "ResearcherFrac",
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
-        "SubmitProbabilistic",
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
@@ -282,6 +281,7 @@ public class DormantIdentityTests
         "SecessionConsciousnessWeight", "RedefinedMandateFloor", "RedefinedMandateNcMin", "RedefinedMandateMandateMin", "NationBuildConscript", "NationBuildAccumRate", "NationBuildDecayRate", "NationBuildCrisisDefense", "NationBuildCrisisCivilWar", "NationBuildCrisisIndependence", "NationBuildInitialDefault", "RadioNationWeight", "NationConsciousnessReachDecay",   // (1193) c119nd 段 B：信任帝政の床の分岐と国民意識の物理（漸化式・POP の欄・国民形成費・計器の列）を消した。
         "NationBuildMobilizationWeight", "RevolutionConsciousness", "SkillMobilizationRelief", "NationConsciousnessDerived", "NationConsciousnessPerPop",   // (1193) c119nd 段 A：国民意識の重み 0 の読み手（徴兵の門・革命の目覚め）と既定の焼き込み（不動点の枝・スカラーだけの枝）。
         "NiterBedEnabled", "NiterBedProductivity",   // (1175) c116cl：硝石丘の枝と係数 2 本を削除（旗は既定 0 のまま届かなかった＝休眠 0・硝石を産地にする回で戻す）
+        "SubmitProbabilistic",   // (1393) c148po：屈服の確率化（既定 0＝休眠）を枝・専用の乱数系列 SubmitRng・係数ごと削除（作者 2026-11-26「乱数は気候と疫病のみの筈です。同盟の乱数はAIが無許可で作ったものです。これは全てオミット対象」）
         "PriceLawSeesExports", "LaborBandFloorOffGate",   // (1175) c116cl：既定 1 の旗 2 本を焼き込んだ（輸出を需要に足す式・労働 3 財の帯の床の撤去＝常に 1 の経路・旗 0 の番人は LaborMarketFormTests で今の盤面へ移した）
         "MalariaQuininePerColony",   // (1167) c115qc：植民地の毎月のキニーネ（(1158) で既定 0・(1164) で係数 0 を採った）。枝と係数を削除
         "MintBuysAtMarket", "SilverParityFromRatio",   // (1168) c115sb D-s4：既定 1.0 の旗 2 本を焼き込んだ（市場買いの枝と銀の平価の器・旗 0 の経路の番人は隔離の盤面へ移し旧の行は削除）

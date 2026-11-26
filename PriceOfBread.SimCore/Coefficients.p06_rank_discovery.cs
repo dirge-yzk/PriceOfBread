@@ -89,7 +89,6 @@ public sealed partial class Coefficients
     public double ReformGrantPcWidth = 0.15;   // 2026-07-23点火＝動員圧満杯で0.3+0.15=0.45（立憲床）
     // ===== 第3群（史実検証2026-07-22・帯が揺れる群＝段階点火）＝2026-07-23配線 =====
     public double AISubmitMilRatio = 3.0;   // WarDeclareTension下げ戻しは次段バッチで実施
-    public double SubmitProbabilistic = 0.0;   // 屈服確率=clamp((陣営比−1)/(AISubmitMilRatio−1),0,1)＝互角0%・崖の線で100%（新しい数は作らない＝既存の線が確実点になる）
     // ==== 研究＝解禁の唯一の形（docs/202608/20260827・段1〜3実装2026-08-31）====
     // ==== ★発見の作り替え（段2A・2026-10-01・設計 20260928_財の削減_連鎖の深さの撤去 §1A-2＝発見は2値・点数＝技術力＋必要性＋伝わり（各0〜70）が100に届いたら解禁）====
     public double DiscoveryTechPerDecade = 0.35;    // Y（作者裁定 Q11＝「各行の発見の年か実用の年に、最も必要に迫られた平均的な先進国が届く値」）＝難易度＝これ×（行の年代−1780）÷10（技術水準の単位）

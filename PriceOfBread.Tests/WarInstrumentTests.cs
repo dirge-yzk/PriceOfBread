@@ -235,7 +235,6 @@ public class WarInstrumentTests
                 }
             }
             Assert.Equal(b.Rng.NextDouble(), a.Rng.NextDouble());
-            Assert.Equal(b.Diplomacy.SubmitRng!.NextDouble(), a.Diplomacy.SubmitRng!.NextDouble());   // 外交の専用系列も引かない
             Assert.Equal(b.Nations[0].World.ExpansionWill, a.Nations[0].World.ExpansionWill);
             Assert.Equal(b.Diplomacy.Wars.Count, a.Diplomacy.Wars.Count);
             Assert.Equal(b.Nations[0].World.InvShipStock(), a.Nations[0].World.InvShipStock());

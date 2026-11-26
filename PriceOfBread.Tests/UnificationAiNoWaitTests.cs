@@ -86,6 +86,6 @@ public class UnificationAiNoWaitTests
         const System.Reflection.BindingFlags all = System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Static;
         foreach (var name in new[] { "UnificationRng", "_unifRetryYear" })
             Assert.True(typeof(Diplomacy).GetField(name, all) is null, $"(1195) で消した欄「{name}」が Diplomacy に戻っている");
-        Assert.NotNull(typeof(Diplomacy).GetField("SubmitRng", all));   // 対照：名前の引き方が欄を見つけられる
+        Assert.NotNull(typeof(Diplomacy).GetField("_rankClock", all));   // 対照：名前の引き方が欄を見つけられる
     }
 }

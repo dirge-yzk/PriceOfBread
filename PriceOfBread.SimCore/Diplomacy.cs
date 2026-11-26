@@ -332,7 +332,6 @@ public sealed class Diplomacy
     private readonly HashSet<long> _dependency = [];   // DirKey(宗主,従属) の有無＝属国関係（種別なし）
     // 国家ランク（列強/中堅/弱小）：四半期ごとに NationalScore の相対閾値で算出しキャッシュ（Power.Id→ランク）。ラベルのみ＝同盟/戦争は不変。
     internal readonly Dictionary<int, PowerRank> _rank = [];
-    public DeterministicRng? SubmitRng;        // SubmitProbabilistic=0では未消費）〔履歴 Diplomacy.cs#60〕
     private int _rankClock;   // RankUpdateIntervalQuarters=1で毎月（現行恒等）・4で年次〔履歴 Diplomacy.cs#61〕
     private int _year;
     [System.NonSerialized] internal bool CpHit, CpCeded; [System.NonSerialized] internal double CpRep, CpBudget0, CpRepRaw; [System.NonSerialized] internal int CpCaptured;   // CpCeded〔履歴 Diplomacy.cs#62〕
@@ -1395,13 +1394,7 @@ public sealed class Diplomacy
                             double aSide = SideMilitary(a, b, c), bSide = SideMilitary(b, a, c);
                             var weak = aSide <= bSide ? a : b;
                             var strong = aSide <= bSide ? b : a;
-                            // 確率=clamp((比−1)/(屈服線−1),0,1)＝互角なら0%・屈服線ちょうどで100%（線の意味は「必ず引く比」へ変わるだけ＝新しい数なし）。〔履歴 Diplomacy.cs#155〕
                             bool submitYields = Math.Max(aSide, bSide) > Math.Min(aSide, bSide) * c.AISubmitMilRatio;
-                            if (c.SubmitProbabilistic > 0 && SubmitRng is { } submitRng && c.AISubmitMilRatio > 1.0)
-                            {
-                                double sideRatio = Math.Max(aSide, bSide) / Math.Max(Math.Min(aSide, bSide), 1e-9);
-                                submitYields = submitRng.NextDouble() < PoliticalQuantities.Clamp01((sideRatio - 1.0) / (c.AISubmitMilRatio - 1.0));
-                            }
                             if (c.AISubmitMilRatio > 0
                                 && submitYields)
                             {
