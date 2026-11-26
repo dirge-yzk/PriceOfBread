@@ -17,8 +17,10 @@ public static class Megaprojects
     }
     internal static int RequiresRowOf(string id) => _requiresRow.TryGetValue(id, out var r) ? r : -1;
     internal static bool RequirementMet(World w, string id) { int r = RequiresRowOf(id); return r < 0 || Discovery.Known(w.Discovered, r); }
+    internal static string RequiresNameOf(string id) { int r = RequiresRowOf(id); return r < 0 ? "なし" : Catalog.Discoveries[r].Name; }
 
     public static double EstimateCost(Region host, Megaproject mp, Coefficients coef) => 0;
+    public static bool CanStart(World w, Megaproject mp) => false;
     public static string? StartRefusal(World w, Megaproject mp) => "巨大建造物の機構は無い";
     public static bool TryStart(World w, Megaproject mp) => false;
 }
