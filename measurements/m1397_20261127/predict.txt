@@ -1,0 +1,38 @@
+(1397) 合流（波148）の予言＝merge の前にコミットする（★(711)）。書き手 Opus 5.5。基点 870ce5520（基線 m1383・INSRAW keep_1390/base_ins・KEEPNULL keep_1383）。
+
+[入れる線と外す線]
+- 恒等の線 3 本を入れる：c148tk (1391)・c148ec (1392)・c148po (1393)。3 本とも線の ident の最終行が〈判定: 恒等〉（tk 段 1・ec 段 2・po 段 2）。
+- ただし c148po の 2 項を外す（git revert）：項 5 B13（08021be74・DominanceSpeed を 3 つの名へ）と項 11 R16（19adc95da・WarPushSpeed を RatePerMonth へ）。
+  理由＝反証役 v の〈高〉：この 2 項が .Value を増やし ValueCountRatchetTests が赤（Instruments 417→418・SimCore 752→755）。
+  担当の推奨〈合流で表を上げる〉は番人を緩める形＝採らない（㉜・★(961)）。合流はエンジンの .cs を直さない＝項ごと外す（直さずに名を報告する）。
+  revert が後のコミットと衝突して項だけを外せないときは c148po を丸ごと外す。
+- 挙動の線は 0 本＝基線は m1383 のまま。新しいヌル腕・S11 は回さない。
+- 読む線 c148rv (1394)・c148rt (1395)・設計の材料 c148dm (1396)：写すだけ（反証役の訂正を末尾に足す）。
+
+[衝突の予言]
+- git merge-tree で 3 組（tk×ec・tk×po・ec×po）とも衝突 0（確かめ済み）。
+
+[予言（腕 Z＝合わせた木の ident m1397z・段 2・PRUNE=0・--saveleak --ng --tests-delta 13 --known-extra region_s:workerSinkShareEnd）]
+- Z1 素の 5 種：b5_20261126_m1383 と名乗り行を除いて全行バイト一致（179 行）。計器つき 10 種：b10_20261126_m1383_ins と全行一致（180 行）。
+- Z2 計器の表：宣言の無い違い 0。region_s の workerSinkShareEnd の列の中身だけが違う（ec の宣言）。ほかはバイト一致か既知の揺れ。注視 mon は一致（4851 行）。
+- Z3 .cost：推定 232.8 秒（5 種）・229.3 秒（10 種）＝m1383 と同じ（+0 秒）。
+- Z4 NG：89（ng1383 と比べて新 0・外 0）。
+- Z5 テスト：Category!=FullLength 3295（3282＋tk 6＋ec 3＋po 4＝各線の最後の木の数・B13 と R16 の revert は試験の数を変えない）・FullLength 3。合わせた木の --list-tests で確かめ、食い違えばクラスごとに帰属を読む。
+- Z6 savetest：値の違い 0・最終行〈savetest OK〉。leakhunt は保存則違反なし。＝ident の最終行は〈判定: 恒等〉を予言。〈判定: 不一致〉なら理由の行を読み、出した線（項）を外して報告に回す。
+
+[合わせた木で動く番人（静的な件数）]
+- ValueCountRatchetTests：B13・R16 を外した後は表の値以下（ec の B05 で SimCore が 1 減る向き）＝緑。表は書き換えない。
+- DerivedValueRatchetTests：tk が深さ 2 で焼き直した 5 行のまま緑を予言（ec・po の書き手が指紋の対象に入らない＝ec の反証役 v）。赤なら書き換えずに報告する。
+- WriterRatchetTests：動かない。
+
+[止める線と記録]
+- 止める線の段：恒等の合流なので、破綻・発散・空洞化・計算量は基線 m1383 と同じ（Z1 の全行一致で確かめる）。
+- 記録の段：英の不履行（M 2・S11 1・N1 1・N2 2）・空洞化 1/10 未満 0・名目 GDP 0 の続き 0・開幕の 1000 倍は m1383 の値をそのまま写す。
+
+[INSRAW]
+- 計器の表の列の中身が変わる（ec の region_s:workerSinkShareEnd）＝INSRAW を腕 Z の全表 D:/PoB_work/keep_1397/base_ins へ移す・BASE_COMMIT と STAGE_BASE を合わせた木へ・TESTS_NONFULL 3295。KEEPNULL は keep_1383/n1・n2・a11 のまま。
+
+[合流の後（重い仕事が 0 本になってから）]
+- tk の速さの計器を開いた素の 1 種（種 1・全期間）を 1 本。速さの見込みは書かない。
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
