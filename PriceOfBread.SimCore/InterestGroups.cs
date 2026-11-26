@@ -67,11 +67,14 @@ public static class InterestGroups
         => p.Closed ? closedMul
                     : FranchiseVoice(p, s, c) / 0.5;
 
+    /// <summary>選挙権の段による声の門（近代エリートは Census から・その他は AdultMale から）。Politics・Parliament・FranchiseVoice の同じ式の 1 本化（A2-08）。</summary>
+    internal static double SuffrageGate(Suffrage s, bool modernElite, Coefficients c)
+        => modernElite ? (s >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
+                       : (s >= Suffrage.AdultMale ? 1.0 : 0.0);
+
     public static double FranchiseVoice(Pop p, Suffrage s, Coefficients c)
     {
-        double gate = p.Closed ? 1.0
-                    : p.IsModernElite ? (s >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
-                    : (s >= Suffrage.AdultMale ? 1.0 : 0.0);
+        double gate = p.Closed ? 1.0 : SuffrageGate(s, p.IsModernElite, c);
         double a21 = s >= Suffrage.Universal ? 0 : p.AgeShare(21, double.PositiveInfinity);
         double fem = s >= Suffrage.Universal ? 1.0 : a21 > 1e-300 ? 1.0 - p.AgeShare(21, double.PositiveInfinity, 1) / a21 : 0.5;
         return gate * fem;

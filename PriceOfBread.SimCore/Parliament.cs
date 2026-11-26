@@ -221,9 +221,7 @@ public static class Parliament
     private static bool Qualifies(World w, Coefficients c, FactionState f)
     {
         if (f.Cohesion < c.PartyFormCohesion) return false;
-        double voice = f.Bloc == 0 ? 1.0
-                     : f.Bloc == 1 ? (w.Suffrage >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
-                     : (w.Suffrage >= Suffrage.AdultMale ? 1.0 : 0.0);
+        double voice = f.Bloc == 0 ? 1.0 : InterestGroups.SuffrageGate(w.Suffrage, f.Bloc == 1, c);
         return voice > 0;
     }
 

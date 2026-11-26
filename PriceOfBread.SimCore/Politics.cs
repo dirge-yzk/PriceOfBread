@@ -615,9 +615,7 @@ public static class Politics
 
     public static double FactionStrength(World w, Coefficients c, FactionState f)
     {
-        double voice = f.Bloc == 0 ? 1.0
-                     : f.Bloc == 1 ? (w.Suffrage >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
-                     : (w.Suffrage >= Suffrage.AdultMale ? 1.0 : 0.0);
+        double voice = f.Bloc == 0 ? 1.0 : InterestGroups.SuffrageGate(w.Suffrage, f.Bloc == 1, c);
         double silenced = 1.0 - voice;
         if (!(silenced >= c.RevoltVoiceFloor)) silenced = c.RevoltVoiceFloor;
         double strength = f.Size * f.AvgMilitancy * f.Cohesion * silenced;
