@@ -710,7 +710,6 @@ public sealed class World
             return false;
         }
     }
-    public int RuptureWindowQuarters { get; internal set; }   // >0の間だけ法の不可逆（6-7）が解除＝反動の後退が可能（仏1850選挙法・ストルイピン1907・普三級選挙法）〔履歴 World.cs#121〕
     public double PoliticalPushBudget { get; internal set; } = 1.0;   // Government.Stepの頭で算出しMove速度に乗る。〔履歴 World.cs#122〕
     public double LostRegionsCumulative { get; internal set; }   // r[4]ナショナリズムの長期項（アルザス＝ロレーヌ1871→1914）。〔履歴 World.cs#123〕
     public double VictoryShock { get; internal set; }   // r[4]/r[8]の短期燃料（戦勝→主戦論＝日本型）〔履歴 World.cs#124〕

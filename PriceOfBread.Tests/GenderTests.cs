@@ -67,7 +67,6 @@ public class GenderTests
         w.Policy.Suffrage = Suffrage.Universal;          // 誰も降格を選んでいない
         w.WomenRights = WomenRightsLaw.Education;        // 反動が女性の権利を選挙権未満へ剥がした（内戦の譲歩・断裂の窓）
         w.Policy.WomenRights = WomenRightsLaw.Education;
-        w.RuptureWindowQuarters = 8;                     // 窓が開いている＝不可逆は後退を止めない
         Assert.False(w.WomenSuffrage, "前提が崩れた：女性の権利が選挙権のまま＝降格の経路を測れない");
         for (int q = 0; q < 8; q++) Government.Step(w, w.Coef);
         Assert.Equal(Suffrage.Universal, w.Suffrage);            // 黙って降格しない
@@ -101,7 +100,6 @@ public class GenderTests
     public void 女性の権利の後退は全ての段で普通の法の門だけ()   // ★統合法：段ごとの非対称を作らない（旧＝教育権だけ撤回可という非対称があった）。
     {   // (1344) c141lr 旧の番人〈梯子を降りない＝不可逆〉を新しい規則へ書き換え（㉜ の改め）：守られた法の不可逆を外した後は、3 段とも同じ普通の門（MandateGate の費用 1 倍）だけで後退が決まる。
         var w = new Simulation(NationConfig.Britain().ToScenario(67), new NullAgent()).World;
-        w.RuptureWindowQuarters = 0;   // 窓は閉じている（旧の規則なら不可逆が効く盤面）
         foreach (var stage in new[] { WomenRightsLaw.Property, WomenRightsLaw.Education, WomenRightsLaw.Suffrage })
         {
             w.WomenRights = stage;

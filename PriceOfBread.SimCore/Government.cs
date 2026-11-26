@@ -392,7 +392,7 @@ public static class Government
             if (!pok) return (false, 0, preq);
         }
         if (BlockedByIrreversibility(w, a, Regressive(a, increasing)))
-            return (false, 0, a is PolicyAxis.ShorterHours or PolicyAxis.ChildLabor ? "戦時のみ緩和可" : "後退不能（支持層が確立済み）");
+            return (false, 0, "後退不能（支持層が確立済み）");
         double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing, shared ??= PolicyPreferences.Build(w)) : 1.0;
         double cost = net < 0 ? -net * w.Coef.MandateSpendRate : 0;
         bool ok = net > -MandateMargin(w, a, targetLevel);
