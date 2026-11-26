@@ -1,0 +1,75 @@
+(1398) c149sd 事前登録：点火 SatReadersToDiscontent 0→1（満足度の読み手を不満度へ・3 回の規則の 1 回目・〈次の波〉1 の①・ORDER 波149 の席①）
+書いた日 2026-11-27・木 474338d35 から（worktree D:/PoB_work/wt_c149sd・枝 c149sd）・腕の前のコミット。
+形は〈入口〉（読み手の入口の差し替え）。点火は機能の追加ではない（作者 2026-11-25 が席を与えた）。
+
+== [0] 形
+- Coefficients.cs:101 の既定 0.0→1.0 の 1 行だけ。式は変えない（器は (1371) c145rv・(1385) c147wb で入った）。
+- 旗 1 で変わる読み（474338d35 で grep・行は実在を確かめた）：
+  Politics.cs:88〜:92 Discontent＝Clamp01(WantWeight×Pos(R−s))・声の項を抜く／FactionSnapshot.cs:68 参加は D だけ／Ideology.cs:37 思想は D だけ
+  ／SelfPlay.cs:427〜:428 UnrestOf＝D̄（Politics.AvgMassDiscontent :1153）／Credit.cs:16〜:19 信任の不安＝D̄／Simulation.cs:1456 月の SatOrD＝D̄。
+- 置き換える旧の規則：不満度に声（法の隔たり）の項を含む・参加＝max(D, 闘争度)・思想は闘争度を読む・AI の不穏＝max(0, 0.62−満足度)・信任の不安＝max(0, 0.49−満足度)。
+- 〈判断の頭で 1 回〉の手直し：D̄ を AI が呼ぶ 2 か所は SelfPlay.cs:435（ChooseStance）と :984（Apply の社会保障の床）。:433・:984・:664 はこの線の持ち主の行（SelfPlay.cs :420〜:430）の外で、:984 は c149wx の行（:960〜:1000）の中＝この線では入れない（指示と持ち主の食い違い＝報告の先頭に名乗る）。
+  旗 1 では :433 の MeanSatisfaction も UnrestOf に捨てられる。焼き込みの波で〈UnrestOf(w) の 1 引数・ChooseStance の値を Apply へ渡す〉の恒等の手直しとして申し送る。
+
+== [1] 計算量（秒は速さの計器 POB_TIME の段＝measurements/m1397_20261127/time/stages.tsv で書く）
+- D̄ を呼ぶ回数（旗 1）：AI＝国×四半期に 2 回（DecideQuarter・stages の QuarterStart 42340 回・11.014 秒の内）＝約 40.7k×2＝81k 回の大衆の POP の 1 巡が増える。
+  信任＝国×月に 1 回（Simulation.cs:1456・MeanSatisfaction の 1 巡を D̄ の 1 巡へ置き換え＝回数は同じ・DriftedPolityCoord の配列 1 本が増える）。
+- 減る側：Politics.Discontent の旗 1 の枝は AxisDistance・DiscontentRaw・PoliticalTerm を通らない（FactionSnapshot.Participation の反乱の武器の需要・Ideology の思想の更新・AvgMassDiscontent）。
+- 予言：推定の計算量の差 −1.0〜+0.5 秒（符号は減る側が大きいと見る）。割り当て 1.0 秒（上限 248.5・余り 保守側 N2 約 17.0 秒の内）。
+  ★(694)：2 秒以下の割り当ては 1 本の腕で門にしない＝.cost の推定は記録・合流の木の累計で読む。
+
+== [2] 紙の台本（今の盤面 keep_1397/base_ins・計器つき 10 種・scripts/instruments/c149sd/paper_sd.py・出力は measurements/m1398_20261127/paper_base.txt）
+- 国×四半期 147134 行。p10 p25 p50 p75 p90 p99 平均：
+  旧 max(0,0.62−満足)        0.0000 0.0000 0.1675 0.3452 0.4694 0.6066 0.1970
+  D（旗 0・声の項あり）       0.0004 0.0063 0.0251 0.0651 0.1189 0.2362 0.0451
+  旗 1 の D̄ の下限 0.8×Pos(落差の平均) 0.0000 0.0000 0.0000 0.0408 0.0955 0.2146 0.0286
+  ＝旗 1 の D̄ は旗 0 の D（中央 0.025）以下・下限（中央 0）以上。旧の不穏（中央 0.17）とは桁が違う（wb の反証役 v の低のとおり）。
+- 桁のずれの見込み（腕の後で読み替えない）：AI の不穏には離散の門は無い（効用の連続の項＝uMod 0.3×不穏・uWel 2.5×不穏・社会保障の床＝不穏÷0.62・信任＝1−PanicSensitivity×不穏・取り付け＝BankRunSensitivity×不穏）。
+  基線の姿勢は工業化 0.335・軍備 0.664・福祉 0.000（福祉は旧の不穏でも 1 度も選ばれない）＝姿勢の向きは変わらない見込み。社会保障の床は中央 0.27→0.04 前後へ下がる＝目標の平均（基線 0.7805）は下がるか同じ。
+  名乗り：〈不穏で社会保障の床が開く〉形は旗 1 でほぼ開かなくなる（中央で約 1/7）。これは D が R−s の落差だけを読む設計どおりの結果で、採否の理由にしない（記録）。
+- 件数（基線・10 種の和）：蜂起 70・内戦の始まり 99・内戦の終わり 49・政体の変わり 3392・政変の門 passSplit 27154。
+
+== [3] 予言（記録・門ではない）
+- 参加（D だけ＝声の項と闘争度を読まない）：減る。思想の更新：闘争度の重みが消え D（小さい）に替わる＝改革と革命の思想への寄りが弱まる。
+- 信任：不穏が下がる＝信任の目標は上がる・取り付けは減る。AI：姿勢は変わらない・社会保障の目標は下がるか同じ。
+- 蜂起・内戦・政変：参加の母数が減る＝蜂起は減るか同じ・内戦の始まりは減るか同じ・政体の変わりは減るか同じ（向きは記録）。
+- 旗 1 の出力が旗 0 と違う行の数は腕 B の成績表の diff の行数で記録する。
+
+== [4] 門（作者 2026-11-16 ①）
+- G0 止める線：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・〈100 倍〉の〈それ以外〉（stoplines906・stoplines1330・建国の直後と政府の人口の跳びは区分で数え、基準とヌル腕も同じ台本で数え直す）・1e10 倍以上
+  ・空洞化 1/10 未満で〈線が原因〉の物（規則 A2・an_h2.py -v4。基線 keep_1397/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない）・推定の計算量 ＞248.5 秒。
+- G1 史実の桁：蜂起（factionRevoltsCum の国ごとの最大の和）と内戦の始まり（civilWarMonths が 0 から正）の 10 種の和が、基線の 10 倍を超えない（上限 700・990）。下側は記録（減るのは予言の向き）。
+- G2 機構の試験：SatReadersToDiscontentTests T1〜T8（T8 を足す：満足度 0.3 で R−s≤0〔R＝0.3 と 0.2〕の POP だけの国で、旗 1＝全ての POP の D 0・D̄ 0・AI の不穏 0・信任は R＝s と R＜s で同じ値／旗 0＝不穏 0.32〔リテラル〕・信任は旗 1 より低い）。
+  盤面は試験の中で置く・期待値はリテラル（本体の式から作らない）。
+- 旗 0 の盤面で門が落ちることの確かめ（紙の台本）：G2 の T8 は旗の値を試験の中で置くので、〈何もしない実装〉＝旗 1 の枝を外す突然変異 μ1・μ2・μ3 で落ちる（下の表）。G0・G1 は〈壊さない〉門＝旗 0 では比 1 で通る（働きの門ではない）。
+- ヌル腕の幅（N1・N2・nullgate.py）・NG（基準 ng1383_20261126）・exact・near・補給崩壊の倍化・開幕の 1000 倍以上・英の国債の不履行の種の数・名目 GDP 0 の続き（gdp_zero10）は記録。
+
+== [5] 突然変異ごとの門（㉚・使い捨ての木・scripts/instruments/c149sd/mut_sd.sh・出力 measurements/m1398_20261127/mut/）
+  μ1 Politics.Discontent の旗 1 の枝を外す（声の項を戻す）  → T1・T3・T8 が赤の見込み
+  μ2 UnrestOf を旧の式へ（SelfPlay の旗の判定を外す）       → T6・T8 が赤の見込み
+  μ3 Credit の dBar を逆にする                             → T7・T8 が赤の見込み
+  記録は .txt の名でコミットする（.log は .gitignore に当たる＝★(1397)）。
+
+== [6] ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 差分は Coefficients.cs の 1 リテラル・試験 1 本・DormantIdentityTests の自分の行。工業化度の読み手の許可表・`new MoneyStock(`（SimCore で 66・変わらない）・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表＝どれも触らない＝変わる件数の予言 0。
+- DormantIdentityTests.cs:162 の "SatReadersToDiscontent" の行は点火のコミットで表から外し、★の注の行（他の点火の旗と同じ形）に替える（README ★(743) の①＝点火の旗の休眠の表の行）。
+
+== [7] 旗 1 の木でフルスイートの番人が旧の規則を固定していないかの grep（㉜）
+- grep の名：SatReadersToDiscontent・UnrestOf・AvgMassDiscontent・SatOrD・FactionSnapshot.Participation・DiscontentOf・Politics.Discontent・Credit.Step・UpdateShares・ChooseStance・ConfidencePivot・PanicSensitivity・BankRunSensitivity・FactionSnapshot.・Factions.Step・FactionRevolts・Ideologies.・Confidence。
+- 当たったクラス：AiFirstWaveTests CreditHoardGuardTests CreditTests DerivedValueRatchetTests DiscontentReaderTests DiscontentSplitTests DiscoveryScoreTests DormantIdentityTests ElectionAiTests ElectionEventTests
+  FactoryIdeologyInstrumentTests FiscalTests FlagBake1282Tests IdeaNeedBoardTests IndustrializationReaderTests LawPreferenceDirectionTests LawstepInstrumentTests LordStakeD1bD2Tests ModernizeReturnAndScoreTests
+  NationalismUnificationTests PolicyPoliticsTests PrdsShadowTests RevoltIgnitionTests Rs3LordReverseGainTests SatReadersToDiscontentTests SmallFixes471Tests SoldierHoldSplitTests Stage2Tests TechLevelRemovalTests WarThemeTests WriterRatchetTests。
+- 旧の規則を固定しうる候補（赤なら ㉜ の改め〔作者 2026-11-19〕のとおり新しい規則の機構の試験へ書き換え、旧の番人の性質のうち新しい規則でも成り立つ物＝[0,1] の切り・符号・保存は残す）：
+  DiscontentSplitTests（:150〜:167 意識 0.9 で法の項を立て DiscontentOf を読む）・DiscontentReaderTests（:59 DiscontentLawGap と不満度の法の項）・PrdsShadowTests・CreditTests（満足度で動く信任）。
+  一覧に無い赤は〈試験のバグ〉か〈周りの壊れ〉かを調べて同じ線で直す。原因が読めない赤は止める。
+
+== [8] 周辺の点検（既にある生とソースだけで読む・欠損は別の線へ）
+- 闘争度の書き手（Politics.cs:170〜:184）：目標＝声＋少数民族＋飢餓（生活の失望は D だけが持つ）。D を読まない＝不満度と闘争度の分け（2026-11-25）のとおり。旗 1 で声の項が D から抜ける＝旗 0 では声が D と闘争度の両方に入っていた二重の数えが消える（設計思想⑨の向き）＝このままでよい。
+- 天命（Politics.cs:204 dmSat）：無教育の層の満足度の平均（無ければ MeanSatisfactionPol）を読む＝満足度の水準。D を読まない。正統性（Politics.cs:245〜:272）：支配の偏りの不安定は MeanSatisfactionPol を読む＝水準。
+  水準を読むのが正しいか D を読むべきかは、天命と厭戦の式（c149wx と群 8）の線で決める＝この線では変えない（入れない物）。
+- 欠損：信任の値（Bank.Confidence）を写す計器の列は無い＝信任の向きは腕では読めない（試験 T7・T8 だけ）。記録に名乗る。
+
+== [9] 腕と手順
+- 腕 Z（ident）：旗 0 のコミットの SimCore の差は 0 行（試験と台本だけ）＝m1397z（木 6056269fc＝474338d35 と SimCore の差 0 行・判定: 恒等）をそのまま使い、この線では回さない（重い仕事の枠と D: を他の線へ残す・⑦）。名乗る。
+- 旗 1 の絞った試験（㉜）→ 腕 B `INS=1 bash scripts/instruments/batch.sh run c149sdB 10`（計器つき 10 種・種 1〜10・表を絞る＝止める線と記録の読み手の表＋dcont_s・modsig_s・coupgate_s・cwend_s・--work D:/PoB_work/c149sd_work）→ フルスイート 1 回（--logger trx・Category を分けて --list-tests と突き合わせる）。
+- 形の変え直しは 1 回だけ（旗 1 の出力を見た後のエンジンの変更は理由を問わず数える）。落ちたら採らないで止める（同じ腕で物差しを替えない）。
