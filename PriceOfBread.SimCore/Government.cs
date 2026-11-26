@@ -257,15 +257,26 @@ public static class Government
         return n;
     }
 
+    /// <summary>委任の門の判定を 1 本に（A2-16＝画面の予告 CanStep と実行の MandateGate が同じ式を別々に書いていた）。副作用なし。
+    /// 1＝余白で止まる・2＝政治資本が足りず止まる・3＝費用なしで通る・4＝政治資本を払って通る。</summary>
+    private static int MandateVerdict(World w, PolicyAxis a, bool increasing, int targetLevel, out double net, out double cost)
+    {
+        net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing) : 1.0;
+        cost = 0;
+        if (!(net > -MandateMargin(w, a, targetLevel))) return 1;
+        if (!(net < 0)) return 3;
+        cost = -net * w.Coef.MandateSpendRate;
+        return PoliticalCapitalAffords(w, cost) ? 4 : 2;
+    }
+
     private static bool MandateGate(World w, PolicyAxis a, bool increasing, int targetLevel)
     {
-        double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing) : 1.0;
-        if (!(net > -MandateMargin(w, a, targetLevel))) { if (Instruments.On) Instruments.GateResult(w, 1, net); return false; }
+        int v = MandateVerdict(w, a, increasing, targetLevel, out double net, out double cost);
+        if (v == 1) { if (Instruments.On) Instruments.GateResult(w, 1, net); return false; }
         if (net < 0)
         {
-            double cost = -net * w.Coef.MandateSpendRate;
             if (Instruments.On) Instruments.Priced(w, cost);
-            if (!PoliticalCapitalAffords(w, cost)) { if (Instruments.On) { Instruments.GateResult(w, 2, net); Instruments.RfBlocked(w, true, cost); } return false; }
+            if (v == 2) { if (Instruments.On) { Instruments.GateResult(w, 2, net); Instruments.RfBlocked(w, true, cost); } return false; }
             if (Instruments.On) Instruments.WallPass(w, cost, true, a);
             Spend(w, cost);
         }
@@ -284,11 +295,7 @@ public static class Government
 
 
     public static bool CanStep(World w, PolicyAxis a, bool increasing)
-    {
-        double net = w.PoliticalLockEnabled ? PolicyPreferences.NetSupport(w, a, increasing) : 1.0;
-        if (!(net > -MandateMargin(w, a, NextStage(w, a, increasing)))) return false;
-        return !(net < 0) || PoliticalCapitalAffords(w, -net * w.Coef.MandateSpendRate);
-    }
+        => MandateVerdict(w, a, increasing, NextStage(w, a, increasing), out _, out _) >= 3;
 
     internal static bool UniversalConscriptionOpen(World w) => Privileges.SeigneurialDegree(w) <= 0;
 
