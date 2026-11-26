@@ -134,4 +134,29 @@ public class SatReadersToDiscontentTests
         double a0 = ConfAfterCredit(0, 0.5, 0.6), b0 = ConfAfterCredit(0, 0.3, 0.4);
         Assert.True(b0 < a0 - 1e-6, $"旗 0 で満足度に感度が無い {a0} {b0}");
     }
+
+    // ── (1398) c149sd 点火の盤面：満足度は低い（0.3）が R−s≤0（R＝s と R＜s）の POP だけの国。旗 1＝全ての POP の D が 0・AI の不穏 0・信任は不穏 0 の値。
+    //    旗 0＝AI の不穏は 0.62−0.3＝0.32（手計算のリテラル）・信任は旗 1 より低い。突然変異 μ1（声の項を戻す）・μ2（UnrestOf を旧の式へ）・μ3（Credit の dBar を逆に）で赤。
+    [Fact]
+    public void T8_満足は低いがRがs以下ならDと不穏が0_旧の式なら不穏が正()
+    {
+        foreach (double r in new[] { 0.3, 0.2 })
+        {
+            var w = BoardSR(1, 0.3, r); var c = w.Coef;
+            var coord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
+            var pops = Active(w);
+            Assert.True(pops.Count > 50, $"前提：POP が少ない {pops.Count}");
+            foreach (var p in pops) Assert.Equal(0.0, Politics.Discontent(w, c, p, coord, 0));
+            Assert.Equal(0.0, Politics.AvgMassDiscontent(w));
+            Assert.Equal(0.0, UtilityAgent.UnrestOf(w, NationalScore.MeanSatisfaction(w)));
+            // 対照＝旗 0 の同じ盤面：満足度 0.3 の旧の式は不穏 0.32
+            var w0 = BoardSR(0, 0.3, r);
+            Assert.Equal(0.3, NationalScore.MeanSatisfaction(w0), 9);
+            Assert.Equal(0.62 - 0.3, UtilityAgent.UnrestOf(w0, NationalScore.MeanSatisfaction(w0)), 9);
+        }
+        // 信任：旗 1 は不穏 0（R＝s の盤面と R＜s の盤面で同じ値）・旗 0 は満足度 0.3＜平穏線で不穏が正＝旗 1 より低い
+        double c1 = ConfAfterCredit(1, 0.3, 0.3), c1n = ConfAfterCredit(1, 0.3, 0.2), c0 = ConfAfterCredit(0, 0.3, 0.3);
+        Assert.Equal(c1, c1n, 12);
+        Assert.True(c0 < c1 - 1e-6, $"旧の式の信任が不穏 0 の信任より下がらない {c0} {c1}");
+    }
 }
