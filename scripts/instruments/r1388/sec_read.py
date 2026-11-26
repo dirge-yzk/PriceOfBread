@@ -17,11 +17,11 @@ for s in range(SB, SB + 10):
     ix, r = rd('secession', s)
     go = 0; n = 0; mx = -9e9; mb = [0] * len(MB); goyrs = []; gonat = set(); mil = []
     for x in (r or []):
-        n += 1; m = f(x[ix['marginIndex']]); g = f(x[ix['goFlag']])
+        n += 1; m = f(x[ix['marginIndex']]); gof = f(x[ix['goFlag']])
         if m == m: mx = max(mx, m)
         for i, b in enumerate(MB):
             if m >= b: mb[i] += 1
-        if g == 1: go += 1; goyrs.append(x[ix['year']]); gonat.add(x[ix['nation']])
+        if gof == 1: go += 1; goyrs.append(x[ix['year']]); gonat.add(x[ix['nation']])
         mil.append(f(x[ix['militancyMeanIndex']]))
     mil = [v for v in mil if v == v]
     row.update(secRows=n, secGo=go, secMarginMax=mx, **{f'm>={b}': c for b, c in zip(MB, mb)}, secMilMean=(sum(mil) / len(mil) if mil else float('nan')), goYears=','.join(goyrs[:6]))
