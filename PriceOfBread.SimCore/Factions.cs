@@ -43,7 +43,7 @@ public static class Factions
             double consc = consciousnessByBloc[bloc] ??= BlocConsciousness(w, bloc);
             double growth = c.FactionCohesionGrowth * (0.5 + consc) * (st.Mutated ? 2.0 : 1.0);
             st.Cohesion = PoliticalQuantities.Clamp01(PoliticalQuantities.Toward(st.Cohesion, 1.0, growth));
-            if (!st.Mutated && st.Cohesion >= MutationCohesionGate)
+            if (!st.Mutated && st.Cohesion >= MutationCohesionGate && !(c.RandomOnlyClimateEpidemic > 0))   // (1401) 旗 1＝変異の経路を通らない（乱数は気候と疫病だけ）
             {
                 double crisis = System.Math.Max(1.0 - reg.FoodFill, w.DefeatShock);
                 if (c.FactionRejectionMutation > 0)

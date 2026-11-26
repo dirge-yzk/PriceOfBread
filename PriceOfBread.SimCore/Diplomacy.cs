@@ -1767,7 +1767,7 @@ public sealed class Diplomacy
                     }
                     int cap = c.MaxAlliances + (coalitionFoe == hegemon ? c.AntiHegemonExtraAlliances : 0);
                     double chance = coalitionFoe == hegemon ? c.AntiHegemonAllianceChance : 0.4;
-                    if (allyCounts[p] < cap && allyCounts[q] < cap && !HasAlliance(p, q) && rng.NextDouble() < chance)
+                    if (allyCounts[p] < cap && allyCounts[q] < cap && !HasAlliance(p, q) && (c.RandomOnlyClimateEpidemic > 0 || rng.NextDouble() < chance))   // (1401) 旗 1＝条件だけで結ぶ
                     {
                         _alliance.Add(Key(p, q));
                         allyCounts[p]++; allyCounts[q]++;
@@ -1781,7 +1781,7 @@ public sealed class Diplomacy
             {
                 double selfThreat = ThreatScore(p, c);
                 double colonizeChance = c.AiColonizeChance * (selfThreat > 0 ? Math.Max(c.HegemonRestraintFloor.Value, 1.0 - selfThreat) : 1.0);   // colonizeChance〔履歴 Diplomacy.cs#189〕
-                if (p.Nation is not null && Suzerain(p) is null && rng.NextDouble() < colonizeChance)
+                if (p.Nation is not null && Suzerain(p) is null && (c.RandomOnlyClimateEpidemic > 0 || rng.NextDouble() < colonizeChance))   // (1401) 旗 1＝TryAiSubjugate の門だけで決める
                     TryAiSubjugate(p, c);
             }
         }

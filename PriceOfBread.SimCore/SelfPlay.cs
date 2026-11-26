@@ -382,7 +382,7 @@ public sealed class UtilityAgent : INationAgent
     internal static bool MonopolyPushDraw(World w, out double p, out double u)
     {
         p = double.NaN; u = double.NaN;
-        if (w.Coef.MonopolyBurdenPushMode <= 0 || w.AiRng is not { } rng) return false;
+        if (w.Coef.MonopolyBurdenPushMode <= 0 || w.Coef.RandomOnlyClimateEpidemic > 0 || w.AiRng is not { } rng) return false;   // (1401) 旗 1＝押しの経路を消す（乱数を引かない）
         p = MonopolyPushProbabilityOf(w);
         if (!(p > 0)) return false;
         u = rng.NextDouble();

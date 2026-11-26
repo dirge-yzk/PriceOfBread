@@ -1688,6 +1688,7 @@ public sealed class Simulation
             // 天候(HarvestFactor)とは独立に作物固有でロール＝両者の悪い目が重なれば栽培州の産出はほぼ0（積算）。合成食料(id 0)は IsDiseaseProneCrop=false で非対象＝較正中立。
             var cropHealth = World.CropHealth;
             var hc = World.Coef;
+            if (!(hc.RandomOnlyClimateEpidemic > 0))   // (1401) 旗 1＝作物の病気は凶作に含めて経路を通らない（HarvestRng を引かず CropHealth は 1.0 のまま）
             for (int g = 0; g < cropHealth.Length; g++)
             {
                 if (!Catalog.IsDiseaseProneCrop(g)) continue;
