@@ -1,0 +1,9 @@
+mu1:
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 2 s - PriceOfBread.Tests.dll (net10.0)
+mu2:
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
+mu3:
+失敗!   -失敗:     1、合格:    14、スキップ:     0、合計:    15、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+ M PriceOfBread.Tests/ScalarDeletionTests.cs
+?? PriceOfBread.Tests/PoliticsUnificationC148poTests.cs
+?? measurements/m1393_20261126_mutations.txt

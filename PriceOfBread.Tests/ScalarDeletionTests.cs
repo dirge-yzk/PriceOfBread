@@ -249,6 +249,10 @@ public class ScalarDeletionTests
         Assert.Equal(0.0, MilWarMax(calm));
         Assert.True(tired.Nations.All(n => n.World.SelfPower!.WarExhaustion > 0), "前提：厭戦のストックが残っている");
         Assert.Equal(0.0, MilWarMax(tired));   // 厭戦→闘争度の目標項は外れた
+        // (1393) c148po 項 13：MilWar は書き手の無い欄＝0 の Assert だけでは項が戻っても気づけない。闘争度そのもの（人口加重の合計）が calm と tired で一致することも見る。
+        double MilTotal(MultiNationSim sim) => sim.Nations.Sum(n => n.World.AllPops().Sum(p => p.Militancy * p.Size));
+        Assert.True(MilTotal(calm) > 0, "前提：闘争度の合計が 0 でない（0 どうしの一致で緑にならない）");
+        Assert.Equal(MilTotal(calm), MilTotal(tired));   // 厭戦のストックの有無で闘争度が動かない
         foreach (var name in new[] { "清", "ロシア" })
         {
             double m0 = calm.Nations.First(n => n.World.SelfPower!.Name == name).World.DynasticMandate;
