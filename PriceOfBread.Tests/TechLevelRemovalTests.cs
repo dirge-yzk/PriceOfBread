@@ -19,9 +19,10 @@ public class TechLevelRemovalTests
     [
         // (1338) c140dz：BilateralMarket.cs の行（frontierTech の周回）と InstrumentsScalars.cs の行（freightRevolution の列）を消した・MultiNationSim.cs 8→7（許可表の行を消すだけ）
         ("PriceOfBread.SimCore", "Discovery.cs", 2),
-        // (1399) c149wx 項 6：InstrumentsMigcap.cs の行（McEra の EraFactor）と Military.cs の行（海軍燃料の EraFactor）と MultiNationSim.cs の 1 行（疫病の距離の EraFactor）を消した＝許可表の行を消す・7→6（件数の予言どおり）
+        ("PriceOfBread.SimCore", "InstrumentsMigcap.cs", 1), // (1349) 計器 migcap_s の距離の時代の係数（エンジンの移民と同じ入力を写す・記録・Instruments.On のときだけ）
+        // (1399) c149wx 項 6：Military.cs の行（海軍燃料の EraFactor）だけを消した＝許可表の行を消す（件数の予言どおり）。Territory・MultiNationSim・Migcap の EraFactor は外さない（外すと EraEpidemicRange・EraMigrationScale の読み手が 0 になり DormantIdentityTests が赤）
         ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
-        ("PriceOfBread.SimCore", "MultiNationSim.cs", 6),
+        ("PriceOfBread.SimCore", "MultiNationSim.cs", 7),
         ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
         ("PriceOfBread.SimCore", "World.cs", 3),   // (1160) c114sr D-r2：4→3（World.cs:1956 の EraFactor(WorldTechLevel, EraTensionRange) の行を消した）
         ("PriceOfBread.Runner", "Program.cs", 2),

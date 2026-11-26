@@ -2418,7 +2418,7 @@ public sealed class Diplomacy
                 war.Score = aLoses ? -impose : impose;
             }
             if (wexOn && cpOn && !(fpBlank && war.ForcedPeace) && WarEnds(war)) cpLoser = war.Score > 0 ? war.B : war.Score < 0 ? war.A : null;   // 旗 1：負け手は戦勝点の符号（ResolvePeace と同じ読み）
-            if (Instruments.On) Instruments.WexitRow(this, c, war);   // 計器（読むだけ・旗 0 でも同じ行を書く）
+            Instruments.WexitRow(this, c, war);   // 計器（読むだけ・旗 0 でも同じ行を書く・On の判定は計器の中）
             bool decisive = Math.Abs(war.Score) >= 1.0;
             // 早期講和（革命圧力で前倒し）。〔履歴 Diplomacy.cs#261〕
             bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * aCut) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * bCut);

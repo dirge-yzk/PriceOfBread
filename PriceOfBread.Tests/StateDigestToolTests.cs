@@ -72,8 +72,9 @@ public class StateDigestToolTests
         var diff = FirstDiff(Run(1789, 1, 4, null).ToList(), Run(1789, 1, 4, c).ToList());
         Assert.NotNull(diff);
         Assert.True(diff!.Value.Q <= 1 && diff.Value.Group.StartsWith("sim"), $"{diff}");
-        // (1399) 係数の欄を外しても、シミュの状態（係数ではない群）のずれが四半期 1 以内に拾える（係数の群だけで緑にならない）
-        var state = FirstDiff(Run(1789, 1, 4, null).ToList(), Run(1789, 1, 4, c).ToList(), skipCoef: true);
+        // (1399) 係数の欄を外しても、シミュの状態（係数ではない群）のずれが四半期 1 以内に拾える（係数の群だけで緑にならない）。SupplySlope は既定の道で読まれず 1e-8 も 0.9 も状態へ届かない（係数の群だけが分かれる）＝状態へ届く MigrationDistanceScale（1 四半期で非係数の 62 群が分かれる）で見る
+        var big = new Coefficients { MigrationDistanceScale = 3000.0 };
+        var state = FirstDiff(Run(1789, 1, 4, null).ToList(), Run(1789, 1, 4, big).ToList(), skipCoef: true);
         Assert.NotNull(state);
         Assert.True(state!.Value.Q <= 1 && !state.Value.Group.Contains("_coef"), $"シミュの状態のずれを拾えない：{state}");
     }

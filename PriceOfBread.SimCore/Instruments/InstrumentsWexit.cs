@@ -41,7 +41,7 @@ public static partial class Instruments
     /// <summary>月の戦況の更新の直後（出口の判定の前）に 1 戦争 1 行。</summary>
     internal static void WexitRow(Diplomacy d, Coefficients c, War war)
     {
-        if (!Tg.Cede || !Wants("wexit_s")) return;
+        if (!On || !Tg.Cede || !Wants("wexit_s")) return;
         var st = WxStates.GetValue(d, _ => new WxState()); var cps = CpOf(d);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
         double kA = WxK(war.A, c), kB = WxK(war.B, c), s = war.Score;
