@@ -1,0 +1,4 @@
+# (1398) scan HEAD=f6531fb9b 汚れ=11 2026-11-27 03:52:53
+# filter=FullyQualifiedName~SatReadersToDiscontentTests|FullyQualifiedName~PolicyPoliticsTests|FullyQualifiedName~CreditTests|FullyQualifiedName~FiscalTests|FullyQualifiedName~IdeaNeedBoardTests|FullyQualifiedName~RevoltIgnitionTests|FullyQualifiedName~PrdsShadowTests|FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~DiscontentReaderTests|FullyQualifiedName~DiscontentSplitTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~DerivedValueRatchetTests|FullyQualifiedName~ValueCountRatchetTests
+scan rc=0 合計 1 個のテスト ファイルが指定されたパターンと一致しました。 成功!   -失敗:     0、合格:   374、スキップ:     0、合計:   374、期間: 1 m 49 s - PriceOfBread.Tests.dll (net10.0) 
+SCANDONE 2026-11-27 03:55:06
