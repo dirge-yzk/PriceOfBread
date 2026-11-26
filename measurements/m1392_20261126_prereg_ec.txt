@@ -1,0 +1,36 @@
+m1392 事前登録（(1392) c148ec・恒等・経済の一元化と bb の残り）  基準＝m1383・木 870ce5520
+作者 2026-11-26「恒等は可能な限りまとめてしまうのが良いように感じる」・分け方は AI の推奨（作者「全て推奨で」で推奨を採った）。
+
+[1] 恒等の線・予言 0（挙動の線ではない）
+  - 素の 5 種は b5_20261126_m1383 と名乗り行を除いて全行一致。
+  - 計器つき 10 種は b10_20261126_m1383_ins と、region_s の workerSinkShareEnd の列を除いて一致（段 2・宣言した列の違い）。
+  - savetest OK（最終行が savetest OK で始まり値の違い 0）。.cost は +0。
+  - テストの数は +3（InstrumentColumnTests に WorkerSinkShare・InputPricePerUnit の 2 本、既存の書き換えで増減なし）→ 3282 から 3284 の見込み。
+  - .Value の数は減る向き（B05 で EconomyStep の 1 件が Remaining に変わる）。増えたら増やした項を外す。
+
+[2] 項と、消す物・残す物・読み手
+  1 bb① WorkerSinkShare の母集合（Instruments/InstrumentsTransport.cs）：IsLaborGood と設備つき倒産を外す・閾 WorkerSinkFillThreshold=0.05 を名乗る。読み手＝Instruments.cs:2167 の region_s の行だけ・Tests/InstrumentColumnTests。Runner・App・Display に読み手なし（grep 済み）。
+  2 bb② InputPricePerUnit の投入 2 つの試験（小銃＝鋼 0.6・材木 0.4）を足す。
+  3 bb③ UrxInstrumentTests・TradeSkipC4dTests の列の位置の検査を列名の検査へ。
+  4 A1-01 SellerReach（BilateralMarket.cs・private static）：access×軍需の輸出の届き×孤立の輸出の因子×阿片の漏れ・掛ける順は同じ。
+  5 A1-02 RefGold（BilateralMarket.cs・private static）：RefPrice×PriceLevel×為替・同じ順。7 か所（計器の 2 行を含む）。
+  6 A1-03 は外す：HumanFarmLabor は Capacity>0 の和・LaborPopIndex を問わない／LaborSupply は最初の LaborPopIndex に合う分の和＝和の取り方が違い、恒等と言える形が無い。
+  7 A1-04 HumanFarmLabor の絞り込みを IsHumanLaborSupply へ（同じ 3 条件）。
+  8 A1-05 は外す：Region.ClergyPopIndex・InvestorPopIndex の既定は −1＝範囲の外が来る盤面があり（SlotPop は −1・LandShareRecipient は持ち主へ）、来ないことを示せない。
+  9 A1-06＋A1v-N4：Territory.cs の産出の参照価値を Region.OutputRefValue へ（同じ式・同じ順）。World.cs の byOut の 2 回の同じ積を 1 回に（和の順は変えない）。
+  10 A1-10 EraFactor は外す：App の GameViewModel.Politics.cs:624 が c.EraFactor と EraNavalFuel を読む＝消すと App が組めない（App は 0 行の決まり）。名を〈次の波〉5 の束へ報告。
+  11 A1-16 は外す：1.0+(pabs−1.0)×1.0 と pabs は丸めが違う（r1127 の台帳が〈ビットが変わる＝区分 II〉と記録済み）。
+  12 A1-18 SoftBandLn の軟らかい帯を SoftT(…,1) へ（1×x は x と同じビット）。ServiceClosed と PinnedClosed の 2 次の展開を SecondOrderCoef と SecondOrderEh の 2 本へ（式は同じ）。
+  13 B05 IndInvestmentFrac を RatePerMonth から FractionPerMonth へ（EconomyStep:773 の 1.0−x は Remaining）。試験 UnitTypeTests:303 の型の表を同じコミットで書き換える（㉜ の改め）。読み手＝EconomyStep.cs:773・:1017・Runner/Program.cs:828（.Value を使う補間＝同じ書式）。
+  他の線との重なり：c148tk は Simulation.cs・MultiNationSim.cs の計時の行・c148po は Diplomacy.cs・Politics.cs ほか＝本線の持ち主の行と重ならない（BilateralMarket.cs・MarketFlow.cs・Territory.cs・World.cs:1190〜・EconomyStep.cs:55・:773 は本線だけ）。
+
+[3] 足す試験と突然変異
+  - InstrumentColumnTests.WorkerSinkShare_労働の財と設備つきの倒産は母集合から外れる：μ3（倒産の生産者を母集合へ戻す）で赤。
+  - InstrumentColumnTests.InputPricePerUnit_投入が2つの盤面は値段と量の積の和：投入の 1 つを数え落とす変異で赤。
+  - μ1：A1-01 の SellerReach の孤立の因子を外す → ident（試験の腕でなく帯）が赤になる見込みだが、帯の腕は使い捨ての木で回さない＝BilateralMarket の既存の成約の試験が赤になるかを確かめる（赤にならなければ穴として名乗る）。
+  - μ2：A1-05 は外したので変異は置けない（報告）。
+  - ㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）を器のコミットの直後に回す。
+  - 書き換える試験の件数の予言：UnitTypeTests の型の表 1 行（RatePerMonth→FractionPerMonth）・UrxInstrumentTests 1 行・TradeSkipC4dTests 1 行。ValueCountRatchetTests の件数の番人は EconomyStep の .Value が 1 減る場合だけ書き換える（予言：書き換えは 0〜1）。
+
+[4] 成績表：素の 5 種・計器つき 10 種が m1383 と全行一致（計器の表の差は宣言した列だけ）。
+[5] 〈判定: 恒等〉なら採る。一致しなければ二分探索で項を名指して外し、直さずに名を報告する。
