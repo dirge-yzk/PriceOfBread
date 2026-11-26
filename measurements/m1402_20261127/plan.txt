@@ -1,0 +1,12 @@
+(1402) c149rh 読む線 計画（腕 0 本・コミットしない・合流が measurements/m1402_*/ と scripts/instruments/r1402/ へ写す）
+作業の場所：D:/PoB_work/r1402_work/（out/ に表）・台本 scripts/instruments/r1402/（コミットしない）
+worktree と枝は作らない（読むだけ・main の作業ツリーは読みだけ）。
+読む生：
+- 基準 M：D:/PoB_work/keep_1397/base_ins（木 6056269fc・m1383 と成績表が全行一致）
+  region_s（四半期・末尾 7 列 workerSinkShareEnd・stapleImportPerMonth・stapleProducedPerMonth・gdpOutputShareEnd ほか）
+  sellr_s・prodcap_s・tsreg_s（10 年ごとの標本）・trrail_s（年・州）・fd_s・goods_s
+  fsx_s（返済の列）・fiscal_s（月）・casualty_s・wars_s・warband_s・scalars・center_s ほか
+- ヌル腕：D:/PoB_work/keep_1383/n1・n2・a11（87 表＝region_s の末尾 7 列・fsx_s は無い）
+- 前の読み：measurements/m1381_20261126/・m1388_20261126/・scripts/instruments/r1381・r1388
+ソース：EconomyStep.cs（労働の重み）・Fiscal.cs（返済）・Instruments の FsxRepay・Politics.cs（闘争度・保持力）・死傷と徴兵の書き手と読み手
+問い：1 バーミンガムの吸い込み／2 英の国債の型 R／3 戦時の代わりの道の残り 2 本（死傷・徴兵）／4 直す線を起こすか
