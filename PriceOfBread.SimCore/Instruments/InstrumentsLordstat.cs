@@ -72,7 +72,7 @@ public static partial class Instruments
                     if (!p.IsCriminal && p.IsCommoner && !p.IsModernElite && p.LastEarnedPerMonth.Value > 0) tithBase += p.LastEarnedPerMonth.Value;
                 }
             if (!clergyHere) tithBase = 0;
-            bool parl = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic;
+            bool parl = PolicyPreferences.HasLegislature(w.Polity);
             var bnow = w.Bureaucracy; var bnext = LdBureaucracyNext(bnow); var lr = w.LandReform;
             double estNow = LdEstate(bnow), estNext = LdEstate(bnext), imNow = LdIntermediary(bnow, lr), imNext = LdIntermediary(bnext, lr);
             double popW = 0, moves = 0, dropSum = 0, aboveW = 0, cutDen = 0, cutNum = 0, adminLoss = 0, rhoNum = 0, rhoDen = 0;

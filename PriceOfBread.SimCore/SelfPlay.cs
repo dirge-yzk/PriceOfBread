@@ -962,7 +962,7 @@ public sealed class UtilityAgent : INationAgent
                 p.EducationSpendingTarget = Math.Max(p.EducationSpendingTarget, 0.4);
                 p.Censorship = CensorshipLaw.StatePressOnly;
                 p.LaborUnion = LaborUnionLaw.Illegal;
-                if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && DoctrineFrom(w) == Doctrine.Militarist)
+                if (PolicyPreferences.HasLegislature(w.Polity) && DoctrineFrom(w) == Doctrine.Militarist)
                     p.Suffrage = Suffrage.Census;
                 break;
         }
@@ -990,7 +990,7 @@ public sealed class UtilityAgent : INationAgent
             p.Suffrage = Suffrage.AdultMale;
 
         if (w.ParliamentEnabled && w.PoliticsEnabled && !w.InCivilWar
-            && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic)
+            && PolicyPreferences.HasLegislature(w.Polity))
         {
             if (w.GoverningParty == (int)Parliament.Party.Liberal)
             {
