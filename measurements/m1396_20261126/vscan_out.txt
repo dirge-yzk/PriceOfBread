@@ -1,0 +1,21 @@
+Legitimacy: writers 12 inputs 10 outputs 47
+WarExhaustion: writers 3 inputs 7 outputs 31
+DynasticMandate: writers 2 inputs 1 outputs 4
+Satisfaction: writers 1 inputs 2 outputs 12
+Consciousness: writers 2 inputs 1 outputs 14
+InCivilWar: writers 0 inputs 0 outputs 9
+FiscalFundingRatio: writers 2 inputs 2 outputs 31
+FoodFill: writers 2 inputs 3 outputs 21
+DiscontentOf: calls 2
+InCrisis: calls 0
+WarCapacity: calls 0
+KOf: calls 0
+WarEnds: calls 0
+WarGateOpen: calls 2
+CanOfferPeace: calls 2
+UnificationWarBlock: calls 3
+ReformistPower: writers 1 inputs 1 outputs 5
+RadicalPower: writers 1 inputs 1 outputs 4
+EffectiveCoerce: calls 6
+RevolutionPressure: calls 1
+CivilWarOf: calls 0

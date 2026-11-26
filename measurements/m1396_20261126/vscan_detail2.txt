@@ -1,0 +1,20 @@
+ReformistPower	read	CrownParliament.cs:55
+ReformistPower	write	Politics.cs:325	local:reformist
+ReformistPower	read	Politics.cs:146
+ReformistPower	read	Politics.cs:195
+ReformistPower	read	Politics.cs:1131
+ReformistPower	read	Simulation.cs:2579
+RadicalPower	read	CrownParliament.cs:55
+RadicalPower	write	Politics.cs:326	local:radical
+RadicalPower	read	Politics.cs:146
+RadicalPower	read	Politics.cs:195
+RadicalPower	read	Politics.cs:1131
+EffectiveCoerce	call-or-decl	Crime.cs:11
+EffectiveCoerce	call-or-decl	CrownParliament.cs:55
+EffectiveCoerce	call-or-decl	PoliticalQuantities.cs:7
+EffectiveCoerce	call-or-decl	Politics.cs:146
+EffectiveCoerce	call-or-decl	Politics.cs:286
+EffectiveCoerce	call-or-decl	Politics.cs:940
+EffectiveCoerce	call-or-decl	Politics.cs:1131
+RevolutionPressure	call-or-decl	Diplomacy.cs:2331
+RevolutionPressure	call-or-decl	Politics.cs:1130

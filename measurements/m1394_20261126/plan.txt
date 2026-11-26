@@ -1,0 +1,16 @@
+(1394) c148rv 読む：V-01 の腕 B で種 5 ライン諸邦が名目 GDP を 0 近くへ落とす根
+作業の場所：D:/PoB_work/r1394_work/（台本・表・下書き）。台本の写しは scripts/instruments/r1394/ に置くが、コミットしない（合流が measurements/m1394_*/ へ写す）。
+worktree・枝は作らない（main の木を読むだけ・HEAD 870ce5520）。腕 0 本。.cs・試験に触れない。
+
+読む生（読むだけ・消さない・移さない）
+- B   ：D:/PoB_work/keep_1390_rej/c147vsB_10/ins（腕 B・旗 SoldierPayBillPrevMonth 1・11 表＝casualty fiscal inheritintent inheritpar migration nation pxmonth region scalars stock wars）
+- base：D:/PoB_work/keep_1390/base_ins（m1390 の木 3227da768 の全表・列は列名で引く）
+- N2  ：D:/PoB_work/keep_1383/n2（種 1 ウジジ王国）
+- N1・a11：D:/PoB_work/keep_1383/n1・a11（記録の比べだけ）
+読む文書
+- origin/c147vs:measurements/m1384_20261126/*（git show）
+- measurements/m1390_20261126/
+- 止める線の台本：stoplines906・gdp_jump833/906・scripts/instruments/m808/gdp_zero10.py
+- 読み込みの台本：scripts/instruments/r1388/・r1389/
+- ソース：Simulation.cs の兵の給与の請求書→SpendableRevenue→軍の枠と行政の予算
+問い：指示文の 1〜5

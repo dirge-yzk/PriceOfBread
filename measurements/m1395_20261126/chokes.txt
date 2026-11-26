@@ -1,0 +1,101 @@
+  {
+   "suzerain": "マラータ同盟",
+   "dependent": "デリー"
+  }
+ ],
+ "chokepoints": [
+  {
+   "id": "gibraltar",
+   "name": "ジブラルタル海峡",
+   "host": "ジブラルタル",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "servesBasins": [
+    "Mediterranean",
+    "BlackSea"
+   ],
+   "exitOfBasin": "Mediterranean"
+  },
+  {
+   "id": "bosporus",
+   "name": "ボスポラス海峡",
+   "host": "イスタンブール",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "servesBasins": [
+    "BlackSea"
+   ],
+   "exitOfBasin": "BlackSea"
+  },
+  {
+   "id": "malacca",
+   "name": "マラッカ海峡",
+   "host": "マレー",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "servesBasins": [
+    "Pacific"
+   ]
+  },
+  {
+   "id": "suez",
+   "name": "スエズ運河",
+   "host": "カイロ",
+   "isOpen": false,
+   "isCanal": true,
+   "buildCost": 150000,
+   "requires": "汽船",
+   "servesBasins": [
+    "IndianOcean",
+    "Pacific"
+   ]
+  },
+  {
+   "id": "panama",
+   "name": "パナマ運河",
+   "host": "パナマ",
+   "isOpen": false,
+   "isCanal": true,
+   "buildCost": 400000,
+   "requires": "ダイナマイト",
+   "servesBasins": [
+    "Pacific"
+   ]
+  },
+  {
+   "id": "oresund",
+   "name": "エーレスンド海峡",
+   "host": "コペンハーゲン",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "servesBasins": [
+    "Baltic"
+   ],
+   "exitOfBasin": "Baltic"
+  },
+  {
+   "id": "hormuz",
+   "name": "ホルムズ海峡",
+   "host": "マスカット",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "servesBasins": [
+    "IndianOcean"
+   ]
+  },
+  {
+   "id": "bab_el_mandeb",
+   "name": "バブ・エル・マンデブ海峡",
+   "host": "アデン",
+   "isOpen": true,
+   "isCanal": false,
+   "buildCost": 0,
+   "servesBasins": [
+    "RedSea"
+   ],
+   "exitOfBasin": "RedSea"

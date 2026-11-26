@@ -1,0 +1,10 @@
+(1395) c148rt への反証役 v の訂正（(1397) 合流が写した・反証役 Opus・AI・summary.txt と表は書き換えていない）
+
+- 中：A7〈World.LastBlockadeRisk は git の全履歴で代入が 0〉は SimCore の中だけ。PriceOfBread.Tests/WarThemeTests.cs:1129 の拿捕の試験が `fr.LastBlockadeRisk = 0.5;` と書く。PrizeCargoShare は 1.0（Coefficients.p06_rank_discovery.cs:65）＝Diplomacy.cs:740 の prizeRaw は試合の中で常に 0＝拿捕の機構は試合で丸ごと働いていない。〈読み手を消す〉形は拿捕・保険の給付・封鎖の厭戦の 3 つを消すのと同じ形で、WarThemeTests の拿捕の試験の書き換えが要る。
+- 低：A3 の 1 組あたりの値は、残っている out/a3_speed.tsv では 2.526 ns と 18.376 ns（7.27 倍・+1.3 秒）で、報告の 4.0 ns・22.6 ns（+1.6 秒）と違う（runAll で上書き・走るたびに 40〜60% ぶれる・他の dotnet が動く中の 1 スレッド）。計算量の登録 2.0 秒の根拠は +1.3〜1.6 秒の幅で書く。
+- 低：A5 の〈selP/lp が 0.5 未満の組が 20〜29%〉の 0.5 は門の式から出た値でない（risk 1 でも fac は 2.18＋0.18·km/1e4 以上）・ratioBin は売り切れや上限で落ちた組も含む＝上限の目安。通った組は xPassBin で数え直す。
+- 低：B の〈池÷BuildCost〉の池は capinv_s の capitalistSavingsStock（本国格の州だけ・投資家の POP 1 つ・max(0) なし）による近似。エンジンの StepCanals は全ての州の〈IsModernElite かつ兵士でない〉POP を max(0) で数える。結論（池が費用を大きく超える）は動かない〈推〉。
+- 低：〈交戦中の拠出停止は 20 件とも除いた国が 0〉は、正しくは〈スエズ 10 件で 0・パナマ 10 件は持ち主が生に無く数えられない〉。
+- 低：out/b_canal_series.tsv の year 列は 1783+q//4（生は 1783+(q+1)//4）で、1 年ずれる行がある（seed の表は生の年）。
+- 低：A5 の行番号 :608 natAnyHostile は 870ce5520 で BilateralMarket.cs:609。
+- 写さなかった表（大きい・D:/PoB_work/r1395_work/out に残る・台本 a8_*.py で作り直せる）：a8_route.tsv（6.9MB）・a8_land.tsv・a8_sea_nodes.tsv・a8_sea_ports.tsv。

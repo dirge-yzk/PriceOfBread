@@ -1,0 +1,136 @@
+        }
+
+        var dip = nations[0].World.Diplomacy;
+        Chokepoint? Cp(string id) { if (dip is not null) foreach (var c2 in dip.Chokepoints) if (c2.Id == id) return c2; return null; }
+        var suez = Cp(Diplomacy.SuezId); var pan = Cp(Diplomacy.PanamaId);
+        bool Blocked(World w, Chokepoint? cp) => cp is { Owner.Nation: not null } && cp.Owner != w.SelfPower && dip is { } d && w.SelfPower is { } sp && d.IsAtWar(sp, cp.Owner!);
+
+        var tr = sc.Tr; int tc = 0;
+        var transitPortOwner = sc.TransitPortOwner; transitPortOwner.Clear();
+        for (int i2 = 0; i2 < nn; i2++)
+            foreach (var r2 in nations[i2].World.Regions)
+                if (r2.IsPort) transitPortOwner.TryAdd(r2.Name, i2);
+        var transitUses = sc.TransitUses; transitUses.Clear();
+        var natHostility = ClearScratch.Fit(ref sc.NatHostility, nn);
+        var natAnyHostile = ClearScratch.Fit(ref sc.NatAnyHostile, nn);
+        var suezOkN = ClearScratch.Fit(ref sc.SuezOkN, nn); var panOkN = ClearScratch.Fit(ref sc.PanOkN, nn);
+        var railByRegN = ClearScratch.Fit(ref sc.RailByRegN, nn); var railTgtN = ClearScratch.Fit(ref sc.RailTgtN, nn);
+        var railEvenN = ClearScratch.Fit(ref sc.RailEvenN, nn); var railPotN = ClearScratch.Fit(ref sc.RailPotN, nn);
+        ClearingSerial++;
+        for (int i = 0; i < nn; i++)
+        {
+            var W = nations[i].World;
+            suezOkN[i] = suez is { IsOpen: true } && !Blocked(W, suez);
+            panOkN[i] = pan is { IsOpen: true } && !Blocked(W, pan);
+            natHostility[i] = dip is { } dH && W.SelfPower is { } spH ? dH.BasinHostility(spH) : new double[Basins.Count];
+            bool any = false; foreach (var hv in natHostility[i]) if (hv > 1e-9) { any = true; break; }
+            natAnyHostile[i] = any;
+            double natAccess = W.ExternalTradeAccess();
+            var shareBasis = Transport.ShareBasis(W, c);
+            bool byReg = railByRegN[i] = W.Coef.RailByRegion > 0;
+            railTgtN[i] = byReg ? Transport.Target(W, W.Coef) : 0.0; railEvenN[i] = shareBasis.Even; railPotN[i] = W.Coef.RailNeedByOutput > 0 ? double.NaN : shareBasis.TotalPot;   // (1137) 旗 1：産出の和は下の φ で線路のあ�
+            double railCapNat = byReg ? 0.0 : W.RailCapacity + Transport.PreRailCapacity(W, c);
+            double preRail = byReg ? Transport.PreRailCapacity(W, c) : 0.0;
+            double shipCapNat = W.ShipCapacity / (1.0 + W.ColonialShipBurden);
+            foreach (var r in W.Regions)
+            {
+                double share = Transport.RegionShare(shareBasis, r);
+                double railToPort = byReg ? r.RailTrack + preRail * share : railCapNat * share;
+                double shipEff = shipCapNat * share;
+                if (firstClearingOfQuarter) { r.LastPortThroughput = 0; r.LastLandPartnerName = ""; r.LastLandPartnerFlow = 0; }
+                portStart[r] = r.LastPortThroughput;
+                var cc = Climate.CityCoord(r.Name);
+                double lat = cc.Lat, lon = cc.Lon, landKm = 0; bool linked = r.IsPort;
+                if (!r.IsPort && r.NearestPortName.Length > 0)
+                {
+                    var pc = Climate.CityCoord(r.NearestPortName);
+                    if (pc.Lat != 0 || pc.Lon != 0) { lat = pc.Lat; lon = pc.Lon; landKm = r.PortLandKm; linked = true; }
+                }
+                else if (!r.IsPort && r.TransitPortName.Length > 0)
+                {
+                    r.LastTransitPortName = "";
+                    for (int cix = 0; cix < 2; cix++)
+                    {
+                        string tName = cix == 0 ? r.TransitPortName : r.TransitPort2Name;
+                        double tKm = cix == 0 ? r.TransitLandKm : r.TransitLand2Km;
+                        if (tName.Length == 0 || !transitPortOwner.TryGetValue(tName, out int oi)) continue;
+                        if (oi != i && dip is { } dT && W.SelfPower is { } spT && nations[oi].World.SelfPower is { } opT && dT.IsAtWar(spT, opT)) continue;
+                        var pcT = Climate.CityCoord(tName);
+                        if (pcT.Lat == 0 && pcT.Lon == 0) continue;
+                        lat = pcT.Lat; lon = pcT.Lon; landKm = tKm; linked = true;
+                        r.LastTransitPortName = tName;
+                        if (oi != i) transitUses.Add((i, oi, r));
+                        break;
+                    }
+                }
+                if (lat == 0 && lon == 0) linked = false;
+                if (linked && Climate.PortFrozen(lat, lon, W.Quarter - 1)) { linked = false; r.LastPortFrozen = true; }
+                else r.LastPortFrozen = false;
+                double portBonus = c.PortCapToThroughput * r.PortCapacity;
+                double inlandRail = railToPort;
+                if (!r.IsPort && r.NearestPortDistanceKm > 1e-9)
+                    inlandRail = InlandRailAfterDecay(railToPort, r.NearestPortDistanceKm);
+                double cap = (r.IsPort ? shipEff : Math.Min(inlandRail, shipEff)) + portBonus;
+                r.LastTransportCap = cap;
+                bool seaOk = linked;
+                if (c.LandRouteEnabled > 0 && (cc.Lat != 0 || cc.Lon != 0)) linked = true;
+                if (tc == tr.Length) { Array.Resize(ref sc.Tr, tr.Length * 2); tr = sc.Tr; }
+                tr[tc++] = (i, r, lat, lon, landKm, natAccess, cap, linked, cc.Lat, cc.Lon, seaOk);
+            }
+        }
+        var seaNodeOf = ClearScratch.Fit(ref sc.SeaNodeOf, tc); var seaHalf = ClearScratch.Fit(ref sc.SeaHalf, tc);
+        for (int t0 = 0; t0 < tc; t0++)
+        {
+            int sn = SeaGraph.NearestSeaNode(tr[t0].lat, tr[t0].lon);
+            seaNodeOf[t0] = sn;
+            seaHalf[t0] = Geo.DistanceKm(tr[t0].lat, tr[t0].lon, SeaGraph.Nodes[sn].Lat, SeaGraph.Nodes[sn].Lon);
+        }
+        var terrCost = ClearScratch.Fit(ref sc.TerrCost, tc);
+        var landRatio = ClearScratch.Fit(ref sc.LandRatio, tc);
+        var railFrac = ClearScratch.Fit(ref sc.RailFrac, tc);
+        double rcf01 = PoliticalQuantities.Clamp01(c.RailCostFraction);
+        for (int t0 = 0; t0 < tc; t0++)
+        {
+            int nt0 = tr[t0].nation;
+            if (railByRegN[nt0])
+            {
+                var rr = tr[t0].r; int tiR = (int)rr.Terrain;
+                double bh = tiR < c.TerrainHorseCost.Length ? c.TerrainHorseCost[tiR] : 1.0;
+                double br = (tiR < c.TerrainRailCost.Length ? c.TerrainRailCost[tiR] : 1.0) * rcf01;
+                if (rr.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) { bh = c.TerrainWaterMajorCost; br = bh * rcf01; }
+                else if (rr.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) { bh = c.TerrainWaterMinorCost; br = bh * rcf01; }
+                var wR = nations[nt0].World;
+                if (double.IsNaN(railPotN[nt0]) && rr.RailTrack > 0) railPotN[nt0] = wR.GdpPerMonth.Value;   // (1137) T＝0 の州は φ＝0 で取り分を読まない＝線路の無い国は和を取らない
+                double phi = Transport.RailPhi(rr.RailTrack, railTgtN[nt0] * Transport.RailNeedShare(wR, (railEvenN[nt0], railPotN[nt0]), rr));
+                double m1 = (1.0 - phi) * bh + phi * br;
+                terrCost[t0] = m1;
+                landRatio[t0] = c.LandSeaCostRatio;
+                railFrac[t0] = phi > 0 && m1 > 0 ? phi * br / m1 : 0.0;
+                continue;
+            }
+            railFrac[t0] = 0.0;
+            var W0 = nations[nt0].World;
+            double rg0 = Discovery.RailTransport(W0.Discovered) ? 1.0 : 0.0;
+            landRatio[t0] = c.LandSeaCostRatio * (1.0 - rg0 * (1.0 - PoliticalQuantities.Clamp01(c.RailCostFraction)));
+            double rg = rg0;
+            int ti = (int)tr[t0].r.Terrain;
+            double horse = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0;
+            double rail = ti < c.TerrainRailCost.Length ? c.TerrainRailCost[ti] : 1.0;
+            double m0 = horse + rg * (rail - horse);
+            if (tr[t0].r.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) m0 = c.TerrainWaterMajorCost;
+            else if (tr[t0].r.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) m0 = c.TerrainWaterMinorCost;
+            terrCost[t0] = m0;
+        }
+        var landNode = ClearScratch.Fit(ref sc.LandNode, tc); var landGraft = ClearScratch.FitZero(ref sc.LandGraft, tc);
+        if (c.LandRouteEnabled > 0)
+            for (int t0 = 0; t0 < tc; t0++)
+            {
+                int nd = PathGraph.NearestNode(tr[t0].ownLat, tr[t0].ownLon);
+                landNode[t0] = nd;
+                landGraft[t0] = nd >= 0 ? Geo.DistanceKm(tr[t0].ownLat, tr[t0].ownLon, PathGraph.Nodes[nd].Lat, PathGraph.Nodes[nd].Lon) : 0;
+            }
+        else for (int t0 = 0; t0 < tc; t0++) landNode[t0] = -1;
+        if (TradeReachDiag.On)
+        {
+            TradeReachDiag.Begin(nn);
+            for (int t = 0; t < tc; t++)

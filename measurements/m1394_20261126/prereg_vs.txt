@@ -1,0 +1,103 @@
+# (1384) c147vs 事前登録（腕の前・最初のコミット）
+# 線：挙動・空き席 V-01（リファクタの洗い出し D:/PoB_work/refactor_audit_1126/merged.tsv の V-01・挙動・高）・3 回の規則の 1 回目
+# 形の種類：入口（同じ月の予算が読む請求書の時点の置き換え・新しい状態 0・新しい係数 0〔旗 1 本だけ〕・セーブの欄は既にある World.cs:805）
+# 木：0f9537d3e（main）から枝 c147vs・worktree D:/PoB_work/wt_c147vs
+# 作者 2026-11-26（原文）「ソース全体のリファクタをしておきましょう」＝答え待ちではない。闘争度・正統性・天命の式には触れない。Fiscal.cs と SelfPlay.cs の式は変えない。
+
+## 1. 置き換える旧の規則と形
+- 旧（Simulation.cs:1730）：月の決算の頭で World.LastSoldierPayPerMonth＝0 → 同じ月の予算が 0 を読む → 州のループ（:1875）で積み直す。
+- 新（旗 SoldierPayBillPrevMonth＝1）：頭で 0 を置かない＝同じ月の予算は前の月の請求書を読む。州のループは局所の和 billSum（MoneyPerMonth・州の順＝旧と同じ足し算の順）に積み、
+  ループの後に 1 回だけ World.LastSoldierPayPerMonth＝billSum。月の終わりの値は旧と同じ和（同じ盤面なら同じビット）。
+- 旗の宣言：Coefficients.p08_audit_soldiers.cs:11（FiscalBufferSoldierPayWeight の隣）・既定 0。DormantIdentityTests の DormantZeroFields に 1 行（:153・他の線の :148・:159・:161〜:162 と離した）。
+- 開幕の最初の月：新しい世界の請求書は 0（World の既定）＝最初の月は旧と同じく 0 を読む。助走（試走）の月の決算が書いた請求書は助走の明けに残る＝旗 1 なら明けの最初の月はそれを〈前の月の請求書〉として読む（記録）。
+- 新しい状態 0・新しい係数 0・係数のリテラルの書き換え 0。セーブ：欄は既にある＝savetest で往復を確かめる。
+
+## 2. 最初の手順の結果（直す前の木で・盤面は試験の中）
+- 盤面＝仏（NationConfig.France・1 四半期回した後）・幹部の給与の割合 0・1 か月回して請求書 B1 を作る・2 か月目の決算の直前に国庫を潤沢の線の上へ（差額は貯蓄の最も多い POP から移す＝基礎貨幣の保存）・
+  軍の予算の枠を前の月の請求の 1 割へ（枠＜給与の満額＝請求書＝枠）。期待値は潤沢の線の式を試験の中で手で書く（エンジンの OpulenceLineOf を呼ばない）。
+- 直す前の木（0f9537d3e＋試験だけ）：失敗 1・合格 1（measurements/m1384_20261126/flag0_tests_red.txt）
+  - 赤：二か月目の予算は前の月の請求書を読む＝2 か月目の請求書 8.199807458070357 ＝請求書 0 を読んだ枠 8.199807458070355（前の月の請求を読んだ枠は 7.776638715931238）
+  - 緑：月の終わりの請求書は州の給与の予算の和（旧でも成り立つ＝M2 の番人）
+  ＝線を閉じない（今の木は同じ月の予算が 0 を読む）。
+
+## 3. 読み手と、月の中のいつ読むか（grep で確かめた・0f9537d3e）
+| 読み手 | 月の中の時点 | 旗 1 で読む値 |
+|---|---|---|
+| Simulation.cs:1732 Military.EnvelopeOf → Military.cs:34 SpendableRevenue → World.cs:831 OpulenceLineOf → SelfPlay.cs:358 | 決算の頭（:1730 の後・積み直しの前） | 0 → 前の月の請求書（変わる） |
+| Simulation.cs:1756 EconomyStep.NavalPortSplit → FleetOrder(:392) → FleetTargetUnits → FleetAffordableCost(:355) → EconomyStep.cs:370 EnvelopeOf | 同上（指示の一覧に無い・grep で見つけた） | 0 → 前の月（変わる） |
+| Simulation.cs:1856 AdminBudget の SpendableRevenue・:1861 計器 Instruments.AdminBase（adminSpendableAtBudgetPerMonth） | 州のループ（積み直しの前） | 0 → 前の月（変わる） |
+| Fiscal.cs:171 OpulenceLineOf（返済の余り）＝Simulation.cs:2025 Fiscal.Step | 積み直しの後 | 今月の和（旗で同じ） |
+| Military.cs:69 EstablishmentOf → EnvelopeOf ＝ Simulation.cs:2034 Military.Step | 積み直しの後 | 今月の和（旗で同じ） |
+| SelfPlay.cs:47・:679（RelieveOpulence ＝ :1161 AI の手番）・PoliticalQuantities.cs:109（World.WarFever ← Diplomacy）・Meritocracy.Step（Simulation.cs:1605）・MultiNationSim.cs:1298 | 決算の外 | 月の終わりの値（旗で同じ） |
+| Display/FiscalTables.cs:93・:106（App の表示） | 決算の外 | 月の終わりの値（触らない） |
+- 周辺の点検（読むだけ）：LastMilitaryClaimPerMonth（:1877→新 :1881）は月の頭で 0 にしない（書き手は :1881 の 1 か所）＝同じ型は無い。
+  LastAdminClaimPerMonth・LastInterestPerMonth・LastRevenuePerMonth の書き手は Fiscal.cs:99〜:100（Fiscal.Step＝積み直しの後）＝同じ型は無い。別の線へ回す名は無し。
+
+## 4. 紙の台本（今の盤面 keep_1383/base_ins・scripts/instruments/c147vs/vs_paper.py）
+- 旧の記録 adminSpendableAtBudgetPerMonth＝請求書 0 で読んだ S0・R＝adminLastRevenueAtBudgetPerMonth。余り E＝(S0−R)×12／0.6。新は線が D＝0.5×5×B(前の月)×8 上がる。S1＝S0−0.6／12×min(E, D)。
+- 旗 1（measurements/m1384_20261126/paper_flag1_keep1383.txt）：国×月 180,180・線の上 109,238（0.606）・線の下〈差 0〉70,942・線の上で余りが消える 7,431
+  線の上の S1／S0：中央 0.9539・10% 0.8263・90% 0.9865・最小 0.2351／全ての国×月の平均 0.9549
+  国ごとの中央：普 0.978・日 0.980・米 0.920・露 0.959・墺 0.931・仏 0.925・オスマン 0.939・清 0.964・英 0.950
+- 旗 0（paper_flag0_keep1383.txt）：差 0 でない 0＝紙の台本は旗 0 で何も出さない（門の台本が〈何もしない実装〉で落ちることの確かめ）。
+- 1 次の見込み（新の木で国庫・請求書が動き返す分は含まない）。
+
+## 5. 予言（記録・門ではない）
+- 潤沢の線より上の国×月で SpendableRevenue が下がる（中央 −4.6%・10% で −17%）。軍の予算の枠（EnvelopeOf＝S に比例・戦の段の項を除く）・艦の予算（FleetAffordableCost）・行政の予算も同じ向き・同じ比。
+- 線より下の国×月（約 39%）は差 0（1 次）。
+- 予算が下がる分だけ国庫の溜まりは増える向き（潤沢の取り崩し RelieveOpulence と返済の余りは月の終わりの値を読む＝旗で同じ式）。
+- 兵の給与の支払い率（soldierPayFill）は枠が給与の満額より小さい国×月だけ下がる。軍の規模は下がる向き（小さい）。英の国債は返済の余りが増える向き〈推〉。
+- .cost：0 秒（分岐 1 本と局所の和＝計算は増えない）。割り当て 0 秒（上限 248.5・m1383 の余り 保守側 N2 で約 17.0 秒）。
+
+## 6. 門（腕 B の採否）
+### 止める線（この回の形をそのまま写す）
+- 破綻：クラッシュ・NaN・保存則（leakhunt）・savetest（最終行が〈savetest OK〉で始まり値の違い 0 の時だけ OK）・進行不能。
+- 発散：1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内はヌル腕の件数と並べる・政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期もヌル腕と並べる＝㊳）・1e10 倍以上。基準とヌル腕も同じ台本で数え直す。
+- 州の空洞化：ピークの 1/10 未満（an_h2.py -v4・規則 A2）の名簿の外で、この線が原因と読めた件だけ＝基線 keep_1383/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。
+- 推定の計算量 ＞248.5 秒（.cost）。
+- 機構と不変条件を守る試験の赤（ソースを走査する番人を含む）。
+### 桁の線
+- ng.sh（基準 rd:measurements/ng1383_20261126:m1383・出力フォルダは D:/… の形）：新しい NG・外れた NG を数える（記録）。NG にするのは〈歴史的に正しい挙動だと確証がなく、かつバランスを破壊する〉の両方の時だけ。
+### 単体の機構の試験（狙いどおり働いたか＝この線の主な門）
+- SoldierPayBillTests の 4 本（2 本×旗 1・0）が旗 1 の木で全て緑。旗 1 の枝を外した木（直す前の木）で〈前の月の請求書を読む〉が赤（§2 で確かめ済み）。
+### 記録だけ（門にしない）
+- nullgate.py（門 A′）・ヌル腕の幅・gdp_zero10（記録の段の先頭）・開幕の 1000 倍以上・英の国債の不履行の種の数・exact・near・NG の集合・補給崩壊の倍化・同じ盤面の新÷旧・空洞化 1/4 未満の件数。
+- 符号だけの門・〈最大以下〉の型の門は置かない。
+
+## 7. 突然変異ごとにどの門で赤か（㉚・使い捨ての木で確かめて measurements/m1384_20261126/mut/ へ）
+| 突然変異 | 中身 | 赤になる試験 |
+|---|---|---|
+| M1 | 旗 1 でも :1730 で 0 を置く（旧の頭の 0 を戻す） | 二か月目の予算は前の月の請求書を読む(1) |
+| M2 | 旗 1 で局所の和を書かない（:1879 の書きを消す） | 月の終わりの請求書は州の給与の予算の和(1)・二か月目の予算…(1) |
+| M3 | 旗を見ない（旗 0 でも新の形） | 二か月目の予算は前の月の請求書を読む(0) |
+- M1 は項を消した突然変異（新の読みを消す）＝盤面の試験で赤＝働いている。
+
+## 8. ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表：この線は Industrialization を読まない＝変化 0。
+- `new MoneyStock(`：SimCore の差分に 0 件（`new MoneyPerMonth(0)` を 1 件足す）＝変化 0 の予言。試験は SetTreasuryRaw と ApplyBakedSavings を使う（WriterRatchetTests の `.SetTreasuryRaw(` の行は Simulation.cs を数える＝試験のファイルは数えない〈推〉）。
+- route_anchors.tsv（scripts/instruments/flow262/）：Simulation.cs の鍵の行は World.Transfer の行だけ＝この線の行 0＝変化 0。
+- WriterRatchetTests の宣言の表：LastSoldierPayPerMonth の行は無い（grep 0）＝変化 0。
+- ValueScan（ValueCountRatchetTests）：SimCore の差分に `.Value` 0 件＝変化 0。
+- DormantIdentityTests：既定 0 の旗を DormantZeroFields に 1 行（旗 1 のコミットでこの行を ★ の注へ替える）。
+- 束：IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests（＋ValueCountRatchetTests・SoldierPayBillTests）を器のコミットの直後に回す。
+
+## 9. 旗 1 の木でフルスイートの番人が旧の規則を固定していないか（㉜ の grep・0f9537d3e）
+- 名で当たったクラス（SpendableRevenue・EnvelopeOf・AdminBudget・OpulenceLineOf・LastSoldierPayPerMonth・FiscalBufferSoldierPayWeight）：
+  FiscalTests（:468 の利回りの式・:1527〜:1557 は盤面で AdminBudget を置く）・FsxTests（:170 NaN の請求書）・InstrumentsTests（:743 行政の切り）・
+  MilitaryTests（:1228 器と給与・:1933 請求書の式・:2026 戦時の装備）・ModernizeReturnAndScoreTests（:230 盤面で置く）・PolicyPoliticsTests・TreasuryLedgerTests（:171〜:172 予算＝r×請求書）・UnitTypeTests（:147 型）。
+- 旧の規則〈同じ月の予算が 0 を読む〉そのものを固定する試験は見当たらない＝旗 1 で赤が出たら原因を読む。MilitaryTests:1228 の Arm は月の終わりに EnvelopeOf を読む（旗で同じ）・
+  :1933 は〈請求書＝Σ兵数×単価〉で器を 1e9 にする（器が縛らない＝旗で同じ見込み）・TreasuryLedgerTests:172 は月の終わりの請求書と州の予算の比（旗で同じ）。
+- 旗 1 の絞った試験：上のクラス＋㉘ の束＋SoldierPayBillTests＋FullLength（Category=FullLength）＋savetest＋leakhunt。
+
+## 10. 腕と生
+- 腕 Z（旗 0）：`bash scripts/instruments/ident/ident.sh run c147vsz --tree D:/PoB_work/wt_c147vs --work D:/PoB_work/ident_c147vs --tests-delta <--list-tests で数える>`（基準 m1383）。
+- 腕 B（旗 1）：`INS=1 bash scripts/instruments/batch.sh run c147vsB 10`（計器つき 10 種・種 1〜10・POB_INSTRUMENTS_NATIONS は batch.sh の既定 9 国）・表を絞る ⓪(a)。生は合流の判断まで消さない。
+- 新÷旧の同じ盤面の読み：エンジンに計器を足さない。旧の値は既存の列から代数で戻せる（線の上の国×月で S0＝S1＋0.6／12×D・S1 が R に張り付いた国×月は下限）＝読み手 vs_paper の型で数える（教訓① の代わりに名乗る）。
+- 計算量の割り当て 0 秒。D: は腕の前に〈35GB＋量〉を測る。
+
+## 追記 1（2026-11-26・旗 1 の絞った試験の後・腕 B の前・㊴）
+- 旗 1 の木 064edc73a の絞った試験：計器の束（FullyQualifiedName~Instrument）合格 502・スキップ 1・失敗 0。名で当たったクラス＋㉘ の束：合格 368・失敗 1。
+- 赤 1 本：WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11＝DiploHegemonScans〈外交：覇権の判定の国×国〉)＝1 種 40 四半期の実測 2,669,428（宣言 1,902,892・+40.3%）。
+- 区分：★(749)〈軌道の件数を写しただけの番人〉（計算量の宣言の表・機構の向きと大きさを主張しない）。この線は覇権の判定を数える処理を足していない
+  （差分は Simulation.cs の請求書の読む時点だけ）＝外交の顔ぶれが 40 四半期の軌道で変わった分。旧の盤面に番人を固定する形には当たらない（表の値を旗 1 の木の実測へ写すだけ・Assert の文と許し +2% は変えない）。
+- 直し：WriterRatchetTests:544 の宣言 1902892→2669428 を試験だけのコミットで。計算量は腕 B の .cost で読む（推定の秒が上限 248.5 の内か）。
+- 他の線（wb・bb・rk）も同じ行を写し直す見込み＝合流で解く（行 :544）。

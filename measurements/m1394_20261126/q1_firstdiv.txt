@@ -1,0 +1,15 @@
+totalPopulationK	0	1783	3579.321181	3580.312662
+populationK	0	1783	3579.321181	3580.312662
+soldierK	0	1783	18.42321599	18.42390798
+nominalGdpPerYear	0	1783	70768.86219	70664.34327
+priceLevel	0	1783	0.5498912997	0.5504799145
+adminSpendableAtBudgetPerMonth	0	1783	493.4132713	503.8545664
+revenueBaseMeanPerMonth	0	1783	488.925259	501.22998
+atWarMonths	34	1791	3	0
+polityCode	65	1799	4	0
+integratedRegions	83	1804	0	1
+nonCoreRegions	83	1804		I:ÉEÉBÅ[Éì;
+nreg	83	1804	1	2
+colonialRegions	321	1863	0	2
+coreRegions	377	1877	1	0
+civilWarMonths	378	1877	0	3

@@ -1,0 +1,119 @@
+                foreach (var (km, j) in cand)
+                    if (!CrossesLand(i, j)) { want.Add((System.Math.Min(i, j), System.Math.Max(i, j))); break; }
+        }
+        var passagePairs = new HashSet<(int, int)>();
+        var passageRows = LoadJson<PassageRow[]>("passages.json");
+        foreach (var pr in passageRows)
+        {
+            int pa = System.Array.FindIndex(Nodes, x => x.Name == pr.A);
+            int pb = System.Array.FindIndex(Nodes, x => x.Name == pr.B);
+            if (pa >= 0 && pb >= 0) passagePairs.Add((System.Math.Min(pa, pb), System.Math.Max(pa, pb)));
+        }
+        {
+            var uf = new int[n];
+            for (int i = 0; i < n; i++) uf[i] = i;
+            int Find(int x) { while (uf[x] != x) { uf[x] = uf[uf[x]]; x = uf[x]; } return x; }
+            foreach (var (a, b) in want) { int ra = Find(a), rb = Find(b); if (ra != rb) uf[ra] = rb; }
+            foreach (var pr in passageRows)
+            {
+                if (pr.ChokeId is "suez" or "panama") continue;
+                int pa = System.Array.FindIndex(Nodes, x => x.Name == pr.A);
+                int pb = System.Array.FindIndex(Nodes, x => x.Name == pr.B);
+                if (pa >= 0 && pb >= 0) { int ra = Find(pa), rb = Find(pb); if (ra != rb) uf[ra] = rb; }
+            }
+            while (true)
+            {
+                int bi = -1, bj = -1; double bkm = double.PositiveInfinity;
+                for (int i = 0; i < n; i++)
+                    for (int j = i + 1; j < n; j++)
+                    {
+                        if (Find(i) == Find(j)) continue;
+                        double km2 = Geo.DistanceKm(Nodes[i].Lat, Nodes[i].Lon, Nodes[j].Lat, Nodes[j].Lon);
+                        if (!(km2 < bkm)) continue;
+                        if (CrossesLand(i, j)) continue;
+                        bi = i; bj = j; bkm = km2;
+                    }
+                if (bi < 0) break;
+                want.Add((System.Math.Min(bi, bj), System.Math.Max(bi, bj)));
+                uf[Find(bi)] = Find(bj);
+            }
+        }
+        var edges = new List<Edge>();
+        foreach (var (a, b) in want)
+        {
+            if (passagePairs.Contains((a, b))) continue;
+            edges.Add(new Edge(a, b, Geo.DistanceKm(Nodes[a].Lat, Nodes[a].Lon, Nodes[b].Lat, Nodes[b].Lon), null));
+        }
+        foreach (var pr in passageRows)
+        {
+            int a = System.Array.FindIndex(Nodes, x => x.Name == pr.A);
+            int b = System.Array.FindIndex(Nodes, x => x.Name == pr.B);
+            if (a < 0 || b < 0) throw new InvalidOperationException($"passages.json の {pr.Name} が参照する海ノード（{pr.A}/{pr.B}）が sea_nodes.json に無い");
+            double km = System.Math.Max(Geo.DistanceKm(Nodes[a].Lat, Nodes[a].Lon, Nodes[b].Lat, Nodes[b].Lon), pr.InternalKm);
+            edges.Add(new Edge(System.Math.Min(a, b), System.Math.Max(a, b), km, pr.ChokeId));
+            PassageEdgeKeys.Add((System.Math.Min(a, b), System.Math.Max(a, b)));
+        }
+        edges.Sort((x, y) => { int c0 = x.A.CompareTo(y.A); return c0 != 0 ? c0 : x.B.CompareTo(y.B); });
+        return [.. edges];
+    }
+
+    private static List<(int To, double Km)>[] Adjacency(bool suezOpen, bool panamaOpen, int dropA = -1, int dropB = -1)
+    {
+        int n = Nodes.Length;
+        var adj = new List<(int To, double Km)>[n];
+        for (int i = 0; i < n; i++) adj[i] = new List<(int, double)>();
+        foreach (var e in Edges)
+        {
+            if (e.ChokeId == "suez" && !suezOpen) continue;
+            if (e.ChokeId == "panama" && !panamaOpen) continue;
+            if ((e.A == dropA && e.B == dropB) || (e.A == dropB && e.B == dropA)) continue;
+            adj[e.A].Add((e.B, e.Km)); adj[e.B].Add((e.A, e.Km));
+        }
+        return adj;
+    }
+
+    private static void Dijkstra(List<(int To, double Km)>[] adj, int s, double[] dist, int[]? prev)
+    {
+        System.Array.Fill(dist, double.PositiveInfinity);
+        if (prev is not null) System.Array.Fill(prev, -1);
+        dist[s] = 0;
+        var pq = new PriorityQueue<int, double>();
+        pq.Enqueue(s, 0);
+        while (pq.TryDequeue(out int u, out double du))
+        {
+            if (du > dist[u]) continue;
+            foreach (var (v, km) in adj[u])
+                if (du + km < dist[v]) { dist[v] = du + km; if (prev is not null) prev[v] = u; pq.Enqueue(v, dist[v]); }
+        }
+    }
+
+    private static readonly double[]?[] DistCache = new double[]?[4];
+    private static readonly object CacheLock = new();
+
+    private static double[] Matrix(bool suezOpen, bool panamaOpen)
+    {
+        int key = (suezOpen ? 2 : 0) + (panamaOpen ? 1 : 0);
+        var m = DistCache[key];
+        if (m is not null) return m;
+        lock (CacheLock)
+        {
+            m = DistCache[key];
+            if (m is not null) return m;
+            int n = Nodes.Length;
+            var adj = Adjacency(suezOpen, panamaOpen);
+            m = new double[n * n];
+            var dist = new double[n];
+            for (int s = 0; s < n; s++)
+            {
+                Dijkstra(adj, s, dist, null);
+                System.Array.Copy(dist, 0, m, s * n, n);
+            }
+            DistCache[key] = m;
+            return m;
+        }
+    }
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<(int, int, int), int> NearestCache = new();
+
+    private static readonly double LeadBudgetMult = new Coefficients().SeaStitchLeadBudgetMult;
+

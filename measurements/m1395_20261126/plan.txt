@@ -1,0 +1,7 @@
+(1395) c148rt 読む＝運び道の最小の読み（A）＋運河の開通の早さ（B）
+木：870ce5520389bcdaf8b53c496cc941fe2b08540c（worktree D:/PoB_work/wt_c148rt・枝 c148rt・読むだけ・最後に外す）
+作業の場所：D:/PoB_work/r1395_work/（台本 scripts/ 相当は r1395_work/scripts・表は r1395_work/out・使い捨ての console は r1395_work/probe）
+読む生：D:/PoB_work/keep_1390/base_ins（canal_s・nation_s ほか・列名で引く・読むだけ）
+材料：D:/PoB_work/route_simplify_1126/draft.md §1 §7 §8 §9 §13 §14・refute_opt/int/v3/strait.md
+腕：0 本。試合は回さない。.cs の変更なし。コミットなし。
+問い：A1〜A8（決め打ちと総当たりの差・候補の数・nKmRaw/nKmComp・海の図の迂回・PairRisk・カスピ海・LastBlockadeRisk・誤差の上限）、B1〜B5（池/BuildCost・門から開通・交戦の停止・開通年の数え直し・実物の量の材料）

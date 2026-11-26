@@ -1,0 +1,91 @@
+        }
+        var kmTab = ks.Km;
+        var kSt = ks.St; var kSea = ks.Sea; var kLh = ks.LandHalf;
+        if (ks.E.Length < tc) { ks.E = new double[tc]; ks.K = new double[tc]; }
+        var kE = ks.E; var kK = ks.K;
+        for (int t0 = 0; t0 < tc; t0++) { kE[t0] = tr[t0].landKm * terrCost[t0] * landRatio[t0]; kK[t0] = terrCost[t0] * landRatio[t0]; }
+        long nKmRaw = 0, nKmComp = 0;
+        var kmLand = ks.Land;
+        var kmGen = ks.Gen; int kmG = ++ks.G;
+        double KmOf(int a, int b)
+        {
+            int ix = b * tc + a;
+            double v = kmTab[ix];
+            if (v >= 0) { kmGen[ix] = kmG; return v; }
+            v = PairKm(a, b, ix, out bool pairLand);
+            kmTab[ix] = v;
+            kmLand[ix] = pairLand;
+            kmGen[ix] = kmG;
+            return v;
+        }
+        int nnLb = nn;
+        var lbTab = ks.LbKm; var natOff = ks.NatOff; var natSt = ks.NatSt;
+        {
+            if (lbTab.Length < tc * nnLb) lbTab = ks.LbKm = new double[tc * nnLb];
+            System.Array.Fill(lbTab, -1.0, 0, tc * nnLb);
+            if (natOff.Length < nnLb + 1) natOff = ks.NatOff = new int[nnLb + 1];
+            if (ks.NatCur.Length < nnLb) ks.NatCur = new int[nnLb];
+            if (natSt.Length < tc) natSt = ks.NatSt = new int[tc];
+            System.Array.Clear(natOff, 0, nnLb + 1);
+            for (int s0 = 0; s0 < tc; s0++) natOff[tr[s0].nation + 1]++;
+            for (int n0 = 0; n0 < nnLb; n0++) { natOff[n0 + 1] += natOff[n0]; ks.NatCur[n0] = natOff[n0]; }
+            for (int s0 = 0; s0 < tc; s0++) natSt[ks.NatCur[tr[s0].nation]++] = s0;
+        }
+        double LbKmOf(int t, int nat)
+        {
+            int li = t * nnLb + nat; double v = lbTab[li];
+            if (v >= 0) return v;
+            double mn = double.PositiveInfinity;
+            for (int q = natOff[nat]; q < natOff[nat + 1]; q++)
+            {
+                int s = natSt[q]; int ix = t * tc + s; double k = kmTab[ix];
+                if (!(k >= 0)) { k = PairKm(s, t, ix, out bool pairLand); kmTab[ix] = k; kmLand[ix] = pairLand; }
+                mn = Math.Min(mn, k);
+            }
+            lbTab[li] = mn;
+            return mn;
+        }
+        bool LandNow(int ix) => kmGen[ix] == kmG && kmLand[ix];
+        double PairKm(int a, int b, int ix, out bool landOut)
+        {
+            byte st = kSt[ix]; double sea, lh;
+            if (st == 0) { st = PairKmParts(tr, seaNodeOf, seaHalf, suezOkN, panOkN, landNode, landGraft, c.LandRouteEnabled, a, b, out sea, out lh); kSt[ix] = st; kSea[ix] = sea; kLh[ix] = lh; nKmRaw++; }
+            else { sea = kSea[ix]; lh = kLh[ix]; nKmComp++; }
+            double km = ComposeKm(st, sea, lh, kE[a], kE[b], kK[a], kK[b], out bool land);
+            landOut = land;
+            return km;
+        }
+        Instruments.TrRoute RouteParts(int a, int b, bool sea, double eqBook)
+        {
+            var rt = new Instruments.TrRoute { Sea = sea, EqBook = eqBook, TerrSeller = terrCost[a], TerrBuyer = terrCost[b], RatioSeller = landRatio[a], RatioBuyer = landRatio[b] };
+            if (sea)
+            {
+                rt.RealSeaKm = SeaGraph.SeaDistanceKmFromNodes(seaNodeOf[a], seaNodeOf[b], seaHalf[a] + seaHalf[b], tr[a].lat, tr[a].lon, tr[b].lat, tr[b].lon, suezOkN[tr[a].nation] && suezOkN[tr[b].nation], panOkN[tr[a].nation] &
+                rt.EqSea = rt.RealSeaKm;
+                rt.RealLandKm = tr[a].landKm + tr[b].landKm; rt.RealLandSellerKm = tr[a].landKm; rt.RealLandBuyerKm = tr[b].landKm;
+                rt.EqLand = tr[a].landKm * terrCost[a] * landRatio[a] + tr[b].landKm * terrCost[b] * landRatio[b]; rt.EqLandSeller = tr[a].landKm * terrCost[a] * landRatio[a]; rt.EqLandBuyer = tr[b].landKm * terrCost[b] * landRati
+            }
+            else
+            {
+                double raw = PathGraph.LandMatrix()[landNode[a] * PathGraph.Nodes.Length + landNode[b]];
+                rt.RealLandKm = raw + landGraft[a] + landGraft[b]; rt.RealLandSellerKm = rt.RealLandKm * 0.5; rt.RealLandBuyerKm = rt.RealLandKm * 0.5;
+                rt.EqLand = rt.RealLandKm * 0.5 * (terrCost[a] * landRatio[a] + terrCost[b] * landRatio[b]); rt.EqLandSeller = rt.RealLandKm * 0.5 * (terrCost[a] * landRatio[a]); rt.EqLandBuyer = rt.RealLandKm * 0.5 * (terrCost[b]
+            }
+            return rt;
+        }
+        var riskTab = ks.Risk;
+        double PairRisk(int seller, int buyer)
+        {
+            int bi = tr[buyer].nation;
+            if (!natAnyHostile[bi]) return 0;
+            double cached = riskTab[buyer * tc + seller];
+            if (cached >= 0) return cached;
+            var kmB = SeaGraph.RouteBasinKm(seaNodeOf[seller], seaNodeOf[buyer], suezOkN[bi], panOkN[bi]);
+            double integral = 0;
+            for (int b = 0; b < Basins.Count; b++) integral += natHostility[bi][b] * kmB[b];
+            double risk = 1.0 - Math.Exp(-c.RiskLambda * integral / Diplomacy.DistanceNormKm);
+            riskTab[buyer * tc + seller] = risk;
+            return risk;
+        }
+
+        var impTop = ClearScratch.FitRows(ref sc.ImpTop, nn, gc); var expTop = ClearScratch.FitRows(ref sc.ExpTop, nn, gc);
