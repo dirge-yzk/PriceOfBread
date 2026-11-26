@@ -1,0 +1,6 @@
+# M3（cba355e45）
+  失敗 PriceOfBread.Tests.WarWearyPoliticsCutTests.T2_旗1で天命の目標が厭戦に依らない [56 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国家の手動建設の段の変数は復活しない [139 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国庫の建設の予約の読み手と計器の列は復活しない [180 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.厭戦の2項は旗0で働き_旗1で外れる(flag: 1) [1 s]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い [47 ms]
