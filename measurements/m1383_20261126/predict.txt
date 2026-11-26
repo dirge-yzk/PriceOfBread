@@ -1,0 +1,45 @@
+(1383) 合流（波146）の予言（merge の前にコミットする・★(711)）
+書き手 Opus 5.5。基点 6584be56d（main＝origin/main・fetch で確かめた）。基準 m1362（ident.cfg の B5 b5_20261125_m1362・B10INS b10_20261125_m1362_ins・INSRAW keep_1376/base_ins・KEEPNULL keep_1362/n1・n2・a11・NG ng1362_20261125）。
+作ったフォルダ：D:/PoB_work/m1383_work・wt_m1383（枝 m1383）。この後に作る物：wt_m1383z（枝 m1383z＝腕 Z）・ident_m1383z・keep_1383（採ったとき base_ins・a11・n1・n2）・keep_1383_rej（採らない腕の生）。
+
+入れる線（予定・順）
+- 恒等 c146kt (1379)：線の ident〈判定: 恒等（段 1）〉（測った種で一致）・試験 +1。反証役 v の高 0（中 2・低 4）。
+- 恒等 c146rf (1380)：線の ident〈判定: 恒等（段 2）〉・試験 +12。反証役 v の高 0（低 6）。
+- 挙動 c146wy (1377)：旗 WarWearyPoliticsCut 1（9775d7975）。線の腕 B は止める線 0・空洞化 1/10 未満 0・推定 233.8 秒・G1（milWarMean≠0 の行 0）・単体の試験 T1〜T3・T5 と突然変異 M0〜M4・フルスイート緑。反証役 v・v2 の高 0（中 3・低 5）。
+- 挙動 c146bk (1378)：旗 ReentryShortageSameMonth 1（3cf714437）。線の腕 B は止める線〈それ以外〉0（分母の痩せ 1＝種 10 ポルトガル 1909）・空洞化 1/10 未満 0・推定 233.4 秒・単体の試験 6 本と突然変異 M1〜M4・フルスイート緑。反証役 v・v2 の高 0（中 2・低 6）。
+- 読む c146bt (1381)・設計の材料 c146rc (1382)：コミットしない線＝合流が写す（scripts/instruments/r1381/・r1382/・measurements/m1381_20261126/・m1382_20261126/・docs/202611/20261125/ の下書きと材料の末尾）。
+
+消す名前（★(773)）：kt は FemalePartLawFree（係数）・rf は SetCultureSplit・Ideologies.Regional・CountDependents・PowerCenter.Clamp01。4 本の枝の SimCore・Tests・Runner・App・scripts を git grep した＝他の枝にあるのは基点と同じ行だけ（新しい読み手 0）。残るのは注・古い台本（c143k59/mut_k59.sh・narrow_k59.sh・m1369/m1376 の stprobe.sh・r907/s25_rows.py）と台帳の行＝コードの読み手 0。
+merge-tree：6 組のうち衝突は wy＋bk の WriterRatchetTests.cs:427（DeadProdBankrupt・wy 1402／bk 1353）だけ。DormantIdentityTests.cs（wy :160・bk :148）は自動で合う。merge の順＝kt → rf → wy → bk（bk が〈後から入れた側〉）。
+:427 の解き方：merge では基点の値 1190 を置き、合わせた木（両方の旗 1）の 1 種 40 四半期の実測で ★(749) の取り直しを 1 回だけする（:409 ConstructionSeen・:544 DiploHegemonScans も合わせた木で値が違えば同じ 1 回で取り直す）。注に wy と bk の単独の値を残す。他の行が赤なら、区分を名乗れる時だけ直し、名乗れなければ止める。
+
+予言（腕 Z＝合わせた木から WarWearyPoliticsCut と ReentryShortageSameMonth の既定を 0 へ戻した木・ident（段は ident.sh が決める・段 2 の見込み）・--tests-delta 21・追加の表なし）
+Z1 素の 5 種は b5_20261125_m1362 と全行バイト一致（名乗り行を除く・184 行）・.cost の推定 230.8 秒が一致。
+Z2 計器つき 10 種は b10_20261125_m1362_ins と全行バイト一致（184 行）・推定 229.7 秒。
+Z3 計器の表：INSRAW の 1793 本とバイト一致か既知の揺れ・宣言の無い違い 0（scalars_s の dmWar の列は旗 0 で旧の式のまま）。
+Z4 テスト Category!=FullLength 3277（3256＋kt 1＋rf 12＋wy 2＋bk 6）・FullLength 3。NG は ng1362 と同じ 88 件（新 0・外 0）。savetest は最終行が〈savetest OK〉で値の違い 0（rf の新しい ident_check の読み）・leakhunt 保存則違反なし。
+Z5 Z が〈判定: 恒等〉でなければ：wy・bk の旗 0 の器が疑い＝恒等の線だけの木（kt＋rf）で ident を回し直して帰属を決める（腕の前に追記で名乗る）。
+
+予言（合わせた木 m1383＝wy・bk の旗 1・M＝計器つき 10 種の全表・S11＝種 11〜20・keep_1362/a11 の表の名簿〔scripts/instruments/m1362/s11_tables.txt〕・p5＝素の 5 種）
+止める線の段（門・両線の事前登録の門を M でもう一度読む・最終の採否は S11 で 1 回だけ）
+M1 破綻 0（10 種とも完走）・100 倍以上〈それ以外〉0・1e10 倍以上 0・非有限 0〈推〉。〈分母の痩せ〉と建国の直後の型・㊳ は基準とヌル腕と同じ台本（stoplines1330・popjump1017）で並べて記録。
+M2 空洞化 1/10 未満（規則 A2 の外）0〈推〉（両線の腕 B は 0）。1 件でも出たら、種 1〜10 は keep_1376/base_ins・種 11〜20 は keep_1362/a11 の同じ種で同じ州が 1/4 未満かを表に書く＝〈元からの弱さ〉は記録の先頭・〈線が原因〉が 1 件でもあれば、アブレーションで帰属を決める。
+M3 推定の計算量：M 約 230〜238 秒〈推〉（229.7＋wy 4.1＋bk 3.7 を足し算と見た上側 237.5・両方とも軌道の件数の側の差）・S11 約 233〜241 秒〈推〉（基準 233.3）＝上限 248.5 秒の内。超えたら止める。
+M4 名目 GDP 0 の続き（gdp_zero10）0〈推〉（記録の段の先頭）。
+M5 wy の G1（paper_wy.py）：scalars の milWarMean≠0 の行が 0（M・S11）。旗 1 の規則は盤面に依らず効く＝合わせた木でも 0〈推〉。
+M6 bk の門は単体の機構の試験（BankruptReentryShortageTests 6 本）＝合わせた木のフルスイートで読む。世界の腕の倒産の数の新÷旧は記録（bk_paper.py）。
+M7 単体の機構の試験：合わせた木のフルスイートで WarWearyPoliticsCutTests・CoercionNowTests・ScalarDeletionTests・RevoltIgnitionTests・BankruptReentryShortageTests・FemalePartLawFreeTests・LawstepInstrumentTests・RefactorBundle1Tests・DerivedValueRatchetTests・ValueCountRatchetTests が緑。WriterRatchetTests は :409・:427・:544 の 3 行が合わせた木の値で赤になる見込み〈推〉＝★(749) で 1 回取り直す（上）。ValueCountRatchetTests の SimCore は 752 のまま緑の見込み〈推〉（kt・wy・bk の SimCore の差分に .Value の増減なし）・DerivedValueRatchetTests の指紋は kt の値のまま緑の見込み〈推〉（wy の Politics.cs:91 は指紋の書き手の局所変数の定義の外）。どちらかが赤なら、区分（★(764) の静的な件数・値の番人）を名乗れて変わる量が説明できる時だけ取り直し、できなければ後から入れた側を外す。
+記録の段（採否に使わない）
+R1 M の成績表は線 wy の腕 B とも線 bk の腕 B とも違う（2 本の旗が同時に効く＝軌道が分かれる）〈推〉。差の行は m1362 と比べて 240〜280 行〈推〉。
+R2 英の国債の不履行（M・S11）・NG・nullgate・home_break・開幕の 1000 倍以上・ヌル腕の幅との比べは記録。線の腕 B の英の不履行は wy 0/10・bk 4/10（基準 M 3・N1 3・N2 3）＝合わせた木で 0〜5/10〈推〉。
+R3 ★(1348) の組：両線の腕 B の空洞化 1/4 未満の州の突き合わせ（腕を回す前の記録・measurements/m1383_20261126/pair1348.txt）＝wy（6 件：セントポール s1・s3・s8・s10・フォートウィリアム s2・バーミンガム〈仏の持ち〉s7）・bk（4 件：スレドネコリムスク s6・セントポール s7・チャールストン s10・ほか 1 件〈飢え〉）＝同じ種で同じ州の重なり 0（セントポールは種が違う）。基準 M の s2 バーミンガムは wy・bk のどちらの腕 B でも 1/4 未満に出ない。
+R4 wy の記録（交戦中の闘争度・天命・保持力・暴力の点火の腕の間の比＝反証役 v2 の中〈同じ盤面の比ではない〉）と bk の倒産の数の新÷旧は合わせた木の M でも並べる（記録）。分離独立・内戦分裂の件数（wy の腕 B で 3→0・反証役 v2 は史実の窓で減らないと読んだ）も並べる。
+R5 bk の v2 の中（英の国債÷GDP が 0 になる種の数：腕 B 1859 4/10・1879 7/10）は合わせた木の M・S11 でも数える（記録）。
+
+採否の規則（結果の前に固定）
+- 腕 Z が〈判定: 恒等〉で、M と S11 で止める線 0・M5・M7 が通れば、wy と bk の両方を採る（新しい基線 m1383・ヌル腕 N1・N2 は push の後に回し、KEEPNULL を移す 2 回目の push で ident.cfg を直す＝★(1334)）。
+- M で門が 1 つでも落ちたら、アブレーションの腕 A_wy（bk の旗 0・計器つき 10 種）・A_bk（wy の旗 0・計器つき 10 種）と、両方の単独の S11（a11 の名簿）を同時に起こす（★(1348)・追記を腕の前に書く）。門が落ちる組は〈後から入れた側〉＝bk を外す。
+- M が通って S11 で落ちたら、同じく A_wy・A_bk の S11 で帰属を決め、落ちる側を外す。
+- 外す線の旗 0 の器も main に入れない（★(1341)＝外す側を merge から抜いた木を作り直す）。
+- 恒等の線 kt・rf は腕 Z の〈判定: 恒等〉で入れる（挙動の線の採否に依らない）。
+- D: の空き（計画の時点 96.4GB・この合流の始まり 57.7GB）：腕 Z（段 2・全表の生 約 30GB）・M（約 29GB）・S11（約 18GB）・N1・N2（各 約 18GB）を〈35GB＋その量〉で測って順に起こす。届かない分は腕の前に名乗る（他の担当の重い仕事は 0 本）。
