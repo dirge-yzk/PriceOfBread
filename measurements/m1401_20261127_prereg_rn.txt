@@ -1,0 +1,65 @@
+(1401) c149rn 事前登録：乱数を気候と疫病だけに（旗 RandomOnlyClimateEpidemic・既定 0・挙動の線・3 回の規則の 1 回目）
+木：474338d35 から枝 c149rn（worktree D:/PoB_work/wt_c149rn）。基線 m1383（成績表 b10_20261126_m1383_ins ほか）・INSRAW keep_1397/base_ins・ヌル腕 keep_1383/n1・n2。
+形の種類：〈入口〉（乱数の引きを外して条件だけで決める・経路を通らない）。尾ではない。
+
+[0] 出発
+- 作者 2026-11-26（原文）「乱数は気候と疫病のみの筈です。同盟の乱数はAIが無許可で作ったものです。これは全てオミット対象」
+- 作物の病気：作者 11-26「同じとしてもよいのではないか」で推奨〈凶作に含めて消す〉を採った。
+- 入れない物：気候（天候 Rng の豊凶・_weatherRng）と疫病（EpidemicRng）の乱数・Diplomacy.cs の器の行・同盟の天井 MaxAlliances の削除・App・Display・Runner。
+
+[1] 場所ごとの形（旗 1 のとき）
+- 同盟（Diplomacy.cs DiplomacyAI の防衛同盟）＝案 a：`rng.NextDouble() < chance` を外し、今の条件（同ランクか覇権への合従・共通の敵・緊張・海の出会い・同盟の上限 cap）だけで結ぶ。理由：条件は全て盤面の量＝確率 0.4／0.7 は待ちの長さを決めていただけ（条件が続けば平均 1.4〜2.5 四半期で結ばれていた）。
+- 植民（同じ関数の末尾）＝案 a：`rng.NextDouble() < colonizeChance` を外し、TryAiSubjugate の中の門（CanInvade の単一の門＝余剰の戦力・兵力の比・船・糧食・到達 AiColonizeMinProjection・魅力の最大）だけで決める。
+  名乗り：試行の回数は 1/0.12＝8.3 倍より上がりうる（覇権国の自制 max(0.25, 1−脅威) は確率に掛かっていた＝旗 1 では効かなくなる）。下の [3] の予言。
+  形の変え直しの枠（1 回）：止める線に当たり、原因が植民の試行の頻度と読めたら、植民を案 b（AI の植民の侵略の経路を消し戦争の入口だけ）へ。
+- 勢力の変異（Factions.cs）＝経路を通らない：旗 1 では変異の判定の塊（FactionRng の引き・Mutated・MutantName・FactionMutations++）に入らない。Mutated の欄・成長の ×2 の読み・Politics.cs:662 の異端の乗数の読みは、旗 1 では新しく真にならないので値は通らない＝欄と読みの削除は焼き込みの恒等の線へ（旗 0 の経路が欄を要る間は消せない）。
+- 独占の押し（SelfPlay.cs MonopolyPushDraw）＝押しの経路を消す（旗 1 で false を返し AiRng を引かない＝MonopolyBurdenPushMode 0 と同じ振る舞い）。理由：条件だけの形（p>0 なら押す）は利払いの重さが正の間ずっと段を上げる＝新しい閾値を足さないと形にならない（作者 2026-11-16 ③）。確率 p は押しの頻度そのものだった。
+- 作物の病気（Simulation.cs MonthSettle の年次の塊）＝経路を通らない：旗 1 では HarvestRng を引かず CropHealth を書かない（開幕の 1.0 のまま＝EconomyStep.cs:148・:898 の掛け算は 1.0 を掛ける＝病気なしの値と同じ）。CropHealth の欄・係数 3 本（p02 :72〜:74）・Catalog.IsDiseaseProneCrop・HarvestRng の削除は焼き込みの恒等の線へ。
+- 欄の削除について：指示文は〈使い手 0 の乱数の源と CropHealth の欄・係数を消す〉と書くが、旗 0 の経路がそれらを使う間は消せない（旗 0 で ident〈判定: 恒等〉を取る手順）。消すのは旗を焼く恒等の線＝報告の〈次〉へ。FactionRng は Politics.cs:486 の門（null なら反乱の判定を飛ばす）にも読み手がある＝焼くときは門を別の述語へ（Politics.cs:486 はこの線の持ち主の行の外）。
+
+[2] 乱数の列のずれ（確かめた）
+- HarvestRng は作物の病気の専用の系列（Simulation.cs:68）＝天候の豊凶は主系列 Rng（Simulation.cs:1677）と _weatherRng（MultiNationSim.cs:64）＝作物の病気の引きを消しても天候の列はずれない。
+- 外交の Rng（MultiNationSim.cs:63）の引き手は DiplomacyAI の 2 か所だけ（Diplomacy.cs:1769・:1783）＝旗 1 では引き手 0。
+- FactionRng の引き手は Factions.cs:53 だけ・AiRng の引き手は SelfPlay.cs:388 だけ（grep）。疫病の EpidemicRng は触らない。
+- 旗 0 では全ての引きの順と回数が今と同じ（短絡の評価の順を保つ：`(flag || rng.NextDouble() < x)`）。
+
+[3] 予言（記録・門にしない）＝基線 keep_1397/base_ins の紙の台本 scripts/instruments/c149rn/paper_rn.py（出力 measurements/m1401_20261127/paper_base.txt）
+- 基線の種 1〜10：AI の植民の侵略 49〜126（中央 110）・国どうしの戦争 448〜1165（中央 724）・試行（warentry の calls）827〜1467・評価（evals）68〜120 千・変異した勢力の最大 0〜2・独占の押しの当たり 6〜85。
+- 旗 1：変異した勢力 0（全ての種・全ての四半期）・独占の押しの当たり 0・作物の病気の行 0（新しい計器 rnd_s の cropDiseasedCount＞0 の行 0）。
+- 旗 1：植民の試行 calls は 8 倍以上（上限は国×四半期の数≒41 千）・侵略の数は上がる（3〜10 倍の見込み・CanInvade の余剰の戦力と Invade の消費が抑える）・小国の従属が早まる。
+- 旗 1：同盟の数は四半期の平均でほぼ同じか少し多い（上限 cap が抑える・結ぶのが 1〜2 四半期早い）。戦争の数は向きを予言しない（同盟の参戦と侵略の拒否の戦争が増える向きと、従属で標的が減る向きがある）。
+
+[4] 門（作者 2026-11-16 の決まり①）
+- 止める線（この回の形をそのまま写す）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上の〈それ以外〉（建国の直後の型＝系列の最初の行から 4 四半期以内と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上になった四半期はヌル腕の件数と並べる・基準とヌル腕は同じ台本で数え直す）・開幕の 1e10 倍以上・空洞化 1/10 未満の名簿の外（規則 A2・an_h2.py -v4・その線が原因と読めた件だけ＝基線の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない）・推定の計算量 ＞248.5 秒・機構のテストの赤（ソースを走査する番人を含む）。
+- 史実の桁の線（10 倍）：国どうしの戦争の数の種の中央が基線の中央（724）の 1/10〜10 倍の内（72.4〜7240）。同盟の数は上限 cap が上を抑える＝記録。
+- 単体の機構の試験（盤面を試験の中で置く・旗 0 で赤・突然変異で赤）＝PriceOfBread.Tests/RandomOnlyClimateEpidemicTests.cs
+  T1 同盟と植民：同じ盤面（ドイツ 6 国・緊張を試験の中で置く）を外交の乱数の種 1〜8 で DiplomacyAI に通す→旗 1 は同盟の集合と侵略の記録が種に依らず同じで、同盟が 1 つ以上結ばれる。旗 0 は種で違う（赤）。
+  T2 外交の乱数を引かない：旗 1 で DiplomacyAI の後の乱数の次の値＝引かない対照と同じ。旗 0 は違う（赤）。
+  T3 勢力の変異：結束が門の上・危機（敗戦の衝撃）が床の上の盤面で Factions.Step→旗 1 は FactionRng を引かず変異 0。旗 0 は引く（赤）。
+  T4 作物の病気：英の 1 国の盤面で 1 四半期進める（最初の年の豊凶の月を通る）→旗 1 は HarvestRng を引かず CropHealth は全て 1.0。旗 0 は引く（赤）。
+  T5 独占の押し：利払いが重い盤面で MonopolyPushDraw→旗 1 は false で AiRng を引かない。旗 0 は引く（赤）。
+  旗 1 の出力が旗 0 と違う行の数は記録に書く（腕 B の成績表の差の行数）。ヌル腕の幅との比べは記録だけ。
+
+[5] 突然変異ごとにどの門で赤か（㉚・使い捨ての木で試験を回す＝scripts/instruments/c149rn/mut_rn.sh）
+- μ1 同盟の確率を戻す（旗 1 でも rng.NextDouble() < chance を通す）→ T1・T2 が赤。
+- μ2 作物の病気の引きを戻す（旗の前置を外す）→ T4 が赤。
+- μ3 変異の経路を戻す（旗の前置を外す）→ T3 が赤。
+- μ4 独占の押しを戻す（旗の前置を外す）→ T5 が赤。
+- μ5 植民の確率を戻す → T2 が赤（T1 は侵略の記録が種で違えば赤）。
+- 旗 0（何もしない実装）の盤面：T1〜T5 の旗 1 の側の Assert は全て落ちる（紙の台本＝試験の中で旗 0 の側を並べて回し赤を確かめる形）。
+
+[6] 計器（足す列）
+- 新しい表 rnd_s（Instruments/InstrumentsRnd.cs・四半期ごと国ごと 1 行）：quarter・year・nationUid・nation・alliesCount（自国と同盟の相手の数＝計器が Diplomacy.Powers を自分で回して HasAlliance を数える）・cropDiseasedCount（CropHealth が 1 未満の財の数）・cropHealthMinShare（最小）。力学の値を書かない・乱数を引かない。旗 0 で成績表は全行一致（ident の --added-tables rnd）。
+- 変異の数は既存の dcont_s の factionsMutatedCount・押しの当たりは nation_s の monopolyPushHitCount・侵略は invade_s と warentry_s。
+
+[7] 番人の点検（㉘・㉑・㉜）
+- ㉘：工業化度の読み手の許可表・`new MoneyStock(` の件数（SimCore 64）・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表に触れない＝変わる件数の予言 0。器のコミットの直後に走査の束を回す。
+- ㉜：旗 1 で名の当たる試験（grep）：MonopolyPushTests（押しの確率の経路＝旧の規則を固定する番人＝旗 1 で赤の見込み＝新しい規則の試験へ書き換える〔作者 2026-11-19 の改め〕）・EmptyPopEstateTests:206（FactionRng・AiRng を引かない＝旗に依らない）・RevoltIgnitionTests（FactionRng が null でない前提・Mutated を盤面で置く＝旗に依らない見込み）・DiscontentReaderTests:131・WarThemeTests:1065（Mutated を盤面で置く）・FoodLedgerTests・UrbanFlowRealTests（CropHealth を null に置く）・DormantIdentityTests（旗の行）。ほかの赤は絞った試験で見て区分する。
+- 置き換える旧の規則：同盟と植民の確率・勢力の変異の確率・独占の押しの確率・作物の病気の確率。それを固定する試験＝上の MonopolyPushTests（ほかは絞った試験で見つかれば追記）。
+
+[8] 計算量の割り当て
+- 減る：外交の 2 か所の引き・変異の引き・作物の病気の年 6 回の引き・押しの引き＝合わせて 0.1 秒未満。
+- 増える：TryAiSubjugate の試行が国×四半期ごと（評価は基線 1 試合 68〜120 千 → 上限は国×四半期 41 千×1 試行あたり約 82 評価≒3.4 百万）＝実測の割り当て 4.0 秒（CanInvade 1 評価 約 1 µs の見込み）。推定（.cost）は台帳がこの評価を数えない＝実測の CPU と覆う割合で読む。m1383 の推定 229.3 秒＋4.0＝233.3 秒＜248.5 秒。
+
+[9] 手順
+器（旗 0）と計器と試験 → ㉘ 走査の束 → ident（腕 Z・--added-tables rnd）〈判定: 恒等〉→ 突然変異 → 旗の既定を 1 → 絞った試験（㉜）→ 腕 B（計器つき 10 種・表を絞る・--work D:/PoB_work/c149rn_work）→ 読み → フルスイート（腕 B の木・trx）。
