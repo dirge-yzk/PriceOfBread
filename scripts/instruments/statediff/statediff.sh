@@ -5,8 +5,15 @@
 set -u
 A=${1:?基点の木}; B=${2:?線の木}; SEED=${3:-1789}; Q=${4:-12}; DEP=${5:-6}
 W=/d/PoB_work/statediff_$$; mkdir -p "$W"
+HERE="$(cd "$(dirname "$0")/../../.." && pwd)"   # 道具のある木（この台本の木）
 for t in A B; do
-  tree=${!t}; art="$W/art_$t"; mkdir -p "$art"
+  tree=${!t}
+  # 道具を持たない古い基点の木には、道具の 3 点（StateDigest.cs・試験・SaveGame.FieldsOf の internal 化）を重ねる（基点の木は使い捨ての worktree にすること）
+  if [ ! -f "$tree/PriceOfBread.SimCore/StateDigest.cs" ]; then
+    cp "$HERE/PriceOfBread.SimCore/StateDigest.cs" "$tree/PriceOfBread.SimCore/"; cp "$HERE/PriceOfBread.Tests/StateDigestToolTests.cs" "$tree/PriceOfBread.Tests/"
+    python -c "import sys;p=sys.argv[1];b=open(p,'rb').read();open(p,'wb').write(b.replace(b'private static FieldInfo[] FieldsOf',b'internal static FieldInfo[] FieldsOf'))" "$tree/PriceOfBread.SimCore/SaveGame.cs"
+  fi
+  art="$W/art_$t"; mkdir -p "$art"
   printf 'seed=%s\nquarters=%s\ndepth=%s\nout=%s\n' "$SEED" "$Q" "$DEP" "D:/PoB_work/statediff_$$/$t.tsv" > "$art/statediff.cfg"
   ( cd "$tree" && dotnet test PriceOfBread.Tests -c Release --artifacts-path "D:/PoB_work/statediff_$$/art_$t" --filter "FullyQualifiedName~状態の指紋を書き出す" > "$W/$t.log" 2>&1 ) || { echo "試験が失敗 $t：$W/$t.log"; tail -5 "$W/$t.log"; exit 2; }
 done

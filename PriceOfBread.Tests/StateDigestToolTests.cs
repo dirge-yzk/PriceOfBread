@@ -34,6 +34,22 @@ public class StateDigestToolTests
             foreach (var (g, h) in dg) w.WriteLine($"{q}\t{g}\t{h:x16}");
     }
 
+    sealed class Probe { public double X; public int N; public Dictionary<string, double> D = new(); }
+
+    /// <summary>(1391) 小さい物での検査（盤面に依らない）：数 1 ビットの違いを拾う・同じ内容は一致・辞書の挿入の順には依らない。突然変異 μ0＝double を数えない → 赤。</summary>
+    [Fact]
+    public void 指紋は数の違いを拾い辞書の順に依らない()
+    {
+        static ulong H(Probe p) => StateDigest.Digest(p, 2)["sim"];
+        var a = new Probe { X = 1.0, N = 3 }; a.D["あ"] = 1; a.D["い"] = 2;
+        var b = new Probe { X = 1.0, N = 3 }; b.D["い"] = 2; b.D["あ"] = 1;
+        var c = new Probe { X = System.BitConverter.Int64BitsToDouble(System.BitConverter.DoubleToInt64Bits(1.0) + 1), N = 3 }; c.D["あ"] = 1; c.D["い"] = 2;
+        var d = new Probe { X = 1.0, N = 4 }; d.D["あ"] = 1; d.D["い"] = 2;
+        Assert.Equal(H(a), H(b));
+        Assert.NotEqual(H(a), H(c));
+        Assert.NotEqual(H(a), H(d));
+    }
+
     static (int Q, string Group)? FirstDiff(IEnumerable<(int, SortedDictionary<string, ulong>)> a, IEnumerable<(int, SortedDictionary<string, ulong>)> b)
     {
         foreach (var ((q, x), (_, y)) in a.Zip(b))
