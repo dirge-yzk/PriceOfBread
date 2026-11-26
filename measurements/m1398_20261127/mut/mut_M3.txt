@@ -1,0 +1,4 @@
+# M3（72f1224d8）
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T7_信任の目標はD平均に従い_満足だけを変えても動かない_旗0は満足に従う [17 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T8_満足は低いがRがs以下ならDと不穏が0_旧の式なら不穏が正 [248 ms]
+失敗!   -失敗:     2、合格:     5、スキップ:     0、合計:     7、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
