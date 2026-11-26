@@ -5,7 +5,7 @@ namespace PriceOfBread.Tests;
 
 /// <summary>(1365) c144lb 旗 ProtectedLawsReversible の焼き込み後：守られた法（選挙権・女性の権利・社会保障・植民地の選挙権・移民の選挙権・平時の時短・平時の児童労働）の
 /// 後退は、他の法と同じ MandateGate の費用だけで通る（不可逆の錠も後退の費用の倍も無い）。農奴解放と土地改革（L07）は戻らない。
-/// 事前登録 measurements/m1365_20261125_prereg_lb.txt。盤面は試験の中で置く（政治のロックを外す＝純支持 1・費用 0／断裂の窓 0／単国＝平時）。
+/// 事前登録 measurements/m1365_20261125_prereg_lb.txt。盤面は試験の中で置く（政治のロックを外す＝純支持 1・費用 0／単国＝平時・断裂の窓は (1387) で削除した）。
 /// ⚠突然変異 M1（後退の費用に 1/(1−0.5) の倍を戻す）で T5 赤・M2（Simulation の児童労働の条件を戻す）で T3 赤・M3（守られた法の錠を戻す）で T1 赤・M4（L07 の行を消す）で T2 赤。</summary>
 public class ProtectedLawReversalTests
 {

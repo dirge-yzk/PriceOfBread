@@ -498,9 +498,9 @@ public class WarThemeTests
         Assert.Single(s1.Diplomacy.Wars);   // 前提が崩れた：戦線が講和で消えた
         double a1 = w1.PushA, b1 = w1.PushB;
         Assert.True(a1 > 0 && b1 > 0 && Math.Abs(a1 - b1) > 1e-9 * (a1 + b1), $"前提が崩れた：押しが立っていないか同じ（{a1:G6}/{b1:G6}）");
-        double want1 = s1.Coef.WarPushSpeed * (a1 - b1) / (a1 + b1);
+        double want1 = s1.Coef.WarPushSpeed.Value * (a1 - b1) / (a1 + b1);
         Assert.True(Math.Abs(w1.Score - want1) <= 1e-12 + 1e-9 * Math.Abs(want1), $"戦勝点の動き {w1.Score:G17} が WarPushSpeed×(押しA−押しB)÷(押しA＋押しB)＝{want1:G17} でない");
-        Assert.True(Math.Abs(w1.Score) <= s1.Coef.WarPushSpeed, $"月の動き {w1.Score:G17} が WarPushSpeed を超えた＝割合でなく差で測っている");
+        Assert.True(Math.Abs(w1.Score) <= s1.Coef.WarPushSpeed.Value, $"月の動き {w1.Score:G17} が WarPushSpeed を超えた＝割合でなく差で測っている");
         // ② 塹壕：英の首都の機関銃を満たす＝仏の押しだけが削られる。割合は削った後の押しで取る
         var (s2, w2) = Board(0.5, 0);
         w2.B.Nation!.Region.MilitaryQualityFill = 1.0; w2.A.Nation!.Region.MilitaryTier3Fill = 0.0;
@@ -508,7 +508,7 @@ public class WarThemeTests
         Assert.Single(s2.Diplomacy.Wars);
         double a2 = w2.PushA, b2 = w2.PushB;
         Assert.True(a2 < a1 * (1 - 1e-6), $"前提が崩れた：塹壕が仏の押しを削っていない（{a1:G6}→{a2:G6}）");
-        double want2 = s2.Coef.WarPushSpeed * (a2 - b2) / (a2 + b2);
+        double want2 = s2.Coef.WarPushSpeed.Value * (a2 - b2) / (a2 + b2);
         Assert.True(Math.Abs(w2.Score - want2) <= 1e-12 + 1e-9 * Math.Abs(want2), $"塹壕の後の割合で動いていない（実 {w2.Score:G17}・期待 {want2:G17}）");
         // ③ 両者とも上陸できない（制海権の閾値を超えた値＝どちらも渡れない）＝押し0・運0（接触を要する）＝戦勝点は動かず NaN も出ない
         var (s3, w3) = Board(0, 1.01);

@@ -16,8 +16,8 @@ public class CoefficientRelationTests
     {
         var c = new Coefficients();
         // 関係だけを主張する（各係数の既定の値の固定は外した＝(835)：白紙の線の既定は WarVerdictTests が別に固定する）。1 か月の最大の動き WarPushSpeed＋WarLuck は白紙の線 WhitePeaceScore の内
-        Assert.True(c.WarPushSpeed + c.WarLuck < c.WhitePeaceScore,
-            $"月の最大の動き {c.WarPushSpeed + c.WarLuck:G6} が白紙の線 {c.WhitePeaceScore:G6} 以上＝1 か月で白紙の線を跨ぐ");
+        Assert.True(c.WarPushSpeed.Value + c.WarLuck < c.WhitePeaceScore,
+            $"月の最大の動き {c.WarPushSpeed.Value + c.WarLuck:G6} が白紙の線 {c.WhitePeaceScore:G6} 以上＝1 か月で白紙の線を跨ぐ");
     }
 
     /// <summary>(842) 既定の値の固定（上の関係の Fact とは別の Fact）：WarPushSpeed と WarLuck の既定。リテラルは Coefficients を呼ばない別の出所
@@ -26,7 +26,7 @@ public class CoefficientRelationTests
     public void 戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0_12()
     {
         var c = new Coefficients();
-        Assert.Equal(0.10, c.WarPushSpeed);
+        Assert.Equal(0.10, c.WarPushSpeed.Value);
         Assert.Equal(0.12, c.WarLuck);
     }
 }

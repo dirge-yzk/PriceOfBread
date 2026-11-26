@@ -34,7 +34,7 @@ public sealed partial class Coefficients
     public double CessionSeaCrossingWeight = 1.0;   // 点火2026-08-01（上陸ゲートと同時）：渡海の摩擦
     public double CessionMaxDistanceKm = 4000;     // 圏外は割譲不可＝賠償のみ（実走で清がボストン/リガ獲得＝地理無制約の是正。全拠点アンカーは連鎖征服で無効化されたため首都のみ）
     public double CessionUnified = 0;               // 0＝今の 4 経路（ColonyList の奪取・植民地格の州の複数割譲・境界改定・戦利品）の候補と費用と予算のまま・1 ビットも変わらない
-    public double DefeatShockKeepPerQuarter = 0.85;         // 敗戦ショックと戦勝ショックの四半期の残存率（1.0から数年で消える＝連勝暴走の防壁。厭戦・反覇権合従が他の防壁）
+    public FractionPerQuarter DefeatShockDecayPerQuarter = FractionPerQuarter.FromQuarter(0.15);         // 敗戦ショックと戦勝ショックの四半期の減る割合（残る分は 1−これ＝0.85・1.0から数年で消える＝連勝暴走の防壁。厭戦・反覇権合従が他の防壁）
     public double DefeatShockLegitWeight = 0.075;  // 敗戦ショック→正統性の低下幅（leg −= これ×DefeatShock）
     public double CedeRuleToLocal = 1;   // 0＝割譲は支配の区分と外国持分を触らない（今のまま）
     public double CededColonyMilitancy = 0.3;      // 移転州（被征服地）の pop に上乗せする不満（征服への反発＝高すぎると即分離）

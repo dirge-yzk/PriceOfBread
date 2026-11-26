@@ -75,7 +75,7 @@ public static class Politics
     {
         double effVoice = InterestGroups.FranchiseVoice(p, w.Suffrage, c);
         {
-            double reality = w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
+            double reality = PolicyPreferences.HasLegislature(w.Polity)
                 ? (w.SecretBallot == SecretBallotLaw.Secret ? 1.0 : c.OpenBallotReality)
                 : c.PaperFranchiseReality;
             effVoice *= reality;
@@ -250,7 +250,7 @@ public static class Politics
                 erosion += constErode;
                 w.Explain?.Add("Legitimacy", "議会の反王党派議席(立憲君主の形骸化)", -constErode);
             }
-            if (w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic && maxSeat > c.PartyDominanceThreshold.Value && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
+            if (PolicyPreferences.HasLegislature(w.Polity) && maxSeat > c.PartyDominanceThreshold.Value && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
             {
                 double domErode = c.DominanceLegitimacyErosion * (maxSeat - c.PartyDominanceThreshold.Value) / (1 - c.PartyDominanceThreshold.Value) * dynErodeMul;
                 erosion += domErode;
@@ -278,8 +278,8 @@ public static class Politics
             w.Legitimacy = legFloor;
         }
         bool eroding = w.Legitimacy < legStart;
-        w.DefeatShock *= c.DefeatShockKeepPerQuarter;
-        w.VictoryShock *= c.DefeatShockKeepPerQuarter;
+        w.DefeatShock = c.DefeatShockDecayPerQuarter.Remaining(w.DefeatShock);
+        w.VictoryShock = c.DefeatShockDecayPerQuarter.Remaining(w.VictoryShock);
         w.FamineMemory = w.FamineMemory * c.FamineMemoryKeepPerQuarter + Math.Max(0, c.DynMandateFoodAnchor - w.FoodFill);
 
         w.Coercion = CoercionNow(w, c);
@@ -333,7 +333,7 @@ public static class Politics
         var agg = Ideologies.National(w);
         double[] curCoord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
         double bourgeoisCoup = 0;
-        if (c.BourgeoisCoupWeight > 0 && w.ParliamentEnabled && w.Polity is Polity.ConstitutionalMonarchy or Polity.Republic
+        if (c.BourgeoisCoupWeight > 0 && w.ParliamentEnabled && PolicyPreferences.HasLegislature(w.Polity)
             && w.MeanSatisfactionPol < c.DominanceInstabilitySatisfaction)
         {
             var (_, modernPower, _) = InterestGroups.Blocs(w);
@@ -419,25 +419,13 @@ public static class Politics
             sufTarget = (Suffrage)Math.Clamp((int)sufTarget, su - 1, su + 1);
             pressTarget = (CensorshipLaw)Math.Clamp((int)pressTarget, pr - 1, pr + 1);
         }
-        if (allowRevoke)
+        // 片方向の錠（Max の上げだけ）。改定を許す呼び出しで反動の政体のときだけ、目標へそのまま置く（A2-06＝2 つの枝の同じ 6 行を 1 本へ）
+        if (allowRevoke && !(c is not null && !IsReactionaryPolity(w.Polity)))
         {
-            bool ratchet = c is not null && !IsReactionaryPolity(w.Polity);
-            if (ratchet)
-            {
-                var sufFloorL = (Suffrage)Math.Max((int)w.Suffrage, (int)sufTarget);
-                w.Suffrage = sufFloorL;
-                w.Policy.Suffrage = (Suffrage)Math.Max((int)w.Policy.Suffrage, (int)sufFloorL);
-                var pressFloorL = (CensorshipLaw)Math.Max((int)w.Censorship, (int)pressTarget);
-                w.Censorship = pressFloorL;
-                w.Policy.Censorship = (CensorshipLaw)Math.Max((int)w.Policy.Censorship, (int)pressFloorL);
-            }
-            else
-            {
-                w.Suffrage = sufTarget;
-                w.Policy.Suffrage = sufTarget;
-                w.Censorship = pressTarget;
-                w.Policy.Censorship = pressTarget;
-            }
+            w.Suffrage = sufTarget;
+            w.Policy.Suffrage = sufTarget;
+            w.Censorship = pressTarget;
+            w.Policy.Censorship = pressTarget;
         }
         else
         {
@@ -450,7 +438,7 @@ public static class Politics
         }
     }
 
-    private static bool IsReactionaryPolity(Polity p) => p is not (Polity.ConstitutionalMonarchy or Polity.Republic);
+    private static bool IsReactionaryPolity(Polity p) => !PolicyPreferences.HasLegislature(p);
 
     private static (bool trad, bool modern, bool mass) Dispossessed(Polity target) => target switch
     {
@@ -627,9 +615,7 @@ public static class Politics
 
     public static double FactionStrength(World w, Coefficients c, FactionState f)
     {
-        double voice = f.Bloc == 0 ? 1.0
-                     : f.Bloc == 1 ? (w.Suffrage >= Suffrage.Census ? 1.0 : c.ModernEliteSubCensusVoice)
-                     : (w.Suffrage >= Suffrage.AdultMale ? 1.0 : 0.0);
+        double voice = f.Bloc == 0 ? 1.0 : InterestGroups.SuffrageGate(w.Suffrage, f.Bloc == 1, c);
         double silenced = 1.0 - voice;
         if (!(silenced >= c.RevoltVoiceFloor)) silenced = c.RevoltVoiceFloor;
         double strength = f.Size * f.AvgMilitancy * f.Cohesion * silenced;
@@ -899,7 +885,7 @@ public static class Politics
                 if (!(rc.Lat == 0 && rc.Lon == 0))
                 {
                     double km = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
-                    if (km > 0 && double.IsFinite(km)) proj = 1.0 / (1.0 + c.DistanceWarDecay * km / Diplomacy.DistanceNormKm);
+                    if (km > 0 && double.IsFinite(km)) proj = 1.0 / Fiscal.AdminDistanceMulOfKm(km, c.DistanceWarDecay);
                 }
                 double eff = hold * (1.0 + c.SecessionHoldProjection * (proj - 1.0));
                 double margin = pressure - eff;
@@ -958,7 +944,7 @@ public static class Politics
                 double tState = System.Math.Max(0, 1.0 - tLocal - tForeign - tUngov);
                 double[] t = [tState, tLocal, tForeign, tUngov];
                 double sum = 0;
-                for (int k = 0; k < 4; k++) { double v = r4.Rule[k] + (t[k] - r4.Rule[k]) * c.DominanceSpeed; if (!(v > 0)) v = 0; r4.Rule[k] = v; sum += v; }
+                for (int k = 0; k < 4; k++) { double v = r4.Rule[k] + c.RuleShareSpeed.Close(t[k] - r4.Rule[k]); if (!(v > 0)) v = 0; r4.Rule[k] = v; sum += v; }
                 if (sum > 1e-9) for (int k = 0; k < 4; k++) r4.Rule[k] /= sum; else r4.Rule[0] = 1.0;
                 if (r4.RuleStateLastYear != w.Year && r4.RuleStateYears.Length > 0)
                 {
@@ -1039,7 +1025,7 @@ public static class Politics
         if (rc.Lat == 0 && rc.Lon == 0) return 1.0;
         double km = Geo.DistanceKm(w.Latitude, w.Longitude, rc.Lat, rc.Lon);
         if (!(km > 0) || !double.IsFinite(km)) return 1.0;
-        double v = 1.0 / (1.0 + c.DistanceWarDecay * km / Diplomacy.DistanceNormKm);
+        double v = 1.0 / Fiscal.AdminDistanceMulOfKm(km, c.DistanceWarDecay);
         return !(v > 0 && v <= 1.0) ? 1.0 : v;
     }
 

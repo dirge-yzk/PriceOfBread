@@ -653,13 +653,7 @@ public sealed class UtilityAgent : INationAgent
         }
         if (w.SelfPower is { } mSelf && w.Diplomacy is { } mDip)
         {
-            bool mAtWar = false;
-            foreach (var war in mDip.Wars)
-            {
-                Power? foe = war.A == mSelf ? war.B : war.B == mSelf ? war.A : null;
-                if (foe is null) continue;
-                mAtWar = true;
-            }
+            bool mAtWar = mDip.AtWarAny(mSelf);
             double mLosing = 0;
             double mScale = mAtWar ? mDip.WarScale(mSelf, w.Coef, out mLosing) : 0;
             if (!mAtWar) w.Mobilized = false;
@@ -706,7 +700,7 @@ public sealed class UtilityAgent : INationAgent
         for (int g = 0; g < imp.Length; g++)
         {
             double cur = imp[g], prev = ema[g];
-            ema[g] = prev + w.Coef.AiTariffEmaRate * (cur - prev);
+            ema[g] = PoliticalQuantities.Toward(prev, cur, w.Coef.AiTariffEmaRate);
             if (surge) continue;
             if (!(cur > floor)) continue;
             if (!(prev > 1e-9)) continue;

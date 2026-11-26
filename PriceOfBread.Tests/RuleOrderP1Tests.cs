@@ -192,7 +192,7 @@ public class RuleOrderP1InstrumentTests
                 Assert.Equal(0.7, V(r, "orderOldIndex"), 9);
                 var reg = w.Regions.Single(x => x.Name == r[0]);
                 Assert.Equal(before[reg.Name], V(r, "ruleUngovBeforeShare"), 9);
-                double tEng = (reg.Rule[3] - before[reg.Name] * (1 - c.DominanceSpeed)) / c.DominanceSpeed;   // エンジンが実際に寄せた目標（外国の区分 0＝正規化は 1）
+                double tEng = (reg.Rule[3] - before[reg.Name] * (1 - c.RuleShareSpeed.Value)) / c.RuleShareSpeed.Value;   // エンジンが実際に寄せた目標（外国の区分 0＝正規化は 1）
                 double tOld = V(r, "ungovTargetOldShare"), tNew = V(r, "ungovTargetNewShare");
                 Assert.Equal(0.3 * (1 - V(r, "reachOwnShare")), tOld, 8);
                 Assert.Equal(flag > 0 ? tNew : tOld, tEng, 7);
