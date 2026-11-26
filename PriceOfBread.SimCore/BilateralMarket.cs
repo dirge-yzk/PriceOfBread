@@ -16,6 +16,18 @@ public sealed partial class InternationalMarket
     internal static double InlandRailAfterDecay(double railToPort, double nearestPortKm)
         => railToPort / (1.0 + nearestPortKm / Diplomacy.DistanceNormKm);
 
+    /// <summary>(1392) 参照価格の金建て＝財の参照価格×州の PriceLevel×為替（掛ける順はこのまま）。買い手の州・売り手の州のどちらにも使う。</summary>
+    private static double RefGold(Good gd, Region r, double exRate) => gd.RefPrice * r.PriceLevel * exRate;
+
+    /// <summary>(1392) 売り手の届き＝access×軍需の輸出の届き×孤立の輸出の因子×阿片の禁輸の漏れ（掛ける順はこのまま）。opiumBanned＝阿片の財で売り手の国が禁輸。</summary>
+    private static double SellerReach(double access, double milAcc, double tariff, bool opiumBanned, double adminFill, Coefficients c)
+    {
+        double a = access * milAcc;
+        if (c.IsolationExportWeight > 0) a *= IsolationExportFactor(tariff, c);
+        if (opiumBanned) a *= Contraband.LeakFraction(adminFill, c);
+        return a;
+    }
+
     private static double IsolationExportFactor(double tariff, Coefficients c)
         => System.Math.Max(0, 1.0 - c.IsolationExportWeight * System.Math.Max(0, tariff) * System.Math.Max(0, tariff));
     private const int RolloverGuardMax = 400;
@@ -802,9 +814,7 @@ public sealed partial class InternationalMarket
                 double lp = lpOf[t];
                 if (lp <= 1e-9 || m.Stock <= 1e-9) continue;
                 int ni = tr[t].nation;
-                double sellAcc = tr[t].access * (milGood ? milExportAcc[ni] : 1.0);
-                if (c.IsolationExportWeight > 0) sellAcc *= IsolationExportFactor(tar[ni], c);
-                if (g == c.OpiumGoodId && oexban[ni]) sellAcc *= Contraband.LeakFraction(tr[t].r.AdminFill, c);
+                double sellAcc = SellerReach(tr[t].access, milGood ? milExportAcc[ni] : 1.0, tar[ni], g == c.OpiumGoodId && oexban[ni], tr[t].r.AdminFill, c);   // (1392) 売り手の届き＝売り手の一覧と成約で 1 本
                 if (sellAcc <= 1e-12) continue;
                 double availS = m.Stock - m.TargetStock;
                 if (!(availS > 1e-12)) continue;
@@ -879,13 +889,13 @@ public sealed partial class InternationalMarket
                 double wedge = duty - buyDear;
                 double wedgeHome = -buyDear;
 
-                if (tbOn) { double tbBm = 1 + c.TransportMargin, tbLb = tbBm + Math.Min(wedge, wedgeHome); Instruments.TbRow(this, nations[ni].World, tr[t].r, g, m, c, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(tbLb, cheapG ? tbLb - c.TradeBiasStrength : tbLb)), exRate[ni]); }   // T0b：行の門の 6 区分（読むだけ）
+                if (tbOn) { double tbBm = 1 + c.TransportMargin, tbLb = tbBm + Math.Min(wedge, wedgeHome); Instruments.TbRow(this, nations[ni].World, tr[t].r, g, m, c, lp, RefGold(gd, tr[t].r, exRate[ni]), headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(tbLb, cheapG ? tbLb - c.TradeBiasStrength : tbLb)), exRate[ni]); }   // T0b：行の門の 6 区分（読むだけ）
                 bool rowSkip; double a1Ph0 = double.NaN;
                 if (a1On)
                 {   // (1144) A-1 の行の門＝真の上界 TS＋D×(rpT÷u_min)^ε−min(P, P̂(u_min))−S が 0 以下なら飛ばす（u_min≦どの成約の u′＝飛ばした行は成約できない）。P̂ は B-b の上界が 0 以下の行だけ評価する（Q≦P＝B-b が正なら A-1 も正）。
                     double a1Bm = 1 + c.TransportMargin, a1Lb = a1Bm + Math.Min(wedge, wedgeHome);
                     double a1LbMin = Math.Min(1.0, Math.Min(a1Lb, cheapG ? a1Lb - c.TradeBiasStrength : a1Lb));
-                    double rpT0 = gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], uMin = lp;
+                    double rpT0 = RefGold(gd, tr[t].r, exRate[ni]), uMin = lp;
                     if (headS < sellers.Count) { double hm = sellers[headS].Price * a1LbMin; if (hm < uMin) uMin = hm; }
                     double ub;
                     if (!(rpT0 > 1e-9) || !(uMin > 1e-9) || double.IsInfinity(uMin)) ub = m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;   // 上界を作れない行は旧の門
@@ -903,9 +913,9 @@ public sealed partial class InternationalMarket
                     rowSkip = !(ub > 0);
                 }
                 else rowSkip = !(m.TargetStock + m.LastDemand - m.LastProduced - m.Stock > 0);
-                if (tbOn) { double t1Bm = 1 + c.TransportMargin, t1Lb = t1Bm + Math.Min(wedge, wedgeHome); Instruments.T1Row(this, nations[ni].World, tr[t].r, g, m, lp, gd.RefPrice * tr[t].r.PriceLevel * exRate[ni], headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(t1Lb, cheapG ? t1Lb - c.TradeBiasStrength : t1Lb)), exRate[ni], a1On, rowSkip, a1Ph0); }   // (1144) t1buy_s：W2(a) の母集合と門の照合（読むだけ）
+                if (tbOn) { double t1Bm = 1 + c.TransportMargin, t1Lb = t1Bm + Math.Min(wedge, wedgeHome); Instruments.T1Row(this, nations[ni].World, tr[t].r, g, m, lp, RefGold(gd, tr[t].r, exRate[ni]), headS < sellers.Count ? sellers[headS].Price : double.NaN, Math.Min(1.0, Math.Min(t1Lb, cheapG ? t1Lb - c.TradeBiasStrength : t1Lb)), exRate[ni], a1On, rowSkip, a1Ph0); }   // (1144) t1buy_s：W2(a) の母集合と門の照合（読むだけ）
                 if (rowSkip) { if (MultiNationSim.TimeOn) CntRowSkipNeed++; if (ts is not null) { ts.Outcome(Instruments.TsOutNoNeed); ts.SkipNeed(m, gd.RefPrice, tr[t].r.PriceLevel, exRate[ni], headS, c.PriceElasticity); } continue; }
-                if (!(gd.RefPrice * tr[t].r.PriceLevel * exRate[ni] > 1e-9)) { if (MultiNationSim.TimeOn) CntRowSkipRef++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
+                if (!(RefGold(gd, tr[t].r, exRate[ni]) > 1e-9)) { if (MultiNationSim.TimeOn) CntRowSkipRef++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
                 if (!(m.LastDemand > 0) && !(m.LastProduced + m.LastImport < 0)) { if (MultiNationSim.TimeOn) CntRowSkipDead++; if (ts is not null) ts.Outcome(Instruments.TsOutNoNeed); continue; }
                 if (!(budget[t] > 0)) { if (MultiNationSim.TimeOn) CntRowSkipBudget++; if (ts is not null) ts.Outcome(Instruments.TsOutBudget0); continue; }
                 if (thin && !(capLeft[t] / Math.Max(1e-9, Wg) > 1e-12)) { m.ClearFailLp = lp; continue; }
@@ -965,7 +975,7 @@ public sealed partial class InternationalMarket
                                     double addW = 0;
                                     if (capSkipOn && priced)
                                     {
-                                        double ratioS = gd.RefPrice * tr[t].r.PriceLevel * exRate[ni] / lp;
+                                        double ratioS = RefGold(gd, tr[t].r, exRate[ni]) / lp;
                                         double xpS = m.LastDemand * Math.Pow(ratioS, twoEps) - (m.LastProduced + m.LastImport);
                                         double xnS = a1On ? m.TargetStock + m.LastDemand * Math.Pow(ratioS, c.PriceElasticity) - m.LastProduced - m.Stock : m.TargetStock + m.LastDemand - m.LastProduced - m.Stock;
                                         double xS = tr[t].access * Math.Max(0, Math.Min(xpS, xnS));
@@ -1038,13 +1048,11 @@ public sealed partial class InternationalMarket
                         unitA = Math.Max(unitA, sellers[bestA].Price);
                         snA = sellers[bestA].Node; siA = tr[snA].nation;
                         msA = mktOf[snA];
-                        rpT = gd.RefPrice * tr[t].r.PriceLevel * exRate[ni];
+                        rpT = RefGold(gd, tr[t].r, exRate[ni]);
                         xPriceOn = rpT > 1e-9 && unitA > 1e-9;
                         if (xPriceOn) powVal = Math.Pow(rpT / unitA, twoEps);
-                        sellAccB = tr[snA].access * (milGood ? milExportAcc[siA] : 1.0);
-                        if (c.IsolationExportWeight > 0) sellAccB *= IsolationExportFactor(tar[siA], c);
-                        if (g == c.OpiumGoodId && oexban[siA]) sellAccB *= Contraband.LeakFraction(tr[snA].r.AdminFill, c);
-                        rpS = gd.RefPrice * tr[snA].r.PriceLevel * exRate[siA];
+                        sellAccB = SellerReach(tr[snA].access, milGood ? milExportAcc[siA] : 1.0, tar[siA], g == c.OpiumGoodId && oexban[siA], tr[snA].r.AdminFill, c);
+                        rpS = RefGold(gd, tr[snA].r, exRate[siA]);
                         frA = freightRate > 1e-12 ? freightRate * bestKmA / Diplomacy.DistanceNormKm : 0.0;
                         crossA = siA != ni;
                         sellSubA = cheapG && crossA ? sellCheap![siA] : 0.0;
