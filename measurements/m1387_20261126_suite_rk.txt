@@ -1,0 +1,7 @@
+(1387) c147rk フルスイート（木 6e74b109d・Release・隔離ビルド）
+Tests Category!=FullLength：合格 3048・スキップ 2・失敗 0・合計 3050
+Tests.Ui Category!=FullLength：合格 232・失敗 0（合計 232）
+FullLength：合格 3・失敗 0
+合計（FullLength を除く）＝3050＋232＝3282＝ident の基準 3281＋足した試験 1（LrlockInstrumentTests）。--list-tests（ident の t 腕・足す前の木）は 3281。
+㉘ の束（足す前の木）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・ValueCountRatchetTests・DerivedValueRatchetTests・ProtectedLawReversalTests・GenderTests・RevoltIgnitionTests・PlayTextTests・SaveRoundTrip＝236 件緑（赤 0）。
+注：最初のフルスイートは μ1 の木の古い DLL を --no-build で回して LrlockInstrumentTests だけが赤＝捨てて作り直し（上の数は作り直した後）。
