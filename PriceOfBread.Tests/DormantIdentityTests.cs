@@ -414,11 +414,13 @@ public class DormantIdentityTests
             foreach (System.Text.RegularExpressions.Match m in word.Matches(GoodIdGuardTests.StripCode(File.ReadAllText(f))))
                 counts[m.Value] = counts.GetValueOrDefault(m.Value) + 1;
         }
+        // (1393) c148po 項 13：WarCoercionDrain の除外は、Runner が名前の文字列として今も持っている間だけ（Runner が名前を落としたら除外は失効して赤になる）
+        bool runnerKeepsWarCoercionDrain = GoodIdGuardTests.CsFiles().Any(x => x.Rel.StartsWith("PriceOfBread.Runner/", StringComparison.Ordinal) && File.ReadAllText(x.Full).Contains("\"WarCoercionDrain\""));
         var unread = new System.Collections.Generic.List<string>();
         foreach (var fld in typeof(Coefficients).GetFields())
         {
             if (!fld.IsPublic || fld.IsStatic) continue;
-            if (counts.GetValueOrDefault(fld.Name) <= 1 && fld.Name != "WarCoercionDrain") unread.Add(fld.Name);   // 1回＝宣言だけ。(1385) c147wb：WarCoercionDrain は Runner/Program.cs:3710（politics-ablation の名の表・文字列の読み）だけが読む＝Runner は 5 の束の持ち物＝束 5 が表の行と係数を一緒に消す（それまでの許可表の 1 行）
+            if (counts.GetValueOrDefault(fld.Name) <= 1 && !(fld.Name == "WarCoercionDrain" && runnerKeepsWarCoercionDrain)) unread.Add(fld.Name);   // 1回＝宣言だけ。(1385) c147wb：WarCoercionDrain は Runner/Program.cs:3710（politics-ablation の名の表・文字列の読み）だけが読む＝Runner は 5 の束の持ち物＝束 5 が表の行と係数を一緒に消す（それまでの許可表の 1 行）
         }
         Assert.True(unread.Count == 0,
             $"読み手のない係数 {string.Join(", ", unread)}。使わないなら削除する（記録は墓標のコメントと docs へ）。休眠の器なら読む枝を置くこと");
