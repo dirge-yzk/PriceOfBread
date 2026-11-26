@@ -157,4 +157,15 @@ public class InstrumentColumnTests
             finally { Instruments.NgEveryYears = every0; Instruments.Configure(null, null); try { System.IO.Directory.Delete(dir, true); } catch { } }
         }
     }
+    [Fact]
+    public void SellerReach_届きは四つの因子の積()
+    {
+        var c = new Coefficients();
+        Assert.True(c.IsolationExportWeight > 0, "前提：孤立の輸出の因子が有効");
+        double acc = 0.8, mil = 0.5, tar = 0.4, fill = 0.3;
+        double iso = Math.Max(0, 1.0 - c.IsolationExportWeight * tar * tar);
+        Assert.Equal(acc * mil * iso, InternationalMarket.SellerReach(acc, mil, tar, false, fill, c), 12);
+        Assert.Equal(acc * mil * iso * Contraband.LeakFraction(fill, c), InternationalMarket.SellerReach(acc, mil, tar, true, fill, c), 12);
+        Assert.True(iso < 1.0 && Contraband.LeakFraction(fill, c) < 1.0, "前提：因子が 1 未満でないと外した変異を拾えない");
+    }
 }

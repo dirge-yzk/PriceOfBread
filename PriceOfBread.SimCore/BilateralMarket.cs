@@ -20,7 +20,7 @@ public sealed partial class InternationalMarket
     private static double RefGold(Good gd, Region r, double exRate) => gd.RefPrice * r.PriceLevel * exRate;
 
     /// <summary>(1392) 売り手の届き＝access×軍需の輸出の届き×孤立の輸出の因子×阿片の禁輸の漏れ（掛ける順はこのまま）。opiumBanned＝阿片の財で売り手の国が禁輸。</summary>
-    private static double SellerReach(double access, double milAcc, double tariff, bool opiumBanned, double adminFill, Coefficients c)
+    internal static double SellerReach(double access, double milAcc, double tariff, bool opiumBanned, double adminFill, Coefficients c)
     {
         double a = access * milAcc;
         if (c.IsolationExportWeight > 0) a *= IsolationExportFactor(tariff, c);
