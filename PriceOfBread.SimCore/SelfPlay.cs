@@ -700,7 +700,7 @@ public sealed class UtilityAgent : INationAgent
         for (int g = 0; g < imp.Length; g++)
         {
             double cur = imp[g], prev = ema[g];
-            ema[g] = prev + w.Coef.AiTariffEmaRate * (cur - prev);
+            ema[g] = PoliticalQuantities.Toward(prev, cur, w.Coef.AiTariffEmaRate);
             if (surge) continue;
             if (!(cur > floor)) continue;
             if (!(prev > 1e-9)) continue;
