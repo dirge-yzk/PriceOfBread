@@ -138,8 +138,8 @@ public class RandomOnlyClimateEpidemicTests
     }
 
     [Fact]
-    public void 旗の既定は0()
+    public void 旗の既定は1()
     {
-        Assert.Equal(0.0, new Coefficients().RandomOnlyClimateEpidemic);
+        Assert.Equal(1.0, new Coefficients().RandomOnlyClimateEpidemic);
     }
 }
