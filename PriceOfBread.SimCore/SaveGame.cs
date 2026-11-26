@@ -135,7 +135,7 @@ public static class SaveGame
     }
 
     private static readonly Dictionary<Type, FieldInfo[]> FieldCache = new();
-    private static FieldInfo[] FieldsOf(Type t)
+    internal static FieldInfo[] FieldsOf(Type t)
     {
         lock (FieldCache)
         {
