@@ -1414,7 +1414,7 @@ public sealed class Simulation
     /// <summary>
     /// ⚠ 境界相の外から入力を書く動詞はプレイヤーの侵略（World.Invade＝兵の疫病死と植民地の州化）だけで、そこで表から外す。〔履歴 Simulation.cs#152〕
     /// </summary>
-    internal static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<(double NominalGdp, double AvgSat)>> CreditMonth = new();
+    internal static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<(double NominalGdp, double SatOrD)>> CreditMonth = new();
 
     /// <summary>
     /// 純粋な日次（価格形成・建設・信用）＝**国ローカル**＝並列可。〔履歴 Simulation.cs#153〕
@@ -1756,6 +1756,7 @@ public sealed class Simulation
         double[]? navQ = EconomyStep.NavalPortSplit(World, World.Coef, navShare, navBudShare, out double navNeedNat);
         World.Cost[CostLedger.NavalOrderScans] += 3L * World.Regions.Count;   // 計算量の台帳（診断）：NavalPortSplit の2周（取扱高の和・割合）＋下の予算の配りの州ループ1周
         int navIdx = -1;
+        double spendableRevenue = World.SpendableRevenue();   // (1391) V-03：州のループの中は国庫と歳入を書かない＝州ごとに取り直さず 1 回（読むだけ）
         foreach (var r in World.Regions)
             {
                 navIdx++;
@@ -1852,12 +1853,13 @@ public sealed class Simulation
                     else ep.Productivity = 0;   // 学校なし＝教育の供給なし（識字は停滞）
                 }
                 // funding修正：上下水道・電化インフラは**税収フロー(FiscalCapacityPerMonth)から支弁**（国庫ストックは基礎義務に食われ常時0で餓死していた）。〔履歴 Simulation.cs#226〕
+                double popShare = nationPop > 1e-9 ? r.SumPopulation() / nationPop : 0;   // (1391) V-02：同じ割合を 3 回取っていた（括弧の中の式のまま 1 回）
                 r.AdminBudget = r.BureaucratPopIndex >= 0 && nationPop > 1e-9
-                    ? World.AdminSpending * World.Coef.AdminBudgetFrac.Value * World.SpendableRevenue() * (r.SumPopulation() / nationPop) * Fiscal.AdminDistanceMul(World, r) : 0;   // 請求（r を掛ける前）
+                    ? World.AdminSpending * World.Coef.AdminBudgetFrac.Value * spendableRevenue * popShare * Fiscal.AdminDistanceMul(World, r) : 0;   // 請求（r を掛ける前）
                 r.InfraBudget = nationPop > 1e-9
-                    ? (World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop)).Value : 0;
+                    ? (World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacityPerMonth * popShare).Value : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
-                    ? (World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop)).Value : 0;
+                    ? (World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacityPerMonth * popShare).Value : 0;
                 if (Instruments.On) Instruments.AdminBase(World, r, nationPop);   // 計器（読むだけ）：行政の予算の基数（SpendableRevenue・官僚の居る州の人口の比と距離の割増）
                 // 注〔履歴 Simulation.cs#227〕
             }
@@ -1939,7 +1941,7 @@ public sealed class Simulation
             unopenedRoom = deficit - devalueRoom;
             if (devalueRoom > 1e-9)
             {
-                double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) totalSav += Math.Max(0, dp.Savings.Value);
+                var allPopsList = new List<Pop>(); double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) { allPopsList.Add(dp); totalSav += Math.Max(0, dp.Savings.Value); }   // (1391) V-04：一覧を 1 回で作る（和は同じ順）
                 // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。〔履歴 Simulation.cs#240〕
                 double devalueCap = totalSav * World.Coef.DevaluationCapFracPerMonth.Value;   // 貯蓄の月の上限（旧の式の第2項と同じ式）
                 double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap);   // 切りを超える余地は余地そのもの・それ以外は Math.Min(余地, 貯蓄×上限)〔履歴 Simulation.cs#241〕
@@ -1953,8 +1955,7 @@ public sealed class Simulation
                     // 台帳 CumulativeFiatIssued は発行の分だけ（BaseMoney の正当な増加源＝Invariants 算入）。〔履歴 Simulation.cs#242〕
                     if (haircut > 1e-12)
                     {
-                        var allPops = new List<Pop>(); foreach (var (_, dp) in World.AllPopsWithRegion()) allPops.Add(dp);
-                        haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);   // ★(351) 払い手の保有の合計は上の totalSav と同じ順の同じ和（間に何も書かない）
+                        haircut = World.Transfer((World, allPopsList), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);   // ★(351) 払い手の保有の合計は上の totalSav と同じ順の同じ和（間に何も書かない）
                     }
                     else haircut = 0;
                     issue = World.Transfer((null, null), (World, null, null), issue, TreasuryCat.Devalue, outside: World.Outside.Fiat);
