@@ -150,7 +150,7 @@ public class DormantIdentityTests
         // ★EmptyPopEstate（(848) c69eh 人の居ない POP の在庫の相続 R1）は 2026-11-05 に 1 で**点火**＝この表から外した。
         // ★OpeningColonyDominanceFull（(952) c84kp 開幕の一括昇格の植民地の支配度を 1.0 から）は 2026-11-08 に 1 で**点火**＝この表から外した（番人 OpeningColonyDominanceTests）。
         "LandTaxPhiMove",               // (990) c90px 土地税の基数の定額の度合い φ* を動かす器（0＝world.json のまま・番人 LandTaxPhiTests）。点火は A-2b-1d（答え待ち）
-        "SoldierPayBillPrevMonth",      // (1384) c147vs 同じ月の予算が前の月の兵の給与の請求書を読む旗（0＝今の形・番人 SoldierPayBillTests）。点火時にこの表から外す
+        // ★SoldierPayBillPrevMonth（(1384) c147vs 同じ月の予算が前の月の兵の給与の請求書を読む）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は SoldierPayBillTests）。
         // ★ResourceRowsFix（(1025) c96rd 段0″a 資源のデータ＝world.json に足した史実の産地の 10 行を州の構築で使う旗）は 2026-11-10 に 1 で**点火**＝この表から外した（番人 ResourceRowsTests）
         // ★RailLocoNeedsDiscovery（(1130) c110lo 機関車の需要と払いに鉄道の発見の門）は 2026-11-14 に 1 で**点火**＝この表から外した（旗 0 と 1 の番人は RailLocoDiscoveryTests＝旗を明示）。
         // ★RailLocoGateWorld（(1152) c113lc 機関車の門を世界の発見の和で読む）は 2026-11-15 に 1 で**点火**（腕 B の木）＝この表から外した（旗 0 と 1 の番人は RailLocoGateWorldTests＝旗を明示）。
