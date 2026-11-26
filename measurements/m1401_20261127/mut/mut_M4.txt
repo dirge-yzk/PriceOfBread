@@ -1,0 +1,7 @@
+# M4（4b9915ec3）
+  成功 PriceOfBread.Tests.RandomOnlyClimateEpidemicTests.T4_旗1は作物の病気の乱数を引かず作物の健全度は1のまま [2 s]
+  成功 PriceOfBread.Tests.RandomOnlyClimateEpidemicTests.T1_旗1の同盟と植民は外交の乱数の種に依らず条件だけで決まる [233 ms]
+  成功 PriceOfBread.Tests.RandomOnlyClimateEpidemicTests.T3_旗1は勢力の変異の経路を通らず乱数を引かない [1 s]
+  失敗 PriceOfBread.Tests.RandomOnlyClimateEpidemicTests.T5_旗1は独占の押しの経路を通らず乱数を引かない [200 ms]
+  成功 PriceOfBread.Tests.RandomOnlyClimateEpidemicTests.T2_旗1の外交は乱数を引かない [10 ms]
+  成功 PriceOfBread.Tests.RandomOnlyClimateEpidemicTests.旗の既定は0 [< 1 ms]
