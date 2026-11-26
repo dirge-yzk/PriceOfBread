@@ -1408,7 +1408,7 @@ public sealed class Simulation
     public void StepDayOpen()
     {
         ProbeCheck("外部層");   // 前日の最終点から今日の開始まで＝共有層（外交/国際市場/移民/国際金融）で動いた分は各所が台帳計上済みのはず
-        if (Calendar.IsQuarterStartDay(_dayInQuarter)) { QuarterStart(); ProbeCheck("四半期首"); }
+        if (Calendar.IsQuarterStartDay(_dayInQuarter)) { long tQs = StageTimer.Begin(); QuarterStart(); StageTimer.End(StageTimer.QuarterStart, tQs); ProbeCheck("四半期首"); }
     }
 
     /// <summary>
@@ -1467,10 +1467,10 @@ public sealed class Simulation
     /// <summary>締め境界（月次決算・四半期末）。⚠多国では逐次で呼ぶ＝MonthSettle は共有（Diplomacy.Log 等）へ触る。</summary>
     public bool StepDayClose()
     {
-        if (Calendar.IsMonthEndDay(_dayInQuarter)) MonthSettle();   // 月次：クリアリング・賃金/地代/税・労働再配分・移民・外交・人口
+        if (Calendar.IsMonthEndDay(_dayInQuarter)) { long tMs = StageTimer.Begin(); MonthSettle(); StageTimer.End(StageTimer.MonthSettle, tMs); }   // 月次：クリアリング・賃金/地代/税・労働再配分・移民・外交・人口
 
         bool quarterDone = Calendar.IsQuarterEndDay(_dayInQuarter);
-        if (quarterDone) { QuarterEnd(); ProbeCheck("四半期末"); }
+        if (quarterDone) { long tQe = StageTimer.Begin(); QuarterEnd(); StageTimer.End(StageTimer.QuarterEnd, tQe); ProbeCheck("四半期末"); }
         _dayInQuarter = Calendar.NextDayInQuarter(_dayInQuarter);
         return quarterDone;
     }

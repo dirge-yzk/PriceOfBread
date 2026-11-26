@@ -26,7 +26,6 @@ internal static class StateDigest
             if (x is null) { Add(g, 0xA5A5); continue; }
             var t = x.GetType();
             if (x is double dx) { Add(g, (ulong)BitConverter.DoubleToInt64Bits(dx)); continue; }
-            if (x is IUnitValue ux) { Add(g, (ulong)BitConverter.DoubleToInt64Bits(ux.Value)); continue; }
             if (x is string sx) { Add(g, StrHash(sx)); continue; }
             if (t.IsPrimitive || t.IsEnum)
             {
