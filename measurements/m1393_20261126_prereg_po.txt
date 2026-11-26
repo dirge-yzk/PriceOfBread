@@ -1,0 +1,20 @@
+m1393 事前登録 (1393) c148po 恒等（腕の前・最初のコミット）  基準=m1383  木=870ce5520
+[1] 恒等の線・予言 0（挙動を変えない）
+  予言: 素の 5 種と計器つき 10 種は m1383 と名乗り行を除いて全行バイト一致。savetest OK（SubmitRng の欄が消える・値の違い 0）。.cost は +0。
+  テストの数: 項 1 で試験の行が減る（消すのは Assert 行だけ・Fact の数は 0）。項 13 で ScalarDeletionTests に Fact を足す（件数は --list-tests で数える）。.Value の数は減る向き。
+  浮動小数の順序が変わる項（同じ盤面で旧と新を比べる＝紙の台本）: 項 4（A2-21 1/(1+k·d) の写しの 1 本化）・項 6（R10 1.0−0.15 → 0.85 の型）・項 12（B19 手書きを Toward へ）。
+    食い違いが 1 件でも出る項は外して名を報告する（項 12 は特に外す見込み）。
+[2] 消す物と残す物
+  消す（項 1）: Diplomacy.cs:1398-1404 SubmitProbabilistic の枝・Diplomacy.SubmitRng（:335）・MultiNationSim.cs:65 の初期化・係数 Coefficients.p06_rank_discovery.cs:92。
+    読み手の grep（870ce5520）: SimCore=上記 4 行のみ／Runner・App・Display・XAML=0／Tests=DormantIdentityTests:264（ZeroDefaultLedger の名→RetiredFields へ移す）・UnificationAiNoWaitTests:89（対照の欄名を別の欄へ）・WarInstrumentTests:238（Assert 行を消す）／
+    scripts=計器の過去の台本（c95wn・c96wn の突然変異・c113qn・r1134・r1141・r907＝凍結した台本で読み手でない）／POB_COEF の名=0（measure.sh・batch.sh・measurements の台本に無い）／SaveGame=リフレクションで欄を触る＝欄が消えるだけ（savetest で確かめる）。
+  消す（項 2）: Megaprojects.CanStart（読み手 0＝Runner の cref コメント 1 行のみ）・RequiresNameOf（読み手 0）・EstimateCost/StartRefusal/TryStart は Runner（PlayHarness.cs:455・743・744）が読む＝残して 5 の束へ報告。
+  残す: RequiresRowOf・RequirementMet（MultiNationSim:1126・App Map.cs:653・Tests）。
+  他の線との重なり: c148tk は Diplomacy.cs の Step〔:836〕だけ・c148ec は Diplomacy.cs に触れない。DormantIdentityTests.cs・Coefficients は自分の行だけ。
+[3] 足す試験と突然変異
+  μ1: A2-08 の 1 か所で Census の比べを逆にする → 項 8 の試験が赤。
+  μ2: A2-21 の減衰の k を 1 か所だけ別の係数にする → 項 4 の試験か ident が赤。
+  μ3: ScalarDeletionTests の新しい Assert（calm と tired の一致・M1a）を外す/壊す → 赤。
+  ㉘ 走査の番人（IndustrializationReaderTests|UnitTypeTests|InstrumentsTests|WriterRatchetTests|DormantIdentityTests）は器のコミットの後に回す。書き換える件数の予言: DormantIdentityTests は項 1 で ZeroDefaultLedger −1・RetiredFields +1。その他の件数の番人は 0 件の書き換え。
+[4] 素の 5 種・計器つき 10 種が m1383 と全行一致（名乗り行の SOURCE-HASH を除く）。
+[5] 〈判定: 恒等〉なら採る。
