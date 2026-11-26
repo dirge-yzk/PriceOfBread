@@ -944,7 +944,7 @@ public static class Politics
                 double tState = System.Math.Max(0, 1.0 - tLocal - tForeign - tUngov);
                 double[] t = [tState, tLocal, tForeign, tUngov];
                 double sum = 0;
-                for (int k = 0; k < 4; k++) { double v = r4.Rule[k] + c.RuleShareSpeed.Close(t[k] - r4.Rule[k]); if (!(v > 0)) v = 0; r4.Rule[k] = v; sum += v; }
+                for (int k = 0; k < 4; k++) { double v = r4.Rule[k] + (t[k] - r4.Rule[k]) * c.DominanceSpeed; if (!(v > 0)) v = 0; r4.Rule[k] = v; sum += v; }
                 if (sum > 1e-9) for (int k = 0; k < 4; k++) r4.Rule[k] /= sum; else r4.Rule[0] = 1.0;
                 if (r4.RuleStateLastYear != w.Year && r4.RuleStateYears.Length > 0)
                 {

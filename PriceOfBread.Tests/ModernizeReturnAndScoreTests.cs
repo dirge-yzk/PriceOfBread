@@ -275,7 +275,7 @@ public class ModernizeReturnAndScoreTests
         sim.Run(1);
         var d = sim.Diplomacy;
         var c = sim.Nations[0].World.Coef;
-        c.TreatyPortLapseRatio = new Share(0.5); c.ForeignShareFadeSpeed = FractionPerQuarter.FromQuarter(0.5);
+        c.TreatyPortLapseRatio = new Share(0.5); c.DominanceSpeed = 0.5;
         // 最強の列強以外の国の州に外国持分を積む
         var ws = sim.Nations.ConvertAll(n => n.World);
         var sc = NationalScore.Scores(ws);

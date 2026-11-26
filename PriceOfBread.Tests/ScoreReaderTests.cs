@@ -149,8 +149,8 @@ public class ScoreReaderTests
         var region = pick.Nation!.Regions[0];
         region.ForeignRulers = ["測定用"]; region.ForeignShares = [0.8];
         double ratio = sc[pick.Id] / median;
-        double expected = 0.8 * (1.0 - Math.Min(1.0, ratio / sim.Coef.TreatyPortLapseRatio.Value) * sim.Coef.ForeignShareFadeSpeed.Value);
-        double withMax = 0.8 * (1.0 - Math.Min(1.0, sc[pick.Id] / max / sim.Coef.TreatyPortLapseRatio.Value) * sim.Coef.ForeignShareFadeSpeed.Value);
+        double expected = 0.8 * (1.0 - Math.Min(1.0, ratio / sim.Coef.TreatyPortLapseRatio.Value) * sim.Coef.DominanceSpeed);
+        double withMax = 0.8 * (1.0 - Math.Min(1.0, sc[pick.Id] / max / sim.Coef.TreatyPortLapseRatio.Value) * sim.Coef.DominanceSpeed);
         Assert.True(Math.Abs(expected - withMax) > 1e-6, "最大を基準にした値と中央値を基準にした値が違う盤面");
         d.TreatyPortLapse(sim.Coef, 3);
         Assert.Equal(expected, region.ForeignShares[0], 12);
