@@ -915,6 +915,7 @@ public class RevoltIgnitionTests
         }
         Assert.True(payer is not null && payer.Size > 1e-9, "前提が崩れた：首都州に大衆POPが無い");
         payer!.Militancy = 0.9;
+        payer.LivingRef = payer.Satisfaction + 1.125;   // (1398) c149sd：既定（旗 SatReadersToDiscontent 1）の参加は不満度 D だけ＝D＝0.8×1.125＝0.9 も置く（旗 0 では闘争度 0.9 が同じ役）
         // 参加者の財布を厚くする＝**州の他POPの貯蓄の半分を移す**（金を湧かせない＝貨幣保存の番人が黙ったまま通しで走れる）
         double pool = 0;
         foreach (var p in r.Pops) if (!ReferenceEquals(p, payer) && p.Savings.Value > 0) { pool += p.Savings.Value * 0.5; p.SetSavings(p.Savings.Value * (0.5)); }

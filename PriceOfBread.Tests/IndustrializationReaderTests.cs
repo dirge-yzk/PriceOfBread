@@ -128,8 +128,8 @@ public class IndustrializationReaderTests
         var inv = w.Region.Pops[w.Region.InvestorPopIndex];
         inv.LastEarnedPerMonth = new MoneyPerMonth(1e30);
         w.Explain = new ExplainLedger();
-        double gold = w.Bank!.Gold.Value;
         Credit.Step(w, w.Coef);
+        double gold = w.Bank!.Gold.Value;   // (1398) c149sd：Step が頭で書き直した準備（上限が読む値）を Step の後に読む＝旧は前の Step の準備を読んでいた（信頼が動く盤面で時点がずれる・旗 SatReadersToDiscontent 1 で表に出た試験のバグ）
         return (w.Explain.Get("CreditTarget")[0].Delta, gold, w.OnGoldStandard);
     }
 

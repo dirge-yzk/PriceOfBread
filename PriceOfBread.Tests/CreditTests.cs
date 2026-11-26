@@ -313,6 +313,8 @@ public class CreditTests
                 w.Explain = null;
                 w.Coef.OverheatFragility = 0; w.Coef.HoardPanicWeight = 0; w.Coef.DebtDeflationWeight = 0;
                 w.Coef.ConfidencePivot = 2.0; w.Coef.PanicSensitivity = 0.25;   // 目標＝1−0.25×(2−充足)∈[0.5, 0.75]＝1.0 は崩れる側・0.05 は育つ側
+                // (1398) c149sd：既定（旗 SatReadersToDiscontent 1）の不穏は大衆の層の不満度の平均 D̄＝参照点を充足の 1.25 上に置いて D̄＝Clamp01(0.8×1.25)＝1＝目標 0.75（旬の中で動かない）。旧の式の盤面（ConfidencePivot）は旗 0 の対照として残す
+                foreach (var p in w.AllPops()) p.LivingRef = p.Satisfaction + 1.25;
                 w.Bank!.Confidence = conf0;
                 return w;
             }

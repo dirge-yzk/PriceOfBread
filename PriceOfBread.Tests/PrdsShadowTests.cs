@@ -231,7 +231,7 @@ public class PrdsShadowTests
             for (int q = 0; q < quarters; q++)
             {
                 sim.StepQuarter();
-                if (q == quarters - 1) foreach (var n in sim.Nations) { foreach (var p in n.World.AllPops()) p.Militancy = finalMil; Ideologies.UpdateShares(n.World); }   // 最後の四半期の後にもう 1 回（人口が動かない状態で数え直しと突き合わせる・計器あり／なしの両方）
+                if (q == quarters - 1) foreach (var n in sim.Nations) { foreach (var p in n.World.AllPops()) { p.Militancy = finalMil; p.LivingRef = p.Satisfaction + finalMil / 0.8; } Ideologies.UpdateShares(n.World); }   // (1398) c149sd：既定（旗 SatReadersToDiscontent 1）の参加と思想は不満度 D＝0.8×(R−s) を読む＝D＝finalMil も置く（旗 0 では闘争度が同じ役）   // 最後の四半期の後にもう 1 回（人口が動かない状態で数え直しと突き合わせる・計器あり／なしの両方）
                 if (instr) Instruments.Quarter(sim, 1789UL, q);
             }
         }

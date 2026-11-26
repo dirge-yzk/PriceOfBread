@@ -68,7 +68,8 @@ public class DiscontentReaderTests
         }
         var w0 = Make(0.0); var w1 = Make(1.0);
         var coord = PoliticalQuantities.DriftedPolityCoord(w0.Polity, w0.Suffrage, w0.Coef);
-        var pre = new List<double>(); var expectVoice = new List<double>();
+        // (1398) c149sd：既定（旗 SatReadersToDiscontent 1）の不満度は声の項を抜いた＝政治の項は闘争度だけが持つ。〈同じ式〉は旧の経路の前クランプ DiscontentRaw（同じ 4 軸の距離を渡す）で見て、既定の不満度は 0（落差 0）を見る（㉜ の改め）。
+        var pre = new List<double>(); var preRaw = new List<double>(); var expectVoice = new List<double>();
         foreach (var p in ActivePops(w0))
         {
             pre.Add(Politics.Discontent(w0, w0.Coef, p, coord, 0));
@@ -76,6 +77,7 @@ public class DiscontentReaderTests
             var ideal = Ideologies.IdealPoint(p.IdeologyShares);
             double s2 = 0; for (int k = 0; k < 4; k++) s2 += (ideal[k] - coord[k]) * (ideal[k] - coord[k]);
             expectVoice.Add(w0.Coef.PoliticalDistanceWeight * Math.Min(p.Consciousness, p.Literacy) * (1.0 - Politics.EffectiveVoice(w0, w0.Coef, p)) * (Math.Sqrt(s2) / 2.0));
+            preRaw.Add(Politics.DiscontentRaw(w0, w0.Coef, p, Math.Sqrt(s2) / 2.0));
         }
         Politics.Step(w0, w0.Coef); Politics.Step(w1, w1.Coef);
         var a = ActivePops(w0).ToList(); var b = ActivePops(w1).ToList();
@@ -87,23 +89,29 @@ public class DiscontentReaderTests
             Assert.Equal(expectVoice[i], a[i].MilVoice, 12);   // 手計算（4 軸の距離÷2）に合う
             Assert.Equal(a[i].MilVoice, b[i].MilVoice);   // 旗に依らず同じ（ビット一致）
             if (a[i].MilVoice > 0) voiced++;
-            // 不満度（DiscontentLawGap＝0 の旧経路）の前クランプ＝闘争度の目標の 2 項の和。両方が [0,1] の内なので等しい。
+            // 旧の経路の不満度の前クランプ＝闘争度の目標の 2 項の和。両方が [0,1] の内なので等しい。
             double sum = a[i].MilVoice;   // 生活の項は闘争度の目標に入らない（(431)・(551) で Pop.MilLiving の欄も削除）＝目標の先頭は法の項だけ
-            Assert.Equal(sum > 1 ? 1.0 : sum, pre[i], 12);
+            Assert.Equal(sum > 1 ? 1.0 : sum, Math.Clamp(preRaw[i], 0.0, 1.0), 12);
+            Assert.Equal(0.0, pre[i]);   // 既定の不満度は政治の項を読まない（落差 0＝0）
         }
         Assert.True(voiced > 50, $"政治の隔たりが立った POP が少ない {voiced}＝この番人は政治の項を見ていない");
     }
 
     [Fact]
-    public void 参加の頭数は闘争度の高いPOPと低いPOPで旧の二値と新の連続に分かれる()
+    public void 参加の頭数は不満度の高いPOPと低いPOPで連続に分かれ_闘争度は読まない()
     {
-        // 不満度 0（意識 0・落差 0）・闘争度は POP の並びで 0.8 と 0.2 に分ける。手計算＝旧は 0.8 の POP の規模の和・新は 0.8×高の和＋0.2×低の和。
+        // (1398) c149sd：既定（旗 SatReadersToDiscontent 1）の参加は不満度 D だけ＝旧の番人〈不満度 0・闘争度で二値と連続〉を新しい規則へ書き換えた（㉜ の改め）。
+        // 意識 0・不満度は POP の並びで 0.8・0.5・0.2（落差 1.0・0.625・0.25）・闘争度は逆に 0.2・0.5・0.8（旧の max なら高と低が 0.8 で同じになる）。手計算＝0.8×高＋0.5×中＋0.2×低（二値の閾値なし）。
         var w = Board(drop: 0.0);
-        // 3 種類：高 0.8（旧も数える）・境界 0.5 ちょうど（旧は数えない＝闘争度＞0.5 の二値）・低 0.2。
         double hi = 0, mid = 0, lo = 0; int i = 0;
         foreach (var p in ActivePops(w))
         {
-            switch (i++ % 3) { case 0: p.Militancy = 0.8; hi += p.Size; break; case 1: p.Militancy = 0.5; mid += p.Size; break; default: p.Militancy = 0.2; lo += p.Size; break; }
+            switch (i++ % 3)
+            {
+                case 0: p.LivingRef = p.Satisfaction + 1.0; p.Militancy = 0.2; hi += p.Size; break;
+                case 1: p.LivingRef = p.Satisfaction + 0.625; p.Militancy = 0.5; mid += p.Size; break;
+                default: p.LivingRef = p.Satisfaction + 0.25; p.Militancy = 0.8; lo += p.Size; break;
+            }
         }
         Assert.True(hi > 0 && mid > 0 && lo > 0);
         static double Total(World w2) { double s = 0; foreach (var cl in FactionSnapshot.ComputeClusters(w2)) s += cl.Size; return s; }

@@ -150,28 +150,36 @@ public class DiscontentSplitTests
         // 意識・識字を 0.9 にして法の項（理想点に依る）を立てる。世界 X で更新の前に参加の述語と同じ呼び（DiscontentOf）で POP ごとの不満度 d を取り、
         // 同じ盤面 R の闘争度を max(d, 闘争度) に置く。更新後のシェアがビット一致なら、思想の入力は更新の前の理想点で測っている
         // （BaseWeights が r＝IdeologyShares を 0 クリアして上書きした後で読むと理想点が途中の値になり、一致しない）。
-        World Make()
+        // (1398) c149sd：既定（旗 SatReadersToDiscontent 1）の不満度は法の項（理想点）を読まない＝既定では全ての POP の d が生活の項 0.4 だけ（理想点に依らない）で、
+        //   闘争度を変えた R とシェアがビット一致（思想は D だけを読む）。理想点の時点の番人は旧の経路（旗 0・焼き込みまで残る枝）の対照として残す（㉜ の改め）。
+        foreach (double flag in new[] { 1.0, 0.0 })
         {
-            var w = Board(drop: 0.5, militancy: 0.1);
-            foreach (var r in w.Regions) foreach (var p in r.Pops) { p.Consciousness = 0.9; p.Literacy = 0.9; }
-            return w;
+            World Make()
+            {
+                var w = Board(drop: 0.5, militancy: 0.1);
+                w.Coef.SatReadersToDiscontent = flag;
+                foreach (var r in w.Regions) foreach (var p in r.Pops) { p.Consciousness = 0.9; p.Literacy = 0.9; }
+                return w;
+            }
+            var wX = Make();
+            var wR = Make();
+            var (coord, gap) = FactionSnapshot.MembershipContext(wX, true);
+            var px = wX.AllPops().ToList(); var pr = wR.AllPops().ToList();
+            Assert.Equal(px.Count, pr.Count);
+            int lawVoiced = 0, livingOnly = 0;
+            for (int i = 0; i < px.Count; i++)
+            {
+                double d = FactionSnapshot.DiscontentOf(wX, px[i], coord, gap);
+                if (d > 0.4 + 1e-9) lawVoiced++;   // 生活の項 0.8×0.5＝0.4 を超える＝法の項が立っている
+                if (Math.Abs(d - 0.8 * 0.5) <= 1e-12) livingOnly++;
+                pr[i].Militancy = Math.Max(d, px[i].Militancy);
+            }
+            if (flag > 0) Assert.Equal(px.Count, livingOnly);   // 既定：法の項なし（全ての POP が生活の項だけ）
+            else Assert.True(lawVoiced > 50, $"法の項が立った POP が少ない {lawVoiced}＝この番人は理想点を見ていない");
+            Ideologies.UpdateShares(wX); Ideologies.UpdateShares(wR);
+            for (int i = 0; i < px.Count; i++)
+                Assert.True(px[i].IdeologyShares.SequenceEqual(pr[i].IdeologyShares), $"旗 {flag}：POP {i} のシェアが違う");
         }
-        var wX = Make();
-        var wR = Make();
-        var (coord, gap) = FactionSnapshot.MembershipContext(wX, true);
-        var px = wX.AllPops().ToList(); var pr = wR.AllPops().ToList();
-        Assert.Equal(px.Count, pr.Count);
-        int lawVoiced = 0;
-        for (int i = 0; i < px.Count; i++)
-        {
-            double d = FactionSnapshot.DiscontentOf(wX, px[i], coord, gap);
-            if (d > 0.4 + 1e-9) lawVoiced++;   // 生活の項 0.8×0.5＝0.4 を超える＝法の項が立っている
-            pr[i].Militancy = Math.Max(d, px[i].Militancy);
-        }
-        Assert.True(lawVoiced > 50, $"法の項が立った POP が少ない {lawVoiced}＝この番人は理想点を見ていない");
-        Ideologies.UpdateShares(wX); Ideologies.UpdateShares(wR);
-        for (int i = 0; i < px.Count; i++)
-            Assert.True(px[i].IdeologyShares.SequenceEqual(pr[i].IdeologyShares), $"POP {i} のシェアが違う");
     }
 
     [Fact]
