@@ -1,0 +1,6 @@
+# M4（10325bed8）
+  失敗 PriceOfBread.Tests.PolicyPoliticsTests.段3_参加は不満度だけで決まり闘争度は上書きしない [110 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T2a_参加が闘争度に依らない [100 ms]
+  失敗 PriceOfBread.Tests.DiscontentReaderTests.参加の頭数は不満度の高いPOPと低いPOPで連続に分かれ_闘争度は読まない [55 ms]
+  失敗 PriceOfBread.Tests.DiscontentReaderTests.Politics_Discontentの呼び手の本数がファイルごとに増えていない [48 ms]
+失敗!   -失敗:     4、合格:   167、スキップ:     0、合計:   171、期間: 1 m 7 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,12 @@
+# M1（10325bed8）
+  失敗 PriceOfBread.Tests.PolicyPoliticsTests.不満度は既定で法の隔たりも物差しの切替も読まない_旧の経路の切替は対照 [55 ms]
+  失敗 PriceOfBread.Tests.PolicyPoliticsTests.紙の参政権は声の項を宥めきれない_既定の不満度は声を読まない [48 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T3_DはGに比例する [51 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T1_声が届かず法の隔たりが大きい意識の高い人でR等しsならDが0 [45 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T6_AIの不穏は満足が同じでDが違う2国でD平均に比例する_旗0は今の式 [193 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T8_満足は低いがRがs以下ならDと不穏が0_旧の式なら不穏が正 [47 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T2a_参加が闘争度に依らない [96 ms]
+  失敗 PriceOfBread.Tests.DiscontentSplitTests.思想の入力の不満度は更新の前のシェアの理想点で測る_参加の述語と同じ呼びの値 [99 ms]
+  失敗 PriceOfBread.Tests.DiscontentReaderTests.意識のある盤面でも闘争度の政治の項は不満度の政治の項と同じ式で_DiscontentLawGapは闘争度に広がらない [103 ms]
+  失敗 PriceOfBread.Tests.DiscontentReaderTests.Politics_Discontentの呼び手の本数がファイルごとに増えていない [56 ms]
+失敗!   -失敗:    10、合格:   161、スキップ:     0、合計:   171、期間: 1 m 9 s - PriceOfBread.Tests.dll (net10.0)
