@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="699b5c9a-c581-4029-b08c-97eab0451b44" name="dirge@DIRGE 2026-11-26 15:53:08" runUser="DIRGE\dirge" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-26T15:53:08.2917909+09:00" queuing="2026-11-26T15:53:08.2917916+09:00" start="2026-11-26T15:52:56.8956425+09:00" finish="2026-11-26T15:53:09.2137144+09:00" />
+  <TestSettings name="default" id="31883100-daae-489c-8fa8-e1667096f4eb">
+    <Deployment runDeploymentRoot="dirge_DIRGE_2026-11-26_15_53_08" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="d59f2ab4-1796-48a7-8e7f-3d22d9041779" testId="d0a0cc01-cdc2-9e92-778d-4e90fabe3c15" testName="PriceOfBread.Tests.SoldierPayBillTests.月の終わりの請求書は州の給与の予算の和(flag: 0)" computerName="DIRGE" duration="00:00:06.3591704" startTime="2026-11-26T15:53:01.9033235+09:00" endTime="2026-11-26T15:53:08.2453523+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d59f2ab4-1796-48a7-8e7f-3d22d9041779" />
+    <UnitTestResult executionId="01502f05-3a26-420b-985e-a2e611301971" testId="e395d7db-fe95-6f18-e59b-c3cace21ad9c" testName="PriceOfBread.Tests.SoldierPayBillTests.月の終わりの請求書は州の給与の予算の和(flag: 1)" computerName="DIRGE" duration="00:00:00.1893723" startTime="2026-11-26T15:53:08.2693749+09:00" endTime="2026-11-26T15:53:08.4350262+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="01502f05-3a26-420b-985e-a2e611301971" />
+    <UnitTestResult executionId="a6fbe66b-7fba-41ee-bfa6-87620fae8a93" testId="7c861dd7-4811-cf35-0f79-de8ca5308f48" testName="PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 0)" computerName="DIRGE" duration="00:00:00.1131515" startTime="2026-11-26T15:53:08.4373957+09:00" endTime="2026-11-26T15:53:08.5621990+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="a6fbe66b-7fba-41ee-bfa6-87620fae8a93">
+      <Output>
+        <ErrorInfo>
+          <Message>旗 0：2 か月目の請求書 7.776638715931239 ≠ 期待の枠 8.199807458070355（前の月の請求を読んだ枠 7.776638715931238・請求書 0 を読んだ枠 8.199807458070355）</Message>
+          <StackTrace>   at PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(Double flag) in D:\PoB_work\wt_c147vs_mut\PriceOfBread.Tests\SoldierPayBillTests.cs:line 88&#xD;
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)&#xD;
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="0e704e69-2ff3-4f59-a07f-9b675e678591" testId="b080778b-6e33-08b3-f4d6-041748404ae8" testName="PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 1)" computerName="DIRGE" duration="00:00:00.1105339" startTime="2026-11-26T15:53:08.5697878+09:00" endTime="2026-11-26T15:53:08.6721041+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0e704e69-2ff3-4f59-a07f-9b675e678591" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 1)" storage="d:\pob_work\c147vs_work\mut_art\bin\priceofbread.tests\release\priceofbread.tests.dll" id="b080778b-6e33-08b3-f4d6-041748404ae8">
+      <Execution id="0e704e69-2ff3-4f59-a07f-9b675e678591" />
+      <TestMethod codeBase="D:\PoB_work\c147vs_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.SoldierPayBillTests" name="二か月目の予算は前の月の請求書を読む" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.SoldierPayBillTests.月の終わりの請求書は州の給与の予算の和(flag: 0)" storage="d:\pob_work\c147vs_work\mut_art\bin\priceofbread.tests\release\priceofbread.tests.dll" id="d0a0cc01-cdc2-9e92-778d-4e90fabe3c15">
+      <Execution id="d59f2ab4-1796-48a7-8e7f-3d22d9041779" />
+      <TestMethod codeBase="D:\PoB_work\c147vs_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.SoldierPayBillTests" name="月の終わりの請求書は州の給与の予算の和" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 0)" storage="d:\pob_work\c147vs_work\mut_art\bin\priceofbread.tests\release\priceofbread.tests.dll" id="7c861dd7-4811-cf35-0f79-de8ca5308f48">
+      <Execution id="a6fbe66b-7fba-41ee-bfa6-87620fae8a93" />
+      <TestMethod codeBase="D:\PoB_work\c147vs_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.SoldierPayBillTests" name="二か月目の予算は前の月の請求書を読む" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.SoldierPayBillTests.月の終わりの請求書は州の給与の予算の和(flag: 1)" storage="d:\pob_work\c147vs_work\mut_art\bin\priceofbread.tests\release\priceofbread.tests.dll" id="e395d7db-fe95-6f18-e59b-c3cace21ad9c">
+      <Execution id="01502f05-3a26-420b-985e-a2e611301971" />
+      <TestMethod codeBase="D:\PoB_work\c147vs_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.SoldierPayBillTests" name="月の終わりの請求書は州の給与の予算の和" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="d0a0cc01-cdc2-9e92-778d-4e90fabe3c15" executionId="d59f2ab4-1796-48a7-8e7f-3d22d9041779" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e395d7db-fe95-6f18-e59b-c3cace21ad9c" executionId="01502f05-3a26-420b-985e-a2e611301971" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7c861dd7-4811-cf35-0f79-de8ca5308f48" executionId="a6fbe66b-7fba-41ee-bfa6-87620fae8a93" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b080778b-6e33-08b3-f4d6-041748404ae8" executionId="0e704e69-2ff3-4f59-a07f-9b675e678591" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="一覧に存在しない結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="読み込まれたすべての結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="4" executed="4" passed="3" failed="1" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)&#xD;
+[xUnit.net 00:00:00.88]   Discovering: PriceOfBread.Tests&#xD;
+[xUnit.net 00:00:01.41]   Discovered:  PriceOfBread.Tests&#xD;
+[xUnit.net 00:00:01.45]   Starting:    PriceOfBread.Tests&#xD;
+[xUnit.net 00:00:08.18]       旗 0：2 か月目の請求書 7.776638715931239 ≠ 期待の枠 8.199807458070355（前の月の請求を読んだ枠 7.776638715931238・請求書 0 を読んだ枠 8.199807458070355）&#xD;
+[xUnit.net 00:00:08.18]       Stack Trace:&#xD;
+[xUnit.net 00:00:08.18]         D:\PoB_work\wt_c147vs_mut\PriceOfBread.Tests\SoldierPayBillTests.cs(88,0): at PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(Double flag)&#xD;
+[xUnit.net 00:00:08.18]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)&#xD;
+[xUnit.net 00:00:08.18]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)&#xD;
+[xUnit.net 00:00:08.18]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)&#xD;
+[xUnit.net 00:00:08.29]   Finished:    PriceOfBread.Tests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="DIRGE" outcome="Error" timestamp="2026-11-26T15:53:08.5658061+09:00">
+        <Text>[xUnit.net 00:00:08.18]     PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 0) [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>

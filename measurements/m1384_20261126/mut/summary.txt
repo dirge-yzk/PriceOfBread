@@ -1,0 +1,12 @@
+## M0_none
+成功!   -失敗:     0、合格:     4、スキップ:     0、合計:     4、期間: 7 s - PriceOfBread.Tests.dll (net10.0)
+## M1_zero_at_head
+  失敗 PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 1) [82 ms]
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+## M2_no_write
+  失敗 PriceOfBread.Tests.SoldierPayBillTests.月の終わりの請求書は州の給与の予算の和(flag: 1) [161 ms]
+  失敗 PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 1) [110 ms]
+失敗!   -失敗:     2、合格:     2、スキップ:     0、合計:     4、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+## M3_ignore_flag
+  失敗 PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 0) [113 ms]
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 6 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,52 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="280bc947-ac51-461b-8396-c223f73b3f19" name="dirge@DIRGE 2026-11-26 15:49:43" runUser="DIRGE\dirge" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-26T15:49:43.3429625+09:00" queuing="2026-11-26T15:49:43.3429630+09:00" start="2026-11-26T15:49:21.2476571+09:00" finish="2026-11-26T15:49:44.0886382+09:00" />
+  <TestSettings name="default" id="69cab570-2b84-4a30-848d-8d34920fc8cd">
+    <Deployment runDeploymentRoot="dirge_DIRGE_2026-11-26_15_49_43" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="115601a1-1079-45ad-84c5-ee7bb813f0fe" testId="7c861dd7-4811-cf35-0f79-de8ca5308f48" testName="PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 0)" computerName="DIRGE" duration="00:00:00.0879986" startTime="2026-11-26T15:49:43.4343769+09:00" endTime="2026-11-26T15:49:43.5205328+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="115601a1-1079-45ad-84c5-ee7bb813f0fe" />
+    <UnitTestResult executionId="0c3678b9-8aa3-49bd-8e67-e72655bab5d9" testId="d0a0cc01-cdc2-9e92-778d-4e90fabe3c15" testName="PriceOfBread.Tests.SoldierPayBillTests.月の終わりの請求書は州の給与の予算の和(flag: 0)" computerName="DIRGE" duration="00:00:06.9740935" startTime="2026-11-26T15:49:36.5008295+09:00" endTime="2026-11-26T15:49:43.2937836+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="0c3678b9-8aa3-49bd-8e67-e72655bab5d9" />
+    <UnitTestResult executionId="7f31c6d1-9ab6-4d62-a13c-1cd8ba0e4111" testId="e395d7db-fe95-6f18-e59b-c3cace21ad9c" testName="PriceOfBread.Tests.SoldierPayBillTests.月の終わりの請求書は州の給与の予算の和(flag: 1)" computerName="DIRGE" duration="00:00:00.1379638" startTime="2026-11-26T15:49:43.3190958+09:00" endTime="2026-11-26T15:49:43.4319258+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7f31c6d1-9ab6-4d62-a13c-1cd8ba0e4111" />
+    <UnitTestResult executionId="d805948c-6a08-4007-806a-4993d8767aa4" testId="b080778b-6e33-08b3-f4d6-041748404ae8" testName="PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 1)" computerName="DIRGE" duration="00:00:00.1014909" startTime="2026-11-26T15:49:43.5210455+09:00" endTime="2026-11-26T15:49:43.6221951+09:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d805948c-6a08-4007-806a-4993d8767aa4" />
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 1)" storage="d:\pob_work\c147vs_work\mut_art\bin\priceofbread.tests\release\priceofbread.tests.dll" id="b080778b-6e33-08b3-f4d6-041748404ae8">
+      <Execution id="d805948c-6a08-4007-806a-4993d8767aa4" />
+      <TestMethod codeBase="D:\PoB_work\c147vs_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.SoldierPayBillTests" name="二か月目の予算は前の月の請求書を読む" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.SoldierPayBillTests.月の終わりの請求書は州の給与の予算の和(flag: 0)" storage="d:\pob_work\c147vs_work\mut_art\bin\priceofbread.tests\release\priceofbread.tests.dll" id="d0a0cc01-cdc2-9e92-778d-4e90fabe3c15">
+      <Execution id="0c3678b9-8aa3-49bd-8e67-e72655bab5d9" />
+      <TestMethod codeBase="D:\PoB_work\c147vs_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.SoldierPayBillTests" name="月の終わりの請求書は州の給与の予算の和" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.SoldierPayBillTests.二か月目の予算は前の月の請求書を読む(flag: 0)" storage="d:\pob_work\c147vs_work\mut_art\bin\priceofbread.tests\release\priceofbread.tests.dll" id="7c861dd7-4811-cf35-0f79-de8ca5308f48">
+      <Execution id="115601a1-1079-45ad-84c5-ee7bb813f0fe" />
+      <TestMethod codeBase="D:\PoB_work\c147vs_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.SoldierPayBillTests" name="二か月目の予算は前の月の請求書を読む" />
+    </UnitTest>
+    <UnitTest name="PriceOfBread.Tests.SoldierPayBillTests.月の終わりの請求書は州の給与の予算の和(flag: 1)" storage="d:\pob_work\c147vs_work\mut_art\bin\priceofbread.tests\release\priceofbread.tests.dll" id="e395d7db-fe95-6f18-e59b-c3cace21ad9c">
+      <Execution id="7f31c6d1-9ab6-4d62-a13c-1cd8ba0e4111" />
+      <TestMethod codeBase="D:\PoB_work\c147vs_work\mut_art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="PriceOfBread.Tests.SoldierPayBillTests" name="月の終わりの請求書は州の給与の予算の和" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="7c861dd7-4811-cf35-0f79-de8ca5308f48" executionId="115601a1-1079-45ad-84c5-ee7bb813f0fe" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d0a0cc01-cdc2-9e92-778d-4e90fabe3c15" executionId="0c3678b9-8aa3-49bd-8e67-e72655bab5d9" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="e395d7db-fe95-6f18-e59b-c3cace21ad9c" executionId="7f31c6d1-9ab6-4d62-a13c-1cd8ba0e4111" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="b080778b-6e33-08b3-f4d6-041748404ae8" executionId="d805948c-6a08-4007-806a-4993d8767aa4" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="一覧に存在しない結果" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="読み込まれたすべての結果" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Completed">
+    <Counters total="4" executed="4" passed="4" failed="0" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.08] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)&#xD;
+[xUnit.net 00:00:02.57]   Discovering: PriceOfBread.Tests&#xD;
+[xUnit.net 00:00:04.10]   Discovered:  PriceOfBread.Tests&#xD;
+[xUnit.net 00:00:04.44]   Starting:    PriceOfBread.Tests&#xD;
+[xUnit.net 00:00:11.85]   Finished:    PriceOfBread.Tests&#xD;
+</StdOut>
+    </Output>
+  </ResultSummary>
+</TestRun>
