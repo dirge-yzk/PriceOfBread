@@ -1408,13 +1408,13 @@ public sealed class Simulation
     public void StepDayOpen()
     {
         ProbeCheck("外部層");   // 前日の最終点から今日の開始まで＝共有層（外交/国際市場/移民/国際金融）で動いた分は各所が台帳計上済みのはず
-        if (_dayInQuarter == 0) { QuarterStart(); ProbeCheck("四半期首"); }
+        if (Calendar.IsQuarterStartDay(_dayInQuarter)) { long tQs = StageTimer.Begin(); QuarterStart(); StageTimer.End(StageTimer.QuarterStart, tQs); ProbeCheck("四半期首"); }
     }
 
     /// <summary>
     /// ⚠ 境界相の外から入力を書く動詞はプレイヤーの侵略（World.Invade＝兵の疫病死と植民地の州化）だけで、そこで表から外す。〔履歴 Simulation.cs#152〕
     /// </summary>
-    internal static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<(double NominalGdp, double AvgSat)>> CreditMonth = new();
+    internal static readonly System.Runtime.CompilerServices.ConditionalWeakTable<World, System.Runtime.CompilerServices.StrongBox<(double NominalGdp, double SatOrD)>> CreditMonth = new();
 
     /// <summary>
     /// 純粋な日次（価格形成・建設・信用）＝**国ローカル**＝並列可。〔履歴 Simulation.cs#153〕
@@ -1428,10 +1428,10 @@ public sealed class Simulation
         int hPrice = World.Coef.PriceOnlyStepDays > 0 ? World.Coef.PriceOnlyStepDays : hFlow;   // ★(spg2) ① 国内価格だけの刻み（0＝同じ旬）
         if (Calendar.DaysPerMonth % hPrice != 0)
             throw new System.InvalidOperationException($"PriceOnlyStepDays={hPrice} は {Calendar.DaysPerMonth} の約数でない（旬は月をまたげない）");
-        bool priceDay = (_dayInQuarter + 1) % hPrice == 0;
-        bool spanStart = _dayInQuarter % hFlow == 0;   // 旬の初日（建設と信用＝S3c）
+        bool priceDay = Calendar.IsSpanEndDay(_dayInQuarter, hPrice);
+        bool spanStart = Calendar.IsSpanStartDay(_dayInQuarter, hFlow);   // 旬の初日（建設と信用＝S3c）
         long[]? cost = priceDay || spanStart ? World.Cost : null;   // 計算量の台帳（診断・この国の台帳＝並列の日次相でも国ごと）
-        bool monthStartSpan = _dayInQuarter % Calendar.DaysPerMonth < hPrice;   // monthStartSpan〔履歴 Simulation.cs#155〕
+        bool monthStartSpan = Calendar.DayInMonth(_dayInQuarter) < hPrice;   // monthStartSpan〔履歴 Simulation.cs#155〕
         foreach (var r in World.Regions)
             {
                 r.PriceLevel = World.PriceLevel * r.LocalPriceMultiplier;   // 国家物価×地域乗数＝地域別の物価水準（金融中心は高・辺境は低）。1州なら乗数1＝較正中立
@@ -1452,7 +1452,7 @@ public sealed class Simulation
             {
                 bool fresh = !CreditMonth.TryGetValue(World, out var box);
                 if (box is null) { box = new(); CreditMonth.Add(World, box); }
-                if (fresh || _dayInQuarter % Calendar.DaysPerMonth == 0)   // 月の初日は旬の初日（h は30の約数）
+                if (fresh || Calendar.IsMonthStartDay(_dayInQuarter))   // 月の初日は旬の初日（h は30の約数）
                     box.Value = (World.NominalGdpPerMonth.Value, World.Coef.SatReadersToDiscontent > 0 ? Politics.AvgMassDiscontent(World) : NationalScore.MeanSatisfaction(World));   // (1385) 旗 1＝D̄
                 creditMonth = box.Value;
             }
@@ -1467,11 +1467,11 @@ public sealed class Simulation
     /// <summary>締め境界（月次決算・四半期末）。⚠多国では逐次で呼ぶ＝MonthSettle は共有（Diplomacy.Log 等）へ触る。</summary>
     public bool StepDayClose()
     {
-        if ((_dayInQuarter + 1) % Calendar.DaysPerMonth == 0) MonthSettle();   // 月次：クリアリング・賃金/地代/税・労働再配分・移民・外交・人口
+        if (Calendar.IsMonthEndDay(_dayInQuarter)) { long tMs = StageTimer.Begin(); MonthSettle(); StageTimer.End(StageTimer.MonthSettle, tMs); }   // 月次：クリアリング・賃金/地代/税・労働再配分・移民・外交・人口
 
-        bool quarterDone = _dayInQuarter == Calendar.QuarterEndDayIndex;
-        if (quarterDone) { QuarterEnd(); ProbeCheck("四半期末"); }
-        _dayInQuarter = (_dayInQuarter + 1) % Calendar.DaysPerQuarter;
+        bool quarterDone = Calendar.IsQuarterEndDay(_dayInQuarter);
+        if (quarterDone) { long tQe = StageTimer.Begin(); QuarterEnd(); StageTimer.End(StageTimer.QuarterEnd, tQe); ProbeCheck("四半期末"); }
+        _dayInQuarter = Calendar.NextDayInQuarter(_dayInQuarter);
         return quarterDone;
     }
 
@@ -1665,10 +1665,10 @@ public sealed class Simulation
     private void MonthSettle()
     {
         // 四半期の締め月（_dayInQuarter==89＝quarterDone と同時に走る月次決算）だけ true・他2回（29/59日目）は false。〔履歴 Simulation.cs#188〕
-        World.IsQuarterEndMonth = _dayInQuarter == Calendar.QuarterEndDayIndex;
+        World.IsQuarterEndMonth = Calendar.IsQuarterEndDay(_dayInQuarter);
         if (World.IsQuarterEndMonth) LogRecipeTransitions();   // LogRecipeTransitions〔履歴 Simulation.cs#189〕
         // 豊作/不作：年1回ロール（決定論RNG）。〔履歴 Simulation.cs#190〕
-        int harvestYear = (int)((World.Tick - Calendar.DaysPerMonth) / Calendar.DaysPerYear);
+        int harvestYear = Calendar.HarvestYearOfTick(World.Tick);
         // 初回のロールは最初の実月（Tick=30）＝上の「初回ロール（Tick=30）は不変」の設計どおり。〔履歴 Simulation.cs#191〕
         if (!World.WarmupFrozen && harvestYear != _lastHarvestYear)
         {
@@ -1756,6 +1756,7 @@ public sealed class Simulation
         double[]? navQ = EconomyStep.NavalPortSplit(World, World.Coef, navShare, navBudShare, out double navNeedNat);
         World.Cost[CostLedger.NavalOrderScans] += 3L * World.Regions.Count;   // 計算量の台帳（診断）：NavalPortSplit の2周（取扱高の和・割合）＋下の予算の配りの州ループ1周
         int navIdx = -1;
+        double spendableRevenue = World.SpendableRevenue();   // (1391) V-03：州のループの中は国庫と歳入を書かない＝州ごとに取り直さず 1 回（読むだけ）
         foreach (var r in World.Regions)
             {
                 navIdx++;
@@ -1852,12 +1853,13 @@ public sealed class Simulation
                     else ep.Productivity = 0;   // 学校なし＝教育の供給なし（識字は停滞）
                 }
                 // funding修正：上下水道・電化インフラは**税収フロー(FiscalCapacityPerMonth)から支弁**（国庫ストックは基礎義務に食われ常時0で餓死していた）。〔履歴 Simulation.cs#226〕
+                double popShare = nationPop > 1e-9 ? r.SumPopulation() / nationPop : 0;   // (1391) V-02：同じ割合を 3 回取っていた（括弧の中の式のまま 1 回）
                 r.AdminBudget = r.BureaucratPopIndex >= 0 && nationPop > 1e-9
-                    ? World.AdminSpending * World.Coef.AdminBudgetFrac.Value * World.SpendableRevenue() * (r.SumPopulation() / nationPop) * Fiscal.AdminDistanceMul(World, r) : 0;   // 請求（r を掛ける前）
+                    ? World.AdminSpending * World.Coef.AdminBudgetFrac.Value * spendableRevenue * popShare * Fiscal.AdminDistanceMul(World, r) : 0;   // 請求（r を掛ける前）
                 r.InfraBudget = nationPop > 1e-9
-                    ? (World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop)).Value : 0;
+                    ? (World.AdminSpending * World.Coef.InfraBudgetScale * World.FiscalCapacityPerMonth * popShare).Value : 0;
                 r.ElecInfraBudget = nationPop > 1e-9
-                    ? (World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacityPerMonth * (r.SumPopulation() / nationPop)).Value : 0;
+                    ? (World.AdminSpending * World.Coef.ElecInfraBudgetScale * World.FiscalCapacityPerMonth * popShare).Value : 0;
                 if (Instruments.On) Instruments.AdminBase(World, r, nationPop);   // 計器（読むだけ）：行政の予算の基数（SpendableRevenue・官僚の居る州の人口の比と距離の割増）
                 // 注〔履歴 Simulation.cs#227〕
             }
@@ -1939,7 +1941,7 @@ public sealed class Simulation
             unopenedRoom = deficit - devalueRoom;
             if (devalueRoom > 1e-9)
             {
-                double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) totalSav += Math.Max(0, dp.Savings.Value);
+                var allPops = new List<Pop>(); double totalSav = 0; foreach (var (_, dp) in World.AllPopsWithRegion()) { allPops.Add(dp); totalSav += Math.Max(0, dp.Savings.Value); }   // (1391) V-04：一覧を 1 回で作る（和は同じ順）
                 // DevaluationCapFracPerMonth は**月あたり**の上限（月次決算＝月に1回）。〔履歴 Simulation.cs#240〕
                 double devalueCap = totalSav * World.Coef.DevaluationCapFracPerMonth.Value;   // 貯蓄の月の上限（旧の式の第2項と同じ式）
                 double devalue = Fiscal.DevaluationAllowed(devalueRoom, devalueCap);   // 切りを超える余地は余地そのもの・それ以外は Math.Min(余地, 貯蓄×上限)〔履歴 Simulation.cs#241〕
@@ -1953,7 +1955,6 @@ public sealed class Simulation
                     // 台帳 CumulativeFiatIssued は発行の分だけ（BaseMoney の正当な増加源＝Invariants 算入）。〔履歴 Simulation.cs#242〕
                     if (haircut > 1e-12)
                     {
-                        var allPops = new List<Pop>(); foreach (var (_, dp) in World.AllPopsWithRegion()) allPops.Add(dp);
                         haircut = World.Transfer((World, allPops), (World, null, null), haircut, TreasuryCat.Devalue, fromHeld: totalSav);   // ★(351) 払い手の保有の合計は上の totalSav と同じ順の同じ和（間に何も書かない）
                     }
                     else haircut = 0;
@@ -2035,7 +2036,7 @@ public sealed class Simulation
         if (World.IsQuarterEndMonth) Military.StepSkill(World, World.Coef, atWarNation);   // IsQuarterEndMonth〔履歴 Simulation.cs#262〕
         ProbeCheck("月次軍事");
         if (World.StepsDiplomacy)
-            World.Diplomacy?.Step(World.Coef, Rng, (int)(World.Tick / Calendar.DaysPerMonth));  // §6.1 外交・戦争（月次・opt-in。多国では共有外交を MultiNationSim が進める）
+            World.Diplomacy?.Step(World.Coef, Rng, Calendar.MonthIndexOfTick(World.Tick));  // §6.1 外交・戦争（月次・opt-in。多国では共有外交を MultiNationSim が進める）
         // rank3：農奴解放の梯子（Colonial.cs入植と同じ物差し）＝SerfMobilityGate>0のとき農村→都市流を縛る（ループ不変＝外で1回）
         double serfFree = 1.0 - Privileges.SeigneurialDegree(World);
         foreach (var r in World.Regions)

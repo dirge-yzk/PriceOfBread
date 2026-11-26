@@ -632,6 +632,7 @@ public sealed class MultiNationSim
 
     /// <summary>1日進める（UIの日次描画用）。各国を1日進め、四半期末に共有層をまとめて発火。四半期が締まった日に true を返す。</summary>
     // 環境変数 POB_TIME=1 のときだけ計る。〔履歴 MultiNationSim.cs#68〕
+    private static void TimedDaily(Simulation s) { long t = StageTimer.Begin(); s.StepDayDaily(); StageTimer.End(StageTimer.DailyCpu, t); }   // (1391)
     internal static readonly bool TimeOn = System.Environment.GetEnvironmentVariable("POB_TIME") == "1";
     /// <summary>
     /// 各国の日次（純粋日次相のみ）を並列に回すか。〔履歴 MultiNationSim.cs#69〕
@@ -644,30 +645,37 @@ public sealed class MultiNationSim
         // 相1 Open（四半期首）＝逐次　→　相2 Daily（価格形成・建設・信用＝実測74%）＝**並列**　→　相3 Close（月次決算・四半期末）＝逐次。〔履歴 MultiNationSim.cs#71〕
         long t0 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
         bool par = ParallelDays && Nations.Count > 1 && !Simulation.ConservationProbe && !TradeReachDiag.On && !BudgetBindDiag.On;   // par〔履歴 MultiNationSim.cs#72〕
+        long tOpen = StageTimer.Begin();   // (1391) 速さの計器（POB_TIME 閉＝0 を返すだけ）
         foreach (var sim in Nations) sim.StepDayOpen();
+        StageTimer.End(StageTimer.Open, tOpen);
+        long tDaily = StageTimer.Begin();
         if (par)
-            System.Threading.Tasks.Parallel.For(0, Nations.Count, i => Nations[i].StepDayDaily());
+            System.Threading.Tasks.Parallel.For(0, Nations.Count, i => TimedDaily(Nations[i]));
         else
-            foreach (var sim in Nations) sim.StepDayDaily();    // 各国の鼓動（価格形成＝旬の最終日だけ・建設・信用）
+            foreach (var sim in Nations) TimedDaily(sim);    // 各国の鼓動（価格形成＝旬の最終日だけ・建設・信用）
         // 締め境界＝**常に逐次**。〔履歴 MultiNationSim.cs#73〕
-        if (_coef.LuxuryIncomeElasticity > 0 && (_dayInQuarter + 1) % Calendar.DaysPerMonth == 0) DistributeWorldRealIncome();   // ε＝0 は走らない〔履歴 MultiNationSim.cs#74〕
+        if (_coef.LuxuryIncomeElasticity > 0 && Calendar.IsMonthEndDay(_dayInQuarter)) DistributeWorldRealIncome();   // ε＝0 は走らない〔履歴 MultiNationSim.cs#74〕
         List<World>? splitWorlds = null;   // (1230) 文化の分断 f の表（世界で 1 枚）＝四半期の末の締め（QuarterEnd の思想の更新）の直前に盤面から作り、締めの直後に消す
-        if (_dayInQuarter == Calendar.QuarterEndDayIndex) { var ws = Nations.ConvertAll(n => n.World); if (Ideologies.BuildCultureSplit(ws)) splitWorlds = ws; }
+        if (Calendar.IsQuarterEndDay(_dayInQuarter)) { var ws = Nations.ConvertAll(n => n.World); if (Ideologies.BuildCultureSplit(ws)) splitWorlds = ws; }
+        StageTimer.End(StageTimer.DailyWall, tDaily);
+        long tClose = StageTimer.Begin();
         foreach (var sim in Nations) sim.StepDayClose();
+        StageTimer.End(StageTimer.Close, tClose);
         if (splitWorlds is not null) Ideologies.ClearCultureSplit(splitWorlds);
         foreach (var sim in Nations) sim.World.FlushLog();      // 国順フラッシュ＝共有ログの順序を旧・直接書きと一致させる（恒等は検査Dで実証）
         if (TimeOn) System.Threading.Interlocked.Add(ref TicksNations, System.Diagnostics.Stopwatch.GetTimestamp() - t0);
 
-        bool quarterDone = _dayInQuarter == Calendar.QuarterEndDayIndex;
+        bool quarterDone = Calendar.IsQuarterEndDay(_dayInQuarter);
         // 四半期の第1・第2月末にも清算する＝全国 Simulation.MonthSettle の後＝   scale/Stock 更新済み・Invariants 検査後＝四半期末の既存呼び出し（下）と同じ相対順序。〔履歴 MultiNationSim.cs#75〕
-        if (!quarterDone && (_dayInQuarter + 1) % Calendar.DaysPerMonth == 0)
+        if (!quarterDone && Calendar.IsMonthEndDay(_dayInQuarter))
         {
-            int monthIdx = (_dayInQuarter + 1) / Calendar.DaysPerMonth - 1;   // 0 or 1（2＝四半期末は下の既存呼び出し）
+            int monthIdx = Calendar.MonthIndexOfMonthEndDay(_dayInQuarter);   // 0 or 1（2＝四半期末は下の既存呼び出し）
             ProbeSnap();
-            { long t1 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: monthIdx == 0); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t1); }
+            { long t1 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; long tm = StageTimer.Begin(); Market.Step(Nations, _coef, firstClearingOfQuarter: monthIdx == 0); StageTimer.End(StageTimer.MarketStep, tm); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t1); }
             ProbeDiff("国際市場(月)");
         }
         // 順序は変えない。〔履歴 MultiNationSim.cs#76〕
+        long tShared = quarterDone ? StageTimer.Begin() : 0;
         if (quarterDone)
         {
             ProbeSnap();                                              // 保存量プローブ（leakhunt・既定OFF＝実行ゼロ）
@@ -679,11 +687,11 @@ public sealed class MultiNationSim
             if (!DiplomacyFrozen)
             {
                 Diplomacy.BeginQuarterSyncWindow();   // BeginQuarterSyncWindow〔履歴 MultiNationSim.cs#80〕
-                for (int m = 0; m < Calendar.MonthsPerQuarter; m++) { Diplomacy.Step(_coef, Rng, _quarter * Calendar.MonthsPerQuarter + m); ProbeDiff($"外交m{m}"); }   // 共有外交を月次3回（戦争の月次カデンス）。凍結中＝経済助走で戦争・緊張を進めない
+                for (int m = 0; m < Calendar.MonthsPerQuarter; m++) { long tDip = StageTimer.Begin(); Diplomacy.Step(_coef, Rng, _quarter * Calendar.MonthsPerQuarter + m); StageTimer.End(StageTimer.DiploStep, tDip); ProbeDiff($"外交m{m}"); }   // 共有外交を月次3回（戦争の月次カデンス）。凍結中＝経済助走で戦争・緊張を進めない
                 Diplomacy.EndQuarterSyncWindow();
             }
-            StepCanals(); ProbeDiff("運河");   // 海峡・運河：扼者を解決し、運河は host 保有国の資本家が建設（§B）
-            { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; Market.Step(Nations, _coef, firstClearingOfQuarter: false); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t2); } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
+            long tCan = StageTimer.Begin(); StepCanals(); StageTimer.End(StageTimer.Canals, tCan); ProbeDiff("運河");   // 海峡・運河：扼者を解決し、運河は host 保有国の資本家が建設（§B）
+            { long t2 = TimeOn ? System.Diagnostics.Stopwatch.GetTimestamp() : 0; long tm2 = StageTimer.Begin(); Market.Step(Nations, _coef, firstClearingOfQuarter: false); StageTimer.End(StageTimer.MarketStep, tm2); if (TimeOn) System.Threading.Interlocked.Add(ref TicksMarket, System.Diagnostics.Stopwatch.GetTimestamp() - t2); } ProbeDiff("国際市場");          // 国際市場：州と州の二国間清算（実経路・比較優位）。月次清算ONでは四半期の第3清算＝累計を続ける（リセットしない）
             StepPorts(); ProbeDiff("港湾");                             // 港湾容量：混雑する港州を国家＋資本家が拡張（Market.Step の取扱高/律速を見て投資。〔履歴 MultiNationSim.cs#81〕
             StepMarineInsurance(); ProbeDiff("海上保険");                // 海上保険：商人pop基金で通商破壊損失を分散（平時=保険料・封鎖時=保険金。〔履歴 MultiNationSim.cs#82〕
             // 移民は総量保存だが時間の流れ（暦を止めた助走で人を動かさない）。〔履歴 MultiNationSim.cs#83〕
@@ -868,8 +876,9 @@ public sealed class MultiNationSim
             StepDiffusion();         // ★発見・段7：思想の伝播（貿易路×メディア・前四半期読み＝閉路なし）。DiffusionWeight=0で即return＝恒等
             // 助走では DiplomacyFrozen＝Diplomacy.Step を1度も呼ばないので、止めても飛ばした索引は存在しない。〔履歴 MultiNationSim.cs#103〕
             if (!_calendarFrozen) _quarter++;
+            StageTimer.End(StageTimer.SharedQuarter, tShared);
         }
-        _dayInQuarter = (_dayInQuarter + 1) % Calendar.DaysPerQuarter;
+        _dayInQuarter = Calendar.NextDayInQuarter(_dayInQuarter);
         return quarterDone;
     }
 

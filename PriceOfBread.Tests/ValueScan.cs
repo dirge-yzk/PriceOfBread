@@ -206,6 +206,20 @@ internal static class ValueScan
     internal static int CountInputs(IEnumerable<string> texts, string spec)
         => texts.SelectMany(t => WriterRhsAll(t, spec)).SelectMany(r => InputTerms(r, Parse(spec).Member)).Distinct(StringComparer.Ordinal).Count();
 
+    /// <summary>(1391) 深さ 2＝局所変数の定義の文の右辺にある局所変数の定義（その文より前で最も近い物）も並べる（深さ 1 までだった穴〔定義の中の定義を変えても指紋が動かない〕を塞ぐ）。</summary>
+    internal const int FingerprintDepth = 2;
+    private static void AddDefinitions(HashSet<string> lines, string before, string name, string member, int depth)
+    {
+        Match last = null!;
+        foreach (Match d in Regex.Matches(before, $@"\b(?:var|double|float|int|long)\s+{Regex.Escape(name)}\s*=[^;]*;")) last = d;
+        if (last == null) return;
+        lines.Add("D:" + Regex.Replace(last.Value, @"\s+", ""));
+        if (depth >= FingerprintDepth) return;
+        string inner = last.Value[(last.Value.IndexOf('=') + 1)..];
+        foreach (var t in InputTerms(inner, member).Where(x => x.StartsWith("local:", StringComparison.Ordinal)).Select(x => x[6..]).Where(n => n != name))
+            AddDefinitions(lines, before[..last.Index], t, member, depth + 1);
+    }
+
     /// <summary>(1373・1379) 機械で数えられない入力（局所変数を通る右辺）の指紋。書き手の右辺のうち局所変数を含む物を空白を除いて並べ、
     /// (1379) その局所変数の定義の文（書き手より前で最も近い `var／double／float／int／long 名 = …;`）も並べて、先頭 12 桁の SHA-256 にする。
     /// 定義が引数や foreach の変数で文として見つからない時は定義の行を足さない（右辺の文面だけ）。
@@ -220,12 +234,7 @@ internal static class ValueScan
             var locals = InputTerms(site.Rhs, member).Where(x => x.StartsWith("local:", StringComparison.Ordinal)).Select(x => x[6..]).ToList();
             if (locals.Count == 0) continue;
             if (lines.Add("R:" + Regex.Replace(site.Rhs, @"\s+", ""))) count++;
-            foreach (var name in locals)
-            {
-                Match last = null!;
-                foreach (Match d in Regex.Matches(site.Before, $@"\b(?:var|double|float|int|long)\s+{Regex.Escape(name)}\s*=[^;]*;")) last = d;
-                if (last != null) lines.Add("D:" + Regex.Replace(last.Value, @"\s+", ""));
-            }
+            foreach (var name in locals) AddDefinitions(lines, site.Before, name, member, 1);
         }
         var rhs = lines.OrderBy(x => x, StringComparer.Ordinal).ToList();
         var h = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(string.Join("\n", rhs)));

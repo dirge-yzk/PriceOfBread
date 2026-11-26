@@ -83,17 +83,27 @@ public class DerivedValueRatchetTests
     /// <summary>(1373・1379) 機械で数えられない入力＝局所変数を通る書き手の右辺と、その局所変数の定義の文の指紋（局所変数の中身が変わっても項の数は動かない＝文面で守る）。
     /// 変えたら宣言して指紋を更新する（その時は局所変数の中身を見て入力が増えていないか確かめる）。</summary>
     [Theory]
-    [InlineData("Militancy@pop", "5:caa4320678ac")]
+    [InlineData("Militancy@pop", "5:cfe02ac9d33b")]
     [InlineData("Militancy@colony", "0:e3b0c44298fc")]
-    [InlineData("Legitimacy", "8:d94e04138a65")]
-    [InlineData("WarExhaustion", "2:d3723a024ea5")]
-    [InlineData("Consciousness", "1:5f3bdc7fec61")]
+    [InlineData("Legitimacy", "8:cfebefd1c6d4")]
+    [InlineData("WarExhaustion", "2:ce2aec7f3e32")]
+    [InlineData("Consciousness", "1:47cc6c5f63de")]
     [InlineData("Satisfaction", "0:e3b0c44298fc")]
-    [InlineData("DynasticMandate", "1:7728e74e495a")]
+    [InlineData("DynasticMandate", "1:c9254de8b673")]
     public void 局所変数を通る入力は文の指紋で守る(string spec, string fingerprint)
     {
         var texts = ValueScan.EngineFiles(SimCoreDir()).Select(File.ReadAllText).ToList();
         Assert.Equal(fingerprint, ValueScan.LocalFedFingerprint(texts, spec));
+    }
+
+    /// <summary>(1391) 指紋の深さ 2：局所変数の定義の中の局所変数の定義を変えると指紋が動く（深さ 1 では緑のままだった穴）。突然変異 μ4＝FingerprintDepth を 1 にする → 赤。</summary>
+    [Fact]
+    public void 指紋は定義の中の定義も拾う()
+    {
+        string[] f1 = ["void F() { double basev = k.P * 2; double tgt = basev + 1; x.M = Math.Max(0, tgt); }"];
+        string[] f2 = ["void F() { double basev = k.P * 3; double tgt = basev + 1; x.M = Math.Max(0, tgt); }"];
+        Assert.NotEqual(ValueScan.LocalFedFingerprint(f1, "M"), ValueScan.LocalFedFingerprint(f2, "M"));
+        Assert.Equal(2, ValueScan.FingerprintDepth);
     }
 
     /// <summary>(1373) 自己試験 M12（人工の行・期待は手のリテラル）：入力を 1 つ足すと表の検査が赤・ドットなしの書き手を 1 つ足すと赤・Toward の項の数え方。

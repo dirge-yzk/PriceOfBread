@@ -838,14 +838,17 @@ public sealed class Diplomacy
         Cost[CostLedger.DiploPowerMonths] += Powers.Count;   // 計算量の台帳（診断）：外交の月の歩は国×月に比例
         if (Instruments.On) { Instruments.CpMonth(this, month, _year); Instruments.WarPairSample(this, c, month, endOfQuarter: false); }   // WarPairSample〔履歴 Diplomacy.cs#114〕
         // opening〔履歴 Diplomacy.cs#115〕
+        long lapD = StageTimer.Begin();   // (1391) 速さの計器（POB_TIME 閉＝何もしない）
         bool opening = true;   // opening〔履歴 Diplomacy.cs#116〕
         foreach (var p0 in Powers) if (p0.Nation is not null && p0._fleetSeeded) { opening = false; break; }
         // 経済を持つ国は軍/GDP/財庫を毎月同期（抽象的な外国は静的値のまま）
         SyncPowers(c);
         if (opening) OpeningNavalShares(c);
+        StageTimer.Lap(ref lapD, StageTimer.DipSync);
 
         // MonthsPerQuarter〔履歴 Diplomacy.cs#117〕
         if (month % Calendar.MonthsPerQuarter == 0) Formations.Check(this, c);
+        StageTimer.Lap(ref lapD, StageTimer.DipFormations);
 
         // 戦争の傷は闘争度が引き継ぐ。〔履歴 Diplomacy.cs#118〕
         foreach (var p in Powers)
@@ -856,29 +859,36 @@ public sealed class Diplomacy
             if (!fighting) p.WarExhaustion = p.WarExhaustion * c.WarWearinessKeepPerMonth;
         }
 
+        StageTimer.Lap(ref lapD, StageTimer.DipWarWeary);
         StepTensionRamp(c);            // StepTensionRamp〔履歴 Diplomacy.cs#120〕
         _rankClock++;                  // P14：再分類の減速（閾値付近のGreat⇔Middleチャタリング＝列強動詞の点滅を抑える）。≤1=毎月（現行と厳密恒等）・4=年次（威信の残光＝スコア急落国が最長1年Greatを保つ）
         if (c.RankUpdateIntervalQuarters <= 1.001 || _rankClock >= (int)(c.RankUpdateIntervalQuarters * (double)Calendar.MonthsPerQuarter)) { ComputeRanks(c); _rankClock = 0; }   // 国家ランク（列強/中堅/弱小）を相対スコアで再分類（アクション可否・UI表示・ラベルのみ）
+        StageTimer.Lap(ref lapD, StageTimer.DipRanks);
         ThreatTension(c);              // 経済/軍事大国であること自体が周囲の緊張を生む（覇権防止）
         RouteTension(c);               // RouteTension〔履歴 Diplomacy.cs#121〕
         IdeologyTension(c);            // 異なる政体は反目し同じ政体は親近する（イデオロギーのブロック化）
         OpiumTension(c);               // P3：アヘン禁令国×輸出国の緊張（取締り・没収が敵意を積む＝林則徐→アヘン戦争。主フラグOFFで不走行）
         AffinityTensions(c);   // ★(spdip) 民族・法・宗教・保護の 4 本を 1 回の組の走査で（恒等・AffinityTensions の注）。民族/法/宗教の隔たり＝陣営化を強める（時代適合：民族≳法＞宗教）。ProtectorTension＝P11同宗教保護（ProtectorTensionPerMonth=0.02 点火済み・0で不走行）
+        StageTimer.Lap(ref lapD, StageTimer.DipTensions);
         StepDependency(c, month);   // 従属の整列(緊張抑制)・貢納(属国→宗主)・離反独立
         TreatyPortLapse(c, month);     // TreatyPortLapse〔履歴 Diplomacy.cs#122〕
         BreakStrainedAlliances(c);     // 緊張が高まった同盟は崩れる→強国は孤立へ
         ApplyHegemonContainment(c);    // 反覇権の経済封じ込め（B2）：明白な覇権国の交易アクセスを覇権度に比例して締める（包囲網の経済的な歯）
+        StageTimer.Lap(ref lapD, StageTimer.DipRelations);
         if (month % Calendar.MonthsPerQuarter == 0) DiplomacyAI(c, rng);
         if (month % Calendar.MonthsPerQuarter == 0) TryUnificationWars(c);   // P4 統一戦争のAI（候補が立たなければ不発）
         TradePolicyReaction(c);   // 通商反応層：相手の対自国関税を観測し報復/相互低減の偏倚を各国TariffRetaliationBiasへ（TariffRetaliation=0で偏倚0＝較正中立。抽象標的Nation==nullは対象外で単一国較正は非発火）
         TriggerWars(c);                // 緊張100以上が続けば宣戦（月次）
         // 順序を入れ替えるだけで保証が回復する。〔履歴 Diplomacy.cs#123〕
         if (month % Calendar.MonthsPerQuarter == 0) PeaceInterventionAI(c);   // ★列強の介入と和平提案
+        StageTimer.Lap(ref lapD, StageTimer.DipAi);
         StepWars(c);                   // 戦争の運は盤面非依存ハッシュ（A-3#8）＝rng不要
         CommerceRaidPrize(c);          // CommerceRaidPrize〔履歴 Diplomacy.cs#124〕
+        StageTimer.Lap(ref lapD, StageTimer.DipWars);
         DriftTension(c);
         // 四半期に1回で十分（形は年単位でしか動かない）＝53×53の対を毎月回さない。〔履歴 Diplomacy.cs#125〕
         if (month % Calendar.MonthsPerQuarter == 0) ArmyShape.Compute(this, c);
+        StageTimer.Lap(ref lapD, StageTimer.DipTail);
         // 注〔履歴 Diplomacy.cs#126〕
     }
 
