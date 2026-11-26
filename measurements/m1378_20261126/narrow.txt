@@ -1,0 +1,6 @@
+# narrow HEAD=3cf714437 start 2026-11-26 08:57:50
+narrow rc=1 失敗!   -失敗:     1、合格:   550、スキップ:     0、合計:   551、期間: 41 m 5 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 1190) [46 ms]
+savetest: savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 134・その月の額の和 688.3 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+NARROWDONE 2026-11-26 09:49:58
