@@ -1,0 +1,43 @@
+m1399 事前登録 c149wx (1399) 恒等の線：段 2 の器（旗 WarExitFromCapacity 既定 0）＋波148 の恒等の残り
+木 474338d35 / 枝 c149wx / 基準 m1383 / 書いた者 Claude Sonnet 5.5 / 2026-11-27 / 腕の前のコミット
+
+[1] 恒等の線・予言 0
+- 素の 5 種・計器つき 10 種は m1383 と名乗り行を除いて全行バイト一致（計器の表の差は新しい表 wexit_s の宣言だけ）。
+- savetest OK（Coefficients に double 1 本を足すだけ）。.cost は +0（旗 0 の枝は今の式と同じ・計器の枝は Instruments.On だけ）。
+- .Value の数は増えない（器 0 本・B13・R16 は今回は入れない／入れるなら型のまま Close で）。
+- テストの数：3295 から WarExitFromCapacityTests の本数だけ増える（足した本数を記録）。
+- 旗は旗 0 の枝で今の式をそのまま評価する（評価の順と短絡は同じ）。旗 1 の出力は今回は測らない（腕 B なし）。
+
+[2] 消す物と残す物
+- 消す物：なし（器は足すだけ）。残す物：WarExhaustion の書き手・読み手の全て（旗 0 の枝に読みが残る）。
+- 足す物（旗 f1 = c.WarExitFromCapacity > 0）：
+  - Coefficients.p04_trade.cs:131 の隣に WarExitFromCapacity = 0.0 の 1 行。
+  - Politics.WarCapacity(World)（RevolutionPressure の隣・保存しない純関数）。
+  - Diplomacy の private static KOf(Power)・WarEnds(War)（ConcludeWar の隣）。
+  - 旗 1 の枝：Diplomacy.cs の WarGateOpen・DefendDependent（:1551）・AddBelligerent（:1615 と 2 段目 :1612）・調停の AcceptsPeace と CanOfferPeace の理由（:2141）・月の出口と cp の前の走査・Formations.cs:401・Military.cs:120・MultiNationSim.cs:415。国難＝内戦だけ（G2′）。InCrisis の関数は作らない。
+  - Instruments/InstrumentsWexit.cs（新しい表 wexit_s）と InstrumentsTg.cs の表の選びの行・Instruments.cs の表を書く呼び出しの 1 行。
+- 読み手の grep（鍵の字・474338d35）：WarExhaustion の読み手は SimCore の上の行・InstrumentsUnif.cs:31・:123・World.cs:1883（読むだけ・触らない）・App GameViewModel.Refresh.cs:89・:95 と Runner PendingProbe.cs:39（触らない・次の波の 5 の束へ名を報告）。
+- 他の線との重なり：sd（Coefficients.cs:101・Politics.cs:84〜:100）・pm（p02:92〜）・rn（DiplomacyAI :1745〜:1790 ほか）とは行が別。Coefficients は p04 の新しい 1 行だけ。
+
+[3] 足す試験と突然変異（器の旗 1 の枝を試験の中で置く・期待値は試験の中の式から・エンジンの関数 WarCapacity・KOf・WarEnds を呼ばない）
+- WarExitFromCapacityTests（新しい）：X5 の ①〜⑤・⑧〜⑩・Y5 の ⑥⑦・Z3 の ⑪⑫⑬⑬′。盤面が既存の試験の型で置けない物は名を報告して残す。
+- 突然変異（紙）：μ1 器の旗 1 の枝で国難に正統性の項を戻す→⑪赤／μ2〜μ4 は項 2・4・9 を入れた場合だけ。
+- ㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）を器の直後に隔離ビルドで回す。DormantIdentityTests の休眠の表に旗の行（既定 0）、InstrumentHookClosureTests に wexit_s の行を足す（書き換えは 〈休眠の表・許可表の行を足すだけ〉）。
+- ValueScan の予言（深さ 2 の今の木で数え直す＝㉘ の束の実測と突き合わせ・食い違いは報告）：WarCapacity の呼び出し 1・KOf 3・WarEnds 2・WarExhaustion 3・7・31（変わらない）・InCivilWar の出力 9→約 14（器の旗 1 の読み 5 本）。
+- 事前登録の点検の grep：工業化度は読まない・new MoneyStock( は足さない・route_anchors.tsv の鍵は Diplomacy.cs:43 だけ＝重ならない・WriterRatchetTests の宣言の表に器の名は無い。
+
+[4] 恒等の判定
+- ident 段 1：--work D:/PoB_work/ident_c149wx --saveleak --added-tables wexit_s。計器の表が合わなければ段 2。
+
+[5] 〈判定: 恒等〉なら採る。浮動小数の順序が変わる箇所：なし（旗 0 は今の式のまま・旗 1 の式は旗 0 で通らない）。
+入れる項：1（器）を最初に。2〜11 は入る分だけ（入らなかった項の名は報告し〈次の波〉0 の② に残す）。
+
+[追記 2026-11-27・項 4〜10 の予言（腕の前・項 1 のコミットの後）]
+- 項 4（A1-05）：LandSale.SlotPop は EconomyStep.LandShareRecipient を呼ぶ 1 本へ。範囲の外の枠（クレルジー・投資家の添字が無い州）は持ち主へ寄る＝旧の SlotPop は -1。ビットが変わる可能性は 〈その枠の割合が正で添字が無い州〉だけ＝ident で見る。変われば外して報告。
+- 項 5（A1-16）：PrivateAbsorptionBlend の ×1.0 だけ外す（`1.0 + (pabs - 1.0) * 1.0` → `1.0 + (pabs - 1.0)`・×1.0 は厳密）。係数は門（>0）として残る。
+- 項 6（A1-10 の a）：Territory.cs:71・:74・Military.cs:223・MultiNationSim.cs:1081・InstrumentsMigcap.cs McEra の EraFactor（常に 1.0）の因子を外す。×1.0 は厳密。
+  TechLevelRemovalTests の許可表の予言（㉑・★(764) 静的な件数）：Military.cs 1→0（行を消す）・InstrumentsMigcap.cs 1→0（行を消す）・MultiNationSim.cs 7→6・Territory.cs 1 のまま。
+- 項 8（A2-07 の残り）：SelfPlay.cs:965・:993・InstrumentsLordstat.cs:75 を PolicyPreferences.HasLegislature へ（同じ集合）。Instruments.cs:1582 は該当の行が無い（Polity の語は :1534 の列だけ）＝名を報告。
+- 項 9：StateDigestToolTests の自己試験に、_coef の群を外した比べを足す（四半期 1 以内にシミュの状態のずれを拾う）。
+- 項 10：MultiNationSim.StepDay の DailyWall の End を並列の呼びの直後へ（逐次の DistributeWorldRealIncome と BuildCultureSplit を含まない）。状態は触らない。
+- 入れない（名を報告）：項 2（B13）・項 3（R16）・項 7（B05）・項 11（tk/po の突然変異の表）。理由：B13・R16・B05 は型の新設か演算子の新設が要り、UnitTypeTests の宣言の表と .Value の数の番人に触れる＝この回の枠で腕の前に確かめきれない。項 11 は tk/po の枝の突然変異の再実行が要る。

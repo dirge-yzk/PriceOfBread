@@ -1,0 +1,8 @@
+突然変異	結果（使い捨ての木 c149wx_mut・項 1〜9 の木 e09a6426a・各 1 本ずつ当てて戻した）
+mu1 国難に正統性の項を戻す→⑪赤	['失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 12 s - PriceOfBread.Tests.dll (net10.0)'] ['失敗 PriceOfBread.Tests.WarExitFromCapacityTests.同盟の参戦は旗1で正統性が低くても内戦でなければ参戦する [906 ms]']
+mu-gate 門に厭戦を残す→⑥赤	['失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 7 s - PriceOfBread.Tests.dll (net10.0)'] ['失敗 PriceOfBread.Tests.WarExitFromCapacityTests.開戦の門は旗1で厭戦を読まない(flag: 1, open: True) [29 ms]']
+mu-civil 国難を偽に固定→⑫赤	['失敗!   -失敗:     1、合格:    12、スキップ:     0、合計:    13、期間: 10 s - PriceOfBread.Tests.dll (net10.0)'] ['失敗 PriceOfBread.Tests.WarExitFromCapacityTests.同盟の参戦は旗1で内戦中なら断り要請元との緊張が積む [1 s]']
+mu-kof KOf を A 側にする→①③赤	['失敗!   -失敗:     2、合格:    11、スキップ:     0、合計:    13、期間: 13 s - PriceOfBread.Tests.dll (net10.0)'] ['失敗 PriceOfBread.Tests.WarExitFromCapacityTests.旗1はAの持ちこたえる力が低ければBの勝ちで講和する [154 ms]', '失敗 PriceOfBread.Tests.WarExitFromCapacityTests.旗1は戦勝点がBの持ちこたえる力に届けば講和し戦勝点はそのまま [42 ms]']
+mu3 LandShareRecipient の倒し方を逆（持ち主でなく -1）→LandShareTests赤	['失敗!   -失敗:     1、合格:    17、スキップ:     0、合計:    18、期間: 17 s - PriceOfBread.Tests.dll (net10.0)'] ['失敗 PriceOfBread.Tests.LandShareTests.T3_受け手の添字が無い枠は貴族へ寄る [6 ms]']
+mu4 statediff 自己試験：状態の群を全て外す→赤	['失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 3 m 57 s - PriceOfBread.Tests.dll (net10.0)'] ['失敗 PriceOfBread.Tests.StateDigestToolTests.自己試験_同じ木は一致し_係数を動かした木は群の名を出す [3 m 57 s]']
+μ2（B13 の型）は項 2 を入れていない＝該当なし／μ4 は statediff の自己試験の比べを〈状態の群を全て外す〉形に壊した版。

@@ -26,7 +26,7 @@ internal static class LandSale
 
     static int SlotPop(Region r, Producer s, int k)
     {
-        int j = k switch { 0 => s.OwnerPopIndex, 1 => r.ClergyPopIndex, 2 => s.LaborPopIndex, 3 => r.InvestorPopIndex, _ => -1 };
+        int j = EconomyStep.LandShareRecipient(r, s, k);   // 受け手の規則は 1 本（範囲の外の枠は持ち主へ寄せる）。それでも範囲の外なら -1
         return j >= 0 && j < r.Pops.Count ? j : -1;
     }
 

@@ -129,6 +129,7 @@ public sealed partial class Coefficients
     public double WarFeverMilitancy = 0.6;     // 闘争度→戦争熱：大衆の闘争度が戦争熱を押し上げる（外征で内憂をそらす）
     public double WarFeverMilitancyGate = 0.5; // その出口は好戦世論の公共圏に比例して開く加点（将校貴族 trad と合算しClampで上限1）
     public double WarWearyThreshold = 0.5;        // 疲弊がこれ超なら新たな戦争に入らない（講和後も数年は減衰中の厭戦が再戦を抑える＝休戦の仕組みの代わり・Q9）
+    public double WarExitFromCapacity = 0.0;      // 段 2 の器（既定 0＝今の厭戦の規則）。1＝戦争の出口・調停・動員の深さ・開戦の門を厭戦でなく体制の持ちこたえる力（強制力÷(強制力＋挑戦)）と国難＝内戦だけで読む
     public double WarPeaceExhaustion = 0.9;       // 双方がこれ超なら早期講和（疲れ果てて手打ち）
     public double PostWarTension = 38;            // 講和後の緊張の置き直し値
     public Share ReparationGdpFraction = new(0.2);    // 賠償金＝敗者GDP×戦勝点×これ

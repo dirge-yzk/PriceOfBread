@@ -2000,6 +2000,7 @@ public static partial class Instruments
         CweTable(sk, sim.Diplomacy);   // (1359) CweTable
         CpTable(sk, sim.Diplomacy);   // CpTable〔履歴 Instruments.cs#330〕
         CmTable(sk, sim.Diplomacy);   // CmTable〔履歴 Instruments.cs#331〕
+        WexitTable(sk, sim.Diplomacy);   // wexit_s（段 2 の器の計器）
         ImpTable(sk, sim.Diplomacy);   // ImpTable〔履歴 Instruments.cs#332〕
         DepTable(sk, sim.Diplomacy);   // DepTable〔履歴 Instruments.cs#333〕
         CanalTable(sk, sim);
