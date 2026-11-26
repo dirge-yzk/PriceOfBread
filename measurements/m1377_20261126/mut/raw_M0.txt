@@ -1,0 +1,259 @@
+D:\PoB_work\c146wy_work\mut\M0\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:01.95]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:02.95]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:03.14]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.CoercionNowTests.戦時と平時で戦時の結束の項だけが違う_旗1では同じ(flag: 0) [4 s]
+[xUnit.net 00:00:08.05]     PriceOfBread.Tests.CoercionNowTests.戦時と平時で戦時の結束の項だけが違う_旗1では同じ(flag: 1) [FAIL]
+[xUnit.net 00:00:08.06]       Assert.Equal() Failure: Values are not within 12 decimal places
+[xUnit.net 00:00:08.06]       Expected: 1 (rounded from 1)
+[xUnit.net 00:00:08.06]       Actual:   1.1546391752580001 (rounded from 1.1546391752577319)
+[xUnit.net 00:00:08.06]       Stack Trace:
+[xUnit.net 00:00:08.09]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\CoercionNowTests.cs(70,0): at PriceOfBread.Tests.CoercionNowTests.戦時と平時で戦時の結束の項だけが違う_旗1では同じ(Double flag)
+[xUnit.net 00:00:08.09]            at InvokeStub_CoercionNowTests.戦時と平時で戦時の結束の項だけが違う_旗1では同じ(Object, Span`1)
+[xUnit.net 00:00:08.09]            at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:08.17]     PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(war: True, flag: 1) [FAIL]
+[xUnit.net 00:00:08.17]       Assert.Equal() Failure: Values are not within 12 decimal places
+[xUnit.net 00:00:08.17]       Expected: 0.20999999999999999 (rounded from 0.20999999999999999)
+[xUnit.net 00:00:08.17]       Actual:   0.23519999999999999 (rounded from 0.23519999999999996)
+[xUnit.net 00:00:08.17]       Stack Trace:
+[xUnit.net 00:00:08.17]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\CoercionNowTests.cs(51,0): at PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(Boolean war, Double flag)
+[xUnit.net 00:00:08.17]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:08.17]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:08.17]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:00:08.18]     PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(war: False, flag: 1) [FAIL]
+[xUnit.net 00:00:08.18]       Assert.Equal() Failure: Values are not within 12 decimal places
+[xUnit.net 00:00:08.18]       Expected: 0.20999999999999999 (rounded from 0.20999999999999999)
+[xUnit.net 00:00:08.18]       Actual:   0.20369999999999999 (rounded from 0.20369999999999999)
+[xUnit.net 00:00:08.18]       Stack Trace:
+[xUnit.net 00:00:08.18]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\CoercionNowTests.cs(51,0): at PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(Boolean war, Double flag)
+[xUnit.net 00:00:08.18]            at InvokeStub_CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(Object, Span`1)
+[xUnit.net 00:00:08.18]            at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:08.42]     PriceOfBread.Tests.WarWearyPoliticsCutTests.T2_旗1で天命の目標が厭戦に依らない [FAIL]
+[xUnit.net 00:00:08.42]       Assert.Equal() Failure: Values are not within 12 decimal places
+[xUnit.net 00:00:08.42]       Expected: 0.54000000000000004 (rounded from 0.54000000000000004)
+[xUnit.net 00:00:08.42]       Actual:   0.52239999999999998 (rounded from 0.52239999999999998)
+[xUnit.net 00:00:08.42]       Stack Trace:
+[xUnit.net 00:00:08.42]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\WarWearyPoliticsCutTests.cs(55,0): at PriceOfBread.Tests.WarWearyPoliticsCutTests.T2_旗1で天命の目標が厭戦に依らない()
+[xUnit.net 00:00:08.42]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:08.42]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:08.42]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:08.47]     PriceOfBread.Tests.WarWearyPoliticsCutTests.T3_旗1で保持力の戦時の乗数が1 [FAIL]
+[xUnit.net 00:00:08.47]       Assert.Equal() Failure: Values are not within 12 decimal places
+[xUnit.net 00:00:08.47]       Expected: 0.20999999999999999 (rounded from 0.20999999999999999)
+[xUnit.net 00:00:08.47]       Actual:   0.27300000000000002 (rounded from 0.27300000000000002)
+[xUnit.net 00:00:08.47]       Stack Trace:
+[xUnit.net 00:00:08.47]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\WarWearyPoliticsCutTests.cs(63,0): at PriceOfBread.Tests.WarWearyPoliticsCutTests.T3_旗1で保持力の戦時の乗数が1()
+[xUnit.net 00:00:08.47]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:08.47]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:08.47]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:08.54]     PriceOfBread.Tests.WarWearyPoliticsCutTests.T1_旗1で闘争度の目標が厭戦に依らない [FAIL]
+[xUnit.net 00:00:08.54]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:08.54]       Expected: 0
+[xUnit.net 00:00:08.54]       Actual:   30.800000000000043
+[xUnit.net 00:00:08.54]       Stack Trace:
+[xUnit.net 00:00:08.54]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\WarWearyPoliticsCutTests.cs(46,0): at PriceOfBread.Tests.WarWearyPoliticsCutTests.T1_旗1で闘争度の目標が厭戦に依らない()
+[xUnit.net 00:00:08.54]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:08.54]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:08.54]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.CoercionNowTests.戦時と平時で戦時の結束の項だけが違う_旗1では同じ(flag: 1) [133 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 1 (rounded from 1)
+Actual:   1.1546391752580001 (rounded from 1.1546391752577319)
+  スタック トレース:
+     at PriceOfBread.Tests.CoercionNowTests.戦時と平時で戦時の結束の項だけが違う_旗1では同じ(Double flag) in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\CoercionNowTests.cs:line 70
+   at InvokeStub_CoercionNowTests.戦時と平時で戦時の結束の項だけが違う_旗1では同じ(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithOneArg(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(war: True, flag: 1) [162 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0.20999999999999999 (rounded from 0.20999999999999999)
+Actual:   0.23519999999999999 (rounded from 0.23519999999999996)
+  スタック トレース:
+     at PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(Boolean war, Double flag) in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\CoercionNowTests.cs:line 51
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(war: False, flag: 1) [10 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0.20999999999999999 (rounded from 0.20999999999999999)
+Actual:   0.20369999999999999 (rounded from 0.20369999999999999)
+  スタック トレース:
+     at PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(Boolean war, Double flag) in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\CoercionNowTests.cs:line 51
+   at InvokeStub_CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  成功 PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(war: False, flag: 0) [159 ms]
+  成功 PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(war: True, flag: 0) [13 ms]
+  失敗 PriceOfBread.Tests.WarWearyPoliticsCutTests.T2_旗1で天命の目標が厭戦に依らない [65 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0.54000000000000004 (rounded from 0.54000000000000004)
+Actual:   0.52239999999999998 (rounded from 0.52239999999999998)
+  スタック トレース:
+     at PriceOfBread.Tests.WarWearyPoliticsCutTests.T2_旗1で天命の目標が厭戦に依らない() in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\WarWearyPoliticsCutTests.cs:line 55
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.WarWearyPoliticsCutTests.T3_旗1で保持力の戦時の乗数が1 [42 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values are not within 12 decimal places
+Expected: 0.20999999999999999 (rounded from 0.20999999999999999)
+Actual:   0.27300000000000002 (rounded from 0.27300000000000002)
+  スタック トレース:
+     at PriceOfBread.Tests.WarWearyPoliticsCutTests.T3_旗1で保持力の戦時の乗数が1() in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\WarWearyPoliticsCutTests.cs:line 63
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.WarWearyPoliticsCutTests.T1_旗1で闘争度の目標が厭戦に依らない [77 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   30.800000000000043
+  スタック トレース:
+     at PriceOfBread.Tests.WarWearyPoliticsCutTests.T1_旗1で闘争度の目標が厭戦に依らない() in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\WarWearyPoliticsCutTests.cs:line 46
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:12.59]     PriceOfBread.Tests.WarWearyPoliticsCutTests.T5_計器のdmWarとmilWarMeanは旗を通る(flag: 1) [FAIL]
+[xUnit.net 00:00:12.59]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:12.59]       Expected: 0
+[xUnit.net 00:00:12.59]       Actual:   -0.32000000000000001
+[xUnit.net 00:00:12.59]       Stack Trace:
+[xUnit.net 00:00:12.59]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\WarWearyPoliticsCutTests.cs(94,0): at PriceOfBread.Tests.WarWearyPoliticsCutTests.T5_計器のdmWarとmilWarMeanは旗を通る(Double flag)
+[xUnit.net 00:00:12.59]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:12.59]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:12.59]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.WarWearyPoliticsCutTests.T5_計器のdmWarとmilWarMeanは旗を通る(flag: 1) [4 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   -0.32000000000000001
+  スタック トレース:
+     at PriceOfBread.Tests.WarWearyPoliticsCutTests.T5_計器のdmWarとmilWarMeanは旗を通る(Double flag) in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\WarWearyPoliticsCutTests.cs:line 94
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:00:13.95]     PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国家の手動建設の段の変数は復活しない [FAIL]
+[xUnit.net 00:00:13.95]       System.IO.DirectoryNotFoundException : Could not find a part of the path 'D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Display'.
+[xUnit.net 00:00:13.95]       Stack Trace:
+[xUnit.net 00:00:13.95]            at System.IO.Enumeration.FileSystemEnumerator`1.CreateDirectoryHandle(String path, Boolean ignoreNotFound)
+[xUnit.net 00:00:13.95]            at System.IO.Enumeration.FileSystemEnumerator`1.Init()
+[xUnit.net 00:00:13.95]            at System.IO.Enumeration.FileSystemEnumerable`1..ctor(String directory, FindTransform transform, EnumerationOptions options, Boolean isNormalized)
+[xUnit.net 00:00:13.95]            at System.IO.Enumeration.FileSystemEnumerableFactory.UserFiles(String directory, String expression, EnumerationOptions options)
+[xUnit.net 00:00:13.95]            at System.IO.Directory.InternalEnumeratePaths(String path, String searchPattern, SearchTarget searchTarget, EnumerationOptions enumerationOptions)
+[xUnit.net 00:00:13.95]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\GoodIdGuardTests.cs(422,0): at PriceOfBread.Tests.GoodIdGuardTests.CsFiles()+MoveNext()
+[xUnit.net 00:00:13.95]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\ScalarDeletionTests.cs(160,0): at PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国家の手動建設の段の変数は復活しない()
+[xUnit.net 00:00:13.95]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:13.95]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:13.95]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.WarWearyPoliticsCutTests.T5_計器のdmWarとmilWarMeanは旗を通る(flag: 0) [996 ms]
+  成功 PriceOfBread.Tests.WarWearyPoliticsCutTests.T4_旗0では3つとも厭戦で動く_対照 [56 ms]
+  成功 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_25_ゴミ変数の1回目の欄は復活しない [88 ms]
+  成功 PriceOfBread.Tests.ScalarDeletionTests.汚職の政治の2項は物理削除されている_天命と正統性は実効汚職を読まない [13 ms]
+  成功 PriceOfBread.Tests.ScalarDeletionTests.採らなかった旗2本とDiagの欄はmainに入れない [< 1 ms]
+  成功 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_B6の残り_lawgateの旧の4列は復活しない [6 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国家の手動建設の段の変数は復活しない [190 ms]
+  エラー メッセージ:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path 'D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Display'.
+  スタック トレース:
+     at System.IO.Enumeration.FileSystemEnumerator`1.CreateDirectoryHandle(String path, Boolean ignoreNotFound)
+   at System.IO.Enumeration.FileSystemEnumerator`1.Init()
+   at System.IO.Enumeration.FileSystemEnumerable`1..ctor(String directory, FindTransform transform, EnumerationOptions options, Boolean isNormalized)
+   at System.IO.Enumeration.FileSystemEnumerableFactory.UserFiles(String directory, String expression, EnumerationOptions options)
+   at System.IO.Directory.InternalEnumeratePaths(String path, String searchPattern, SearchTarget searchTarget, EnumerationOptions enumerationOptions)
+   at PriceOfBread.Tests.GoodIdGuardTests.CsFiles()+MoveNext() in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\GoodIdGuardTests.cs:line 422
+   at PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国家の手動建設の段の変数は復活しない() in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\ScalarDeletionTests.cs:line 160
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:14.14]     PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国庫の建設の予約の読み手と計器の列は復活しない [FAIL]
+[xUnit.net 00:00:14.14]       System.IO.DirectoryNotFoundException : Could not find a part of the path 'D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Display'.
+[xUnit.net 00:00:14.14]       Stack Trace:
+[xUnit.net 00:00:14.14]            at System.IO.Enumeration.FileSystemEnumerator`1.CreateDirectoryHandle(String path, Boolean ignoreNotFound)
+[xUnit.net 00:00:14.14]            at System.IO.Enumeration.FileSystemEnumerator`1.Init()
+[xUnit.net 00:00:14.14]            at System.IO.Enumeration.FileSystemEnumerable`1..ctor(String directory, FindTransform transform, EnumerationOptions options, Boolean isNormalized)
+[xUnit.net 00:00:14.14]            at System.IO.Enumeration.FileSystemEnumerableFactory.UserFiles(String directory, String expression, EnumerationOptions options)
+[xUnit.net 00:00:14.14]            at System.IO.Directory.InternalEnumeratePaths(String path, String searchPattern, SearchTarget searchTarget, EnumerationOptions enumerationOptions)
+[xUnit.net 00:00:14.14]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\GoodIdGuardTests.cs(422,0): at PriceOfBread.Tests.GoodIdGuardTests.CsFiles()+MoveNext()
+[xUnit.net 00:00:14.14]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\ScalarDeletionTests.cs(141,0): at PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国庫の建設の予約の読み手と計器の列は復活しない()
+[xUnit.net 00:00:14.14]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:14.14]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:14.14]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国庫の建設の予約の読み手と計器の列は復活しない [191 ms]
+  エラー メッセージ:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path 'D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Display'.
+  スタック トレース:
+     at System.IO.Enumeration.FileSystemEnumerator`1.CreateDirectoryHandle(String path, Boolean ignoreNotFound)
+   at System.IO.Enumeration.FileSystemEnumerator`1.Init()
+   at System.IO.Enumeration.FileSystemEnumerable`1..ctor(String directory, FindTransform transform, EnumerationOptions options, Boolean isNormalized)
+   at System.IO.Enumeration.FileSystemEnumerableFactory.UserFiles(String directory, String expression, EnumerationOptions options)
+   at System.IO.Directory.InternalEnumeratePaths(String path, String searchPattern, SearchTarget searchTarget, EnumerationOptions enumerationOptions)
+   at PriceOfBread.Tests.GoodIdGuardTests.CsFiles()+MoveNext() in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\GoodIdGuardTests.cs:line 422
+   at PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国庫の建設の予約の読み手と計器の列は復活しない() in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\ScalarDeletionTests.cs:line 141
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_B6の残り_旧の願いの関数と定数は復活しない [< 1 ms]
+[xUnit.net 00:00:17.10]     PriceOfBread.Tests.ScalarDeletionTests.厭戦の2項は旗0で働き_旗1で外れる(flag: 1) [FAIL]
+[xUnit.net 00:00:17.10]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:17.10]       Expected: 0
+[xUnit.net 00:00:17.10]       Actual:   0.20999999999999999
+[xUnit.net 00:00:17.10]       Stack Trace:
+[xUnit.net 00:00:17.10]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\ScalarDeletionTests.cs(253,0): at PriceOfBread.Tests.ScalarDeletionTests.厭戦の2項は旗0で働き_旗1で外れる(Double flag)
+[xUnit.net 00:00:17.10]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:17.10]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:17.10]            at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.厭戦の2項は旗0で働き_旗1で外れる(flag: 1) [2 s]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   0.20999999999999999
+  スタック トレース:
+     at PriceOfBread.Tests.ScalarDeletionTests.厭戦の2項は旗0で働き_旗1で外れる(Double flag) in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\ScalarDeletionTests.cs:line 253
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeDirectByRefWithFewArgs(Object obj, Span`1 copyOfArgs, BindingFlags invokeAttr)
+[xUnit.net 00:00:18.53]     PriceOfBread.Tests.ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い [FAIL]
+[xUnit.net 00:00:18.53]       System.IO.DirectoryNotFoundException : Could not find a part of the path 'D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Display'.
+[xUnit.net 00:00:18.53]       Stack Trace:
+[xUnit.net 00:00:18.53]            at System.IO.Enumeration.FileSystemEnumerator`1.CreateDirectoryHandle(String path, Boolean ignoreNotFound)
+[xUnit.net 00:00:18.53]            at System.IO.Enumeration.FileSystemEnumerator`1.Init()
+[xUnit.net 00:00:18.53]            at System.IO.Enumeration.FileSystemEnumerable`1..ctor(String directory, FindTransform transform, EnumerationOptions options, Boolean isNormalized)
+[xUnit.net 00:00:18.53]            at System.IO.Enumeration.FileSystemEnumerableFactory.UserFiles(String directory, String expression, EnumerationOptions options)
+[xUnit.net 00:00:18.53]            at System.IO.Directory.InternalEnumeratePaths(String path, String searchPattern, SearchTarget searchTarget, EnumerationOptions enumerationOptions)
+[xUnit.net 00:00:18.53]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\GoodIdGuardTests.cs(422,0): at PriceOfBread.Tests.GoodIdGuardTests.CsFiles()+MoveNext()
+[xUnit.net 00:00:18.53]         D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\ScalarDeletionTests.cs(181,0): at PriceOfBread.Tests.ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い()
+[xUnit.net 00:00:18.53]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:18.53]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:18.53]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:18.53]   Finished:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.ScalarDeletionTests.厭戦の2項は旗0で働き_旗1で外れる(flag: 0) [1 s]
+  成功 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_26_ゴミ変数の3回目の関数は復活しない [< 1 ms]
+  成功 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_26_ゴミ変数の4回目の欄は復活しない [< 1 ms]
+  成功 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_18_の状態の欄は復活しない [1 ms]
+  成功 PriceOfBread.Tests.ScalarDeletionTests.制度疲労は物理削除済み_係数も状態も読み手に残らない [1 ms]
+  成功 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_AIの旧の近代化の腕は復活しない [< 1 ms]
+  成功 PriceOfBread.Tests.ScalarDeletionTests.政治の束12項目は物理削除済み_係数も旗も復活しない [18 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い [186 ms]
+  エラー メッセージ:
+   System.IO.DirectoryNotFoundException : Could not find a part of the path 'D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Display'.
+  スタック トレース:
+     at System.IO.Enumeration.FileSystemEnumerator`1.CreateDirectoryHandle(String path, Boolean ignoreNotFound)
+   at System.IO.Enumeration.FileSystemEnumerator`1.Init()
+   at System.IO.Enumeration.FileSystemEnumerable`1..ctor(String directory, FindTransform transform, EnumerationOptions options, Boolean isNormalized)
+   at System.IO.Enumeration.FileSystemEnumerableFactory.UserFiles(String directory, String expression, EnumerationOptions options)
+   at System.IO.Directory.InternalEnumeratePaths(String path, String searchPattern, SearchTarget searchTarget, EnumerationOptions enumerationOptions)
+   at PriceOfBread.Tests.GoodIdGuardTests.CsFiles()+MoveNext() in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\GoodIdGuardTests.cs:line 422
+   at PriceOfBread.Tests.ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い() in D:\PoB_work\c146wy_work\mut\M0\PriceOfBread.Tests\ScalarDeletionTests.cs:line 181
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+テストの実行に失敗しました。
+テストの合計数: 28
+     成功: 17
+     失敗: 11
+合計時間: 24.4637 秒

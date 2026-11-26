@@ -35,7 +35,7 @@ public static partial class Instruments
         sk.Sca.WriteLine(string.Join('\t', I(q), I(w.Year), NameOf(w), w.BornOfSecession ? "1" : "0", F(popK), Government.AtWar(w) ? "1" : "0",
             I((int)w.Polity), I((int)w.EducationLaw), I((int)w.Suffrage), I((int)w.Censorship), I((int)w.Bureaucracy),
             F(w.EffectiveCorruption), F(w.DynasticMandate), F(w.Legitimacy), F(w.DefeatShock),
-            F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(-c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0)),
+            F(w.SelfPower?.WarExhaustion ?? 0), F(milWar), F(mil), F(c.WarWearyPoliticsCut > 0 ? 0.0 : -c.DynMandateWarWeight * (w.SelfPower?.WarExhaustion ?? 0)),   // (1377) 旗 1＝天命の厭戦の項は 0（Politics.cs の dmWar と同じ旗）
             F(w.AdminEfficiency), I((int)w.Crown), F(w.ChildLaborLegal), F(w.WorkHoursValue),
             I((int)w.SocialSecurityLaw), I((int)w.Antitrust), F(w.ProgressiveTax), I(w.NationalizedMask()),
             F(w.Policy.TariffTarget), F(TradeToGdp(w)),

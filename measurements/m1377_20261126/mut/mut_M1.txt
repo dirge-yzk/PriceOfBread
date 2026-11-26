@@ -1,0 +1,8 @@
+# M1（cba355e45）
+  失敗 PriceOfBread.Tests.CoercionNowTests.戦時と平時で戦時の結束の項だけが違う_旗1では同じ(flag: 1) [113 ms]
+  失敗 PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(war: True, flag: 1) [98 ms]
+  失敗 PriceOfBread.Tests.CoercionNowTests.CoercionNowは手で数えた式と一致し_Stepの後のCoercionとも一致する(war: False, flag: 1) [14 ms]
+  失敗 PriceOfBread.Tests.WarWearyPoliticsCutTests.T3_旗1で保持力の戦時の乗数が1 [46 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国家の手動建設の段の変数は復活しない [131 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.恒等の削除_2026_10_27_国庫の建設の予約の読み手と計器の列は復活しない [195 ms]
+  失敗 PriceOfBread.Tests.ScalarDeletionTests.稼働中の州の判定_RegionStateを読む行は許可表の外に無い [85 ms]
