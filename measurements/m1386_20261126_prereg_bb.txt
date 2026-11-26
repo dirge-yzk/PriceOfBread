@@ -1,0 +1,31 @@
+(1386) c147bb 事前登録（腕の前・最初のコミット）＝恒等の線。木 0f9537d3e71188c88c13605f4fa582dfdc357704。担当モデル Claude Sonnet 5.5。
+作ったフォルダ：D:/PoB_work/wt_c147bb（worktree）・D:/PoB_work/c147bb_work/（印・台本）・D:/PoB_work/c147bb_art（隔離ビルド）・scripts/instruments/c147bb/・measurements/m1386_*。
+
+[1] 恒等の線・予言 0（挙動を変えない）
+- 項 A：旗 ReentryShortageSameMonth（Coefficients.cs:40・既定 1）の焼き込み。EconomyStep.cs:2416〜2418 の三項を `bool shortage = rm.LastShortage > 0;` にする。LastShortage が NaN なら比較が偽＝品薄でない側（bk の形のまま・否定形を使わない書き方でも同値）。旧の式〈LastDemand > LastProduced + Stock〉を消す。
+- 項 B：計器の列の追加（恒等・計器が切れている時は呼ばない・エンジンの欄を足さない）。既定の計器の表の新しい列は全て末尾。
+  trrail_s（InstrumentsTransport.cs・TrRailHeader の末尾）に 5 列：procureWantUnitsPerYear（敷きの調達で BuyToward が Procure へ渡した want の和）・procureStockZeroMonths（呼ぶ前の m.Stock≦1e-9 または m.Price≦1e-9 で 0 を返した月）・procureSavingsBindMonths（在庫と値段が立つ側で、買い手の貯蓄が min(在庫,want)×値段 に足りず削った月）・procureGotUnitsPerYear（買えた量）・tPreEnd（その年の最後の敷きの月の頭の線路＝RailAcc.TPre）。
+    bt の 〈四半期の need・bought・tPre〉のうち need＝既存の needEnd／bought＝既存の boughtCapPerYear（容量の単位）＋新 procureGotUnitsPerYear（単位）と重なる＝重なる列は 1 本にまとめて名乗る。新しいのは tPreEnd だけ。四半期の表は足さず年の表（trrail_s）で足りる。
+  region_s（Instruments.cs の見出し :2165〜・行 :2198〜）の末尾（RegionProdHeaderText の後）に 7 列：transportCapEnd（r.LastTransportCap）・tradeThrottleEnd（r.LastTradeThrottle）・regionShareEnd（Transport.RegionShare の値＝国ごとに 1 回 ShareBasis を作る）・workerSinkShareEnd・stapleImportPerMonth・stapleProducedPerMonth・gdpOutputShareEnd。
+    workerSinkShareEnd＝州の工場（BuysLabor）の生産者のうち LaborPopIndex の最多の POP に乗る生産者の LaborWeight×Scale の和のうち LastInputFill＜0.05 の生産者の分の割合（分母 0 なら nan）。
+    stapleImportPerMonth／stapleProducedPerMonth＝財の段が Staple の m.PrevImport／m.LastProduced の和。
+    gdpOutputShareEnd＝計器が自分で州の産出（非役務の Output×RefPrice）の和を数え、国の州の和で割る（w.GdpPerMonth を呼ばない＝計算量の台帳 GdpScans と memo を動かさない・Region.GdpOutputMemo は旗次第で空なので読まない）。
+  sellr_s（InstrumentsSellr.cs・SellrHeaderText の末尾）に 2 列：price（m.Price）・inputPricePerUnit（Σ 投入の地元の値段×QtyPerOutput・EffectiveQty を使わず名前どおりの量・計器が自分で足す）。
+  線路と機関車の地元の売り・輸出は既存の表で読める＝足さない。
+- 予言：素の 5 種は m1383 と全行一致（旗が既定 1 のまま焼くだけ）。計器つき 10 種は足した列を除いて一致（段 2 の全表）・足す表は行の数が +0（列だけ）・savetest OK・.cost は計器が切れている時 +0（計器の hook は rm／Instruments.On が null／偽のとき呼ばない）。テストの数 3281 → 3281 −1（旗 0 の試験を消す）＋足す試験の数（下）で、最後の木の --list-tests で数える。
+- 浮動小数の順序が変わる箇所：項 A は比較だけ（演算なし）＝0 箇所。項 B は計器の中だけで、エンジンの演算の順は変えない。紙の台本で旧と新の食い違いを数える：項 A は LastShortage＞0 と旧の式を、同じ盤面（BankruptReentryShortageTests の掃引）で数える＝旗 1 の既定が旧の式を使っていないので食い違い 0（旗 1＝焼く側の式そのもの）。
+
+[2] 消す物と残す物（読み手の grep：SimCore・Runner・App・Display・Tests・scripts・measurements・POB_COEF の名前・SaveGame）
+- 消す：Coefficients.cs:40 `ReentryShortageSameMonth`。読み手＝EconomyStep.cs:2416 だけ（SimCore）・Tests は BankruptReentryShortageTests.cs（:24 Coef(flag)・各 Month(…, flag)）と DormantIdentityTests.cs:148（注だけ・宣言の表からは既に外れている）。Runner・App・Display は 0。SaveGame は Coefficients を保存しない（係数は保存しない型）。POB_COEF の名前の文字列は scripts に無い。
+- 消す：BankruptReentryShortageTests の〈旗0は旧の式のまま_取り崩した月に再開する〉（★(743) ① 旗 0 の経路の番人＝旗ごと消える）。
+- 残す：scripts/instruments/c146bk/（閉じた線の台本＝歴史・読み手 c146bk の中だけ・mut_bk.py は旧の木向け）・ident.cfg:82 と scripts/instruments/m1383/ の注（過去の記録）。WriterRatchetTests.cs:427 は軌道の件数の表（旗の名を注に持つだけ）＝動かない見込み〈推〉・動けば直さず合流へ申し送る。
+- 他の線との重なり：EconomyStep.cs は :2405〜:2425 と計器の hook の行だけ（vs は Simulation.cs、wb は Politics.cs、rk は Politics.cs・World.cs・Government.cs）。Coefficients.cs は :40 の 1 行。Instruments.cs は region_s の見出しと行だけ。DormantIdentityTests.cs は :148 の注だけ（wb は :161、rk は :159）。重ならない。
+
+[3] 足す試験（それぞれ盤面を試験の中で置く・期待値は手で書く）と突然変異
+- T1 BankruptReentryShortageTests：〈DesiredOutput が 0 なら届かない〉の注の誤り（再開の判定は DesiredOutput に依らず Bankrupt の枝で立つ）を直し、DesiredOutput=0 の盤面で足りない量が正なら再開する 1 本を足す。旗の引数を消す。μ1：:2416 を旧の式へ戻す → 〈在庫を取り崩した月は品薄でない〉が赤。μ2：LastShortage の比較を `!(x <= 0)`（NaN を品薄に倒す）に替える → 〈足りない量が非有限なら品薄でない側へ〉が赤。
+- T2 InstrumentColumnTests（列の番人）：region_s の新 7 列の純関数（WorkerSinkShare・StapleFlows）を盤面で置いた値（2 つの生産者・投入ありと投入 0・LaborWeight と Scale を置く）で手で書いた期待値と比べる。sellr の InputPricePerUnit を投入 2 つの財で手で書いた値と比べる。trrail の RailMonth.Procured：在庫 0・貯蓄で削る・満額の 3 つの月を置き、want・stockZero・savingsBind・got の件数と量を手で書いた値と比べる。見出しの末尾の名前と列の数。μ3：workerSinkShare の充足の閾（0.05）を外す／Scale を掛けない／savingsBind の条件を外す → T2 の該当の行が赤。
+- ㉘：器のコミットの直後に IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests の束を隔離ビルドで回す。点検（grep の結果を記録）：工業化度の読み手の許可表＝触らない／`new MoneyStock(` の件数＝変えない（足す試験は盤面の Savings に既存の形を使う）／route_anchors.tsv の鍵の行＝触らない／WriterRatchetTests の宣言の表＝触らない。書き換える件数の予言（㉑）：ソースを走査する番人の許可表の行の書き換え 0。
+
+[4] 比べる：素の 5 種（b5_20261126_m1383）・計器つき 10 種（b10_20261126_m1383_ins）が名乗り行を除いて全行一致（計器の表の差は宣言した列だけ）。
+[5] 〈判定: 恒等〉と savetest OK と突然変異のとおりの赤なら採る。違えば変更を外して報告に回す。〈証明〉とは書かない。
+門：作者の止める線・単体の機構の試験。ヌル腕の幅は記録だけ。D: の空きは起こす前に測る（35GB＋量）。
