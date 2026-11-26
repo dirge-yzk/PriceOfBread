@@ -90,7 +90,7 @@ public sealed partial class Coefficients
     public double ReservationWageFallPerDay = 0.25;    // 留保賃金が下方の目標へ追従する 1 日あたりの速度（小さいほど賃下げに抗う＝下方硬直が強い）
     public double ReservationWageRisePerDay = 1.0;     // 留保賃金が上方の目標へ追従する 1 日あたりの速度（賃上げ＝新しい生活水準へすぐ慣れる）
     public int PriceFlowStepDays = 10;   // 式の中の速度は 1 日あたりのまま
-    public int PriceOnlyStepDays = 15;   // 0＝国内価格も PriceFlowStepDays（旧と1ビットも変わらない）
+    public int PriceOnlyStepDays = 30;   // (1400) 既定 15→30＝国内価格は月 1 回（日 29・月の締めの直前）。0＝国内価格も PriceFlowStepDays・15＝旧の既定
     public double ServiceClosedMaxCurv = 0.01;   // 既定 0.01（S1c・同上）
 
     // --- 転職（昇格・転落）。閾値＝国民平均の1人あたり貯蓄に対する倍率＝経済規模で自動スケール ---
