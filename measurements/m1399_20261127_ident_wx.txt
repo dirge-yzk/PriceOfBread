@@ -1,0 +1,26 @@
+=== 恒等の判定（測った種で一致） c149wx（2026-11-27 03:32:47）===
+測った木：D:/PoB_work/wt_c149wx（HEAD d56ae88e6・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c149wx/scripts/instruments/ident/ident.cfg
+宣言：added=['wexit_s'] tests_delta=14
+腕 a：rc=0 end=2026-11-27 03:32:39
+腕 t：rc=0 end=2026-11-27 03:13:40
+腕 s：rc=0 end=2026-11-27 03:31:14
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：534ba2647cb937dd
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 534ba2647cb937dd
+[素の 5 種] b5_ia_5.txt 対 b5_20261126_m1383
+  ○ 全行バイト一致（179 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261126_m1383.cost
+  ○ 件数の行 45 本・推定 232.8 秒・種ごとの忠実度 5 行が一致
+[テストの数] --list-tests
+  ○ Category!=FullLength 3309（基準 3295+14 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 恒等
+
+〔担当の注〕この判定は腕 a（素の 5 種）・t・s だけ。計器つき 10 種の腕 b は回していない＝D: の空きが 62.8GB→4.9GB まで他の線の腕で減り（35GB＋INSRAW 29GB に届かない）、起こさなかった。wexit_s の表の中身と計器つき 10 種の全行一致は未測（合流の腕 Z か空いた後に取る）。
+〔担当の注〕ident の腕の走行中に突然変異の表のコミット（measurements/ のみ・ソース 0 行）を 1 本入れた（㉙の違反・SOURCE-HASH 534ba2647cb937dd はソースの物で変わらない）。
