@@ -1727,7 +1727,8 @@ public sealed class Simulation
         double navalSpendNat = World.NavalSpendShare.Value;
         double monopolyRentFactorNat = World.Antitrust switch { AntitrustLaw.CartelBan => World.Coef.CartelBanRent, AntitrustLaw.Trustbust => World.Coef.TrustbustRent, _ => 1.0 };
         int nationalizedMaskNat = World.NationalizedMask();
-        World.LastSoldierPayPerMonth = new MoneyPerMonth(0);   // 兵士給与の月次請求書（形が先・金が後 段0）＝州ループで積む
+        bool billPrevMonth = World.Coef.SoldierPayBillPrevMonth > 0;   // (1384) c147vs 旗 1＝同じ月の予算（軍の枠・行政）は前の月の請求書を読み、月の終わりに州の順の和を 1 回だけ書く
+        if (!billPrevMonth) World.LastSoldierPayPerMonth = new MoneyPerMonth(0);   // 兵士給与の月次請求書（形が先・金が後 段0）＝州ループで積む（旗 0＝月の頭で 0＝同じ月の予算が 0 を読む）
         // ・給与（規定）＝州の兵数×徴募の母数の働き盛り1人あたりの賃金×SoldierPayMult（Military.RecruitWage＝市場で競り上がらない）。〔履歴 Simulation.cs#200〕
         double milEnvelope = Military.EnvelopeOf(World, World.Coef);
         bool keepPay = World.ConscriptionLaw >= ConscriptionLaw.Selective;
@@ -1867,13 +1868,16 @@ public sealed class Simulation
         double trainShare = regularFull > 1e-9 ? trainClaim / regularFull : 0;   // 規定の給与の満額1あたりの幹部の給与
         if (!(trainShare >= 0)) trainShare = 0;
         World.MilitaryTrainingFill = trainNeed > 1e-9 && trainClaim >= 0 ? trainClaim / trainNeed : 0;
+        var billSum = new MoneyPerMonth(0);   // (1384) 旗 1 の局所の和（州の順＝旧と同じ足し算の順）
         for (int ri = 0; ri < World.Regions.Count; ri++)
         {
             var r = World.Regions[ri];
             if (r.SoldierPopIndex < 0) continue;
             r.SoldierPayBudget = soldierBasePay[ri] * soldierPayFill + soldierRegularPay[ri] * trainShare;   // 請求（r を掛ける前）。〔履歴 Simulation.cs#229〕
-            World.LastSoldierPayPerMonth += new MoneyPerMonth(r.SoldierPayBudget);   // 請求書（形が先・金が後 段0）
+            if (billPrevMonth) billSum += new MoneyPerMonth(r.SoldierPayBudget);
+            else World.LastSoldierPayPerMonth += new MoneyPerMonth(r.SoldierPayBudget);   // 請求書（形が先・金が後 段0）
         }
+        if (billPrevMonth) World.LastSoldierPayPerMonth = billSum;   // (1384) 月の終わりに 1 回だけ書く
         World.LastMilitaryClaimPerMonth = new MoneyPerMonth(equipClaimNat);   // 給与と質（幹部の給与）は兵士の給与の請求（LastSoldierPayPerMonth）の側＝旧と同じく余剰からは引かない〔履歴 Simulation.cs#230〕
         // 払える額（Q1）＝max(0, 国庫)＋当月の歳入の見込み（LastRevenue）。〔履歴 Simulation.cs#231〕
         if (Instruments.On) Instruments.Begin(World);   // 計器（読むだけ）：今月の請求の写しを始める

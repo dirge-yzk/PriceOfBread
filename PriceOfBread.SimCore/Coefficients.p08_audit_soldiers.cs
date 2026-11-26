@@ -8,6 +8,7 @@ public sealed partial class Coefficients
     public int SoldierRecruitClassA = 1;                     // 徴募/復員プールその1＝農民
     public int SoldierRecruitClassB = 2;                     // 徴募/復員プールその2＝都市労働者
     public double SoldiersPerMilitary = 250.0 * Military.WorkingMenStdShare;              // 戦力ゲージ1.0 ＝ 兵士約69単位（×1000人）
+    public double SoldierPayBillPrevMonth = 0.0;   // (1384) c147vs 旗（0＝月の頭で請求書を 0 にし同じ月の予算が 0 を読む・1＝前の月の請求書を読み月の終わりに 1 回書く・番人 SoldierPayBillTests）
     public double FiscalBufferSoldierPayWeight = 0.5;  // 兵士給与を潤沢判定（OpulenceLineOf）にのみ算入（緊縮反射FiscalBufferOfは不変＝旧全面算入の緊縮暴発を回避）
     public double ThreatRailTargetWeight = 16.6;    // 脅威比＝SecurityThreat/SecurityThreatOwnMass（前期値読み＝閉路なし）
     public Share MilitaryEnvelopeShare = new(0.7);   // 四分位の幅は旧 7.6倍・新 5.9倍
