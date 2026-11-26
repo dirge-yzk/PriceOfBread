@@ -1,0 +1,34 @@
+# (1384) D: の手当て 2026-11-26 15:12:24
+## 始まり
+D:              239G  227G   13G  95% /d
+E:              239G  122G  117G  52% /e
+要約 873 本 → D:/PoB_work/wt_c147vs/measurements/m1384_20261126_keepsum_keep1362_n1.tsv
+移した n1
+要約 873 本 → D:/PoB_work/c147vs_work/ks_E_n1.tsv
+E: の写しの sha256 一致 n1
+要約 875 本 → D:/PoB_work/wt_c147vs/measurements/m1384_20261126_keepsum_keep1362_n2.tsv
+移した n2
+要約 875 本 → D:/PoB_work/c147vs_work/ks_E_n2.tsv
+E: の写しの sha256 一致 n2
+要約 872 本 → D:/PoB_work/wt_c147vs/measurements/m1384_20261126_keepsum_keep1362_a11.tsv
+移した a11
+要約 872 本 → D:/PoB_work/c147vs_work/ks_E_a11.tsv
+E: の写しの sha256 一致 a11
+total 64
+drwxr-xr-x 1 dirge 197609 0 Nov 26 15:28 .
+drwxr-xr-x 1 dirge 197609 0 Nov 26 15:28 ..
+消した：/d/PoB_work/c146bk_work
+消した：/d/PoB_work/c146kt_work
+消した：/d/PoB_work/c146rf_work
+消した：/d/PoB_work/c146wy_work
+消した：/d/PoB_work/ident_c146bk
+消した：/d/PoB_work/ident_c146kt
+消した：/d/PoB_work/ident_c146rf
+消した：/d/PoB_work/ident_c146wy
+消した：/d/PoB_work/r1381_work
+消した：/d/PoB_work/r1382_work
+## 終わり 2026-11-26 15:30:09
+D:              239G  146G   93G  62% /d
+E:              239G  174G   66G  73% /e
+D:/PoB_work/keep_1362
+D:/PoB_work/keep_1383
