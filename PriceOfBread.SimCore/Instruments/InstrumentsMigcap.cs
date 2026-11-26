@@ -42,7 +42,7 @@ public static partial class Instruments
         return slack > 0 ? System.Math.Pow(slack, c.ImmigrationAbsorbExponent) : 0.0;
     }
 
-    static double McEra(World w, Coefficients c) => c.EraFactor(w.WorldTechLevel, c.EraMigrationScale);   // 距離の尺度の時代の係数（エンジンの移民と同じ入力＝その国の世界の技術先端）
+    static double McEra(World w, Coefficients c) => 1.0;   // 距離の尺度の時代の係数（エンジンの移民と同じ入力＝その国の世界の技術先端）
 
     static int McClasses(Region r) { int m = 0; foreach (var p in r.Pops) if (!p.IsSoldier) m |= 1 << p.ClassId; return m; }
 

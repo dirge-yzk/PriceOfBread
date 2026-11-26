@@ -68,10 +68,10 @@ public static class Territory
     }
 
     internal static double MigrationDecay(double km, double worldTech, Coefficients c)
-        => c.MigrationDistanceScale > 0 ? 1.0 / (1.0 + km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale))) : 1.0;
+        => c.MigrationDistanceScale > 0 ? 1.0 / (1.0 + km / c.MigrationDistanceScale) : 1.0;
 
     internal static double EntryFrictionTerm(double km, double worldTech, Coefficients c)
-        => c.MigrationDistanceScale > 0 ? c.TransportFriction * km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale)) : 0.0;
+        => c.MigrationDistanceScale > 0 ? c.TransportFriction * km / c.MigrationDistanceScale : 0.0;
 
     private static double Movable(Region src, int dstClasses)
     {

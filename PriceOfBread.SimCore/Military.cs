@@ -220,7 +220,7 @@ public static class Military
         var r = w.Region;
         double gauge = w.SelfPower?.FleetGauge ?? 0;
         double steamGate = Discovery.GoodGate(r, c.ShipTier2GoodId);
-        double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep.Value) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
+        double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep.Value) * steamGate;
         double fill = 1.0;
         if (coalWant > 1e-9 && Catalog.CoalId < r.Markets.Length)
         {
