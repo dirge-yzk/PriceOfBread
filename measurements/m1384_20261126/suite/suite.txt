@@ -1,0 +1,8 @@
+# (1384) suite 木=/d/PoB_work/wt_c147vs HEAD=e2d0034f3 2026-11-26 17:23:44
+list-tests Tests(Category!=FullLength)=3053 Tests.Ui=232 和=3285 FullLength=3
+㊴ 計器の束 rc=0 
+Tests(Category!=FullLength) rc=0 成功!   -失敗:     0、合格:  3051、スキップ:     2、合計:  3053、期間: 1 h 3 m - PriceOfBread.Tests.dll (net10.0)
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 15 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 4 m 10 s - PriceOfBread.Tests.dll (net10.0)
+savetest・leakhunt は旗 1 の木 6766a3a02（SimCore はこの木と同じ）で済み＝measurements/m1384_20261126/savetest.txt・leakhunt.txt
+SUITEDONE 2026-11-26 18:34:45
