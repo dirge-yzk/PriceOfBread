@@ -1,0 +1,11 @@
+# (1377) scan HEAD=cba355e45 汚れ=0 2026-11-26 09:06:26
+# filter=FullyQualifiedName~WarWearyPoliticsCutTests|FullyQualifiedName~CoercionNowTests|FullyQualifiedName~RevoltIgnitionTests|FullyQualifiedName~ScalarDeletionTests|FullyQualifiedName~DormantIdentityTests|FullyQualifiedName~DerivedValueRatchetTests|FullyQualifiedName~ValueCountRatchetTests|FullyQualifiedName~CivilWarArmsDemandTests|FullyQualifiedName~CollapsePeaceTests|FullyQualifiedName~CpeaceColumnsTests|FullyQualifiedName~CwendInstrumentTests|FullyQualifiedName~ForcedPeaceBlankTests|FullyQualifiedName~ImposeAndCrownSourceTests|FullyQualifiedName~ImposeCrownFromLoserTests|FullyQualifiedName~MilitaryWarMultContactTests|FullyQualifiedName~NationalismUnificationTests|FullyQualifiedName~WarThemeTests|FullyQualifiedName~AdminDeletionTests|FullyQualifiedName~CrimeTests|FullyQualifiedName~CrownParliamentTests|FullyQualifiedName~ExplainTests|FullyQualifiedName~FiscalTests|FullyQualifiedName~FlagBake1282Tests|FullyQualifiedName~FlowMInstrumentTests|FullyQualifiedName~MandateWallStockCapTests|FullyQualifiedName~NationalConsciousnessRemovedTests|FullyQualifiedName~OpeningForcesTests|FullyQualifiedName~PolicyPoliticsTests|FullyQualifiedName~RuleOrderP1Tests|FullyQualifiedName~IndustrializationReaderTests|FullyQualifiedName~UnitTypeTests|FullyQualifiedName~InstrumentsTests|FullyQualifiedName~WriterRatchetTests|FullyQualifiedName~Instrument
+scan rc=1 合計 1 個のテスト ファイルが指定されたパターンと一致しました。 失敗!   -失敗:     3、合格:   999、スキップ:     1、合計:  1003、期間: 40 m 58 s - PriceOfBread.Tests.dll (net10.0) 
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 1190) [10 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 2204) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2171852) [< 1 ms]
+SCANDONE 2026-11-26 09:48:42
+FullLength rc=0 成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 6 m 20 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+NARROWDONE 2026-11-26 10:04:21
