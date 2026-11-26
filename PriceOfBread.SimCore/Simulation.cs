@@ -1408,7 +1408,7 @@ public sealed class Simulation
     public void StepDayOpen()
     {
         ProbeCheck("外部層");   // 前日の最終点から今日の開始まで＝共有層（外交/国際市場/移民/国際金融）で動いた分は各所が台帳計上済みのはず
-        if (_dayInQuarter == 0) { QuarterStart(); ProbeCheck("四半期首"); }
+        if (Calendar.IsQuarterStartDay(_dayInQuarter)) { QuarterStart(); ProbeCheck("四半期首"); }
     }
 
     /// <summary>
@@ -1428,10 +1428,10 @@ public sealed class Simulation
         int hPrice = World.Coef.PriceOnlyStepDays > 0 ? World.Coef.PriceOnlyStepDays : hFlow;   // ★(spg2) ① 国内価格だけの刻み（0＝同じ旬）
         if (Calendar.DaysPerMonth % hPrice != 0)
             throw new System.InvalidOperationException($"PriceOnlyStepDays={hPrice} は {Calendar.DaysPerMonth} の約数でない（旬は月をまたげない）");
-        bool priceDay = (_dayInQuarter + 1) % hPrice == 0;
-        bool spanStart = _dayInQuarter % hFlow == 0;   // 旬の初日（建設と信用＝S3c）
+        bool priceDay = Calendar.IsSpanEndDay(_dayInQuarter, hPrice);
+        bool spanStart = Calendar.IsSpanStartDay(_dayInQuarter, hFlow);   // 旬の初日（建設と信用＝S3c）
         long[]? cost = priceDay || spanStart ? World.Cost : null;   // 計算量の台帳（診断・この国の台帳＝並列の日次相でも国ごと）
-        bool monthStartSpan = _dayInQuarter % Calendar.DaysPerMonth < hPrice;   // monthStartSpan〔履歴 Simulation.cs#155〕
+        bool monthStartSpan = Calendar.DayInMonth(_dayInQuarter) < hPrice;   // monthStartSpan〔履歴 Simulation.cs#155〕
         foreach (var r in World.Regions)
             {
                 r.PriceLevel = World.PriceLevel * r.LocalPriceMultiplier;   // 国家物価×地域乗数＝地域別の物価水準（金融中心は高・辺境は低）。1州なら乗数1＝較正中立
@@ -1452,7 +1452,7 @@ public sealed class Simulation
             {
                 bool fresh = !CreditMonth.TryGetValue(World, out var box);
                 if (box is null) { box = new(); CreditMonth.Add(World, box); }
-                if (fresh || _dayInQuarter % Calendar.DaysPerMonth == 0)   // 月の初日は旬の初日（h は30の約数）
+                if (fresh || Calendar.IsMonthStartDay(_dayInQuarter))   // 月の初日は旬の初日（h は30の約数）
                     box.Value = (World.NominalGdpPerMonth.Value, World.Coef.SatReadersToDiscontent > 0 ? Politics.AvgMassDiscontent(World) : NationalScore.MeanSatisfaction(World));   // (1385) 旗 1＝D̄
                 creditMonth = box.Value;
             }
@@ -1467,11 +1467,11 @@ public sealed class Simulation
     /// <summary>締め境界（月次決算・四半期末）。⚠多国では逐次で呼ぶ＝MonthSettle は共有（Diplomacy.Log 等）へ触る。</summary>
     public bool StepDayClose()
     {
-        if ((_dayInQuarter + 1) % Calendar.DaysPerMonth == 0) MonthSettle();   // 月次：クリアリング・賃金/地代/税・労働再配分・移民・外交・人口
+        if (Calendar.IsMonthEndDay(_dayInQuarter)) MonthSettle();   // 月次：クリアリング・賃金/地代/税・労働再配分・移民・外交・人口
 
-        bool quarterDone = _dayInQuarter == Calendar.QuarterEndDayIndex;
+        bool quarterDone = Calendar.IsQuarterEndDay(_dayInQuarter);
         if (quarterDone) { QuarterEnd(); ProbeCheck("四半期末"); }
-        _dayInQuarter = (_dayInQuarter + 1) % Calendar.DaysPerQuarter;
+        _dayInQuarter = Calendar.NextDayInQuarter(_dayInQuarter);
         return quarterDone;
     }
 
@@ -1665,10 +1665,10 @@ public sealed class Simulation
     private void MonthSettle()
     {
         // 四半期の締め月（_dayInQuarter==89＝quarterDone と同時に走る月次決算）だけ true・他2回（29/59日目）は false。〔履歴 Simulation.cs#188〕
-        World.IsQuarterEndMonth = _dayInQuarter == Calendar.QuarterEndDayIndex;
+        World.IsQuarterEndMonth = Calendar.IsQuarterEndDay(_dayInQuarter);
         if (World.IsQuarterEndMonth) LogRecipeTransitions();   // LogRecipeTransitions〔履歴 Simulation.cs#189〕
         // 豊作/不作：年1回ロール（決定論RNG）。〔履歴 Simulation.cs#190〕
-        int harvestYear = (int)((World.Tick - Calendar.DaysPerMonth) / Calendar.DaysPerYear);
+        int harvestYear = Calendar.HarvestYearOfTick(World.Tick);
         // 初回のロールは最初の実月（Tick=30）＝上の「初回ロール（Tick=30）は不変」の設計どおり。〔履歴 Simulation.cs#191〕
         if (!World.WarmupFrozen && harvestYear != _lastHarvestYear)
         {
@@ -2035,7 +2035,7 @@ public sealed class Simulation
         if (World.IsQuarterEndMonth) Military.StepSkill(World, World.Coef, atWarNation);   // IsQuarterEndMonth〔履歴 Simulation.cs#262〕
         ProbeCheck("月次軍事");
         if (World.StepsDiplomacy)
-            World.Diplomacy?.Step(World.Coef, Rng, (int)(World.Tick / Calendar.DaysPerMonth));  // §6.1 外交・戦争（月次・opt-in。多国では共有外交を MultiNationSim が進める）
+            World.Diplomacy?.Step(World.Coef, Rng, Calendar.MonthIndexOfTick(World.Tick));  // §6.1 外交・戦争（月次・opt-in。多国では共有外交を MultiNationSim が進める）
         // rank3：農奴解放の梯子（Colonial.cs入植と同じ物差し）＝SerfMobilityGate>0のとき農村→都市流を縛る（ループ不変＝外で1回）
         double serfFree = 1.0 - Privileges.SeigneurialDegree(World);
         foreach (var r in World.Regions)
