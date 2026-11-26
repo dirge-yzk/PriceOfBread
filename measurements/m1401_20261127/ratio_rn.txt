@@ -1,0 +1,13 @@
+列	旧（基線 keep_1397 の中央）	新（腕 B の中央）	新÷旧
+invade	109.5	92	0.840
+submitted	56	61.5	1.098
+warsInterstate	723.5	750.5	1.037
+warsCivil	4.5	4.5	1.000
+subjCalls	884.5	8673	9.806
+subjEvals	72536	711354	9.807
+subjOk	742	369	0.497
+mutatedMax	1	0	0.000
+pushHits	9.5	0	0.000
+alliancePairsMaxQ	NA（旧の表に列が無い）	89	NA
+alliancePairsMeanQ	NA（旧の表に列が無い）	80.4	NA
+cropDiseasedRowsQ	NA（旧の表に列が無い）	0	NA
