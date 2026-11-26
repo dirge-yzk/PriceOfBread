@@ -92,8 +92,6 @@ public sealed partial class Coefficients
     public int PriceFlowStepDays = 10;   // 式の中の速度は 1 日あたりのまま
     public int PriceOnlyStepDays = 15;   // 0＝国内価格も PriceFlowStepDays（旧と1ビットも変わらない）
     public double ServiceClosedMaxCurv = 0.01;   // 既定 0.01（S1c・同上）
-    public double WarWearyPoliticsCut = 1.0;   // (1377) c146wy 2026-11-26 点火（腕 B の木）：(1371) c145rv 旗（0＝旧の式・1＝厭戦の政治の側の 3 本の読み〔保持力の戦時の乗数・闘争度の目標の厭戦の項・天命の厭戦の項〕を外す）
-    public double WarWearinessMilitancy = 0.35;   // 厭戦（対外戦争の消耗）→闘争度入力
 
     // --- 転職（昇格・転落）。閾値＝国民平均の1人あたり貯蓄に対する倍率＝経済規模で自動スケール ---
     public Share ClergyFloorShare = new(0.002);      // 聖職者の下限（地域人口比0.2%）

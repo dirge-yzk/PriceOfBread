@@ -8,7 +8,7 @@ namespace PriceOfBread.Tests;
 /// 制度疲労（(373)）は物理削除した＝名前で復活を禁じる（期待値は本体の式から作らない）。採らなかった旗 2 本と World の Diag 3 欄も main に入れない＝名前で禁じる。
 /// 汚職の政治の 2 項（天命の汚職の項・腐敗→正統性の侵食）は (377) で消して測ったが止める線（移民による州の空洞化）に当たり戻した＝作者に聞く Q1 と一緒。戻した 2 項が働くことを対照つきで確かめる。
 /// 厭戦の 2 項（闘争度の目標項 WarWearinessMilitancy・天命の戦争の項 DynMandateWarWeight）は (1377) c146wy の点火（旗 WarWearyPoliticsCut 既定 1＝厭戦の段 1）で外した＝戦争→内政は実際の道（死傷・封鎖・戦費・徴兵）が運ぶ。
-/// 番人は旗を盤面で置く（㉜ の改め）：旗 1＝厭戦のストックを直に置いても MilWar は 0・天命は厭戦 0 と同じ／旗 0＝〈闘争度の目標項が 0 でない〉〈天命が下がる〉の対照（盤面が厭戦に感度を持つ＝何もしない機構が緑にならない）。
+/// (1385) c147wb：旗は焼き込んだ＝旗 0 の対照の行は消えた（旧の規則そのものを固定していた）。以下は旗 1 の側＝今の規則：厭戦のストックを直に置いても MilWar は 0・天命は厭戦 0 と同じ（厭戦のストックが残っている前提を Assert で確かめる）。
 /// 突然変異で赤になる箇所：削除した名前の復活・Politics の warWeariness／dmWar の項を外す・dmGraft／corruptionErosion の項を外す。</summary>
 [Collection("Instruments")]
 public class ScalarDeletionTests
@@ -232,16 +232,14 @@ public class ScalarDeletionTests
         Assert.Equal(strong.Legit, weak.Legit);       // 同・正統性
     }
 
-    [Theory]
-    [InlineData(0.0)]
-    [InlineData(1.0)]
-    public void 厭戦の2項は旗0で働き_旗1で外れる(double flag)
+    [Fact]
+    public void 厭戦の2項は外れている()
     {
         // 厭戦のストックを直に置く（戦争を待たない）。Politics.Step は四半期に 1 回＝Run(1) で通る。対照＝同じ盤面で厭戦 0。
         MultiNationSim Armed(double exhaustion)
         {
             var sim = Board();
-            foreach (var n in sim.Nations) { n.World.Coef.WarWearyPoliticsCut = flag; n.World.SelfPower!.WarExhaustion = exhaustion; }
+            foreach (var n in sim.Nations) { n.World.SelfPower!.WarExhaustion = exhaustion; }
             sim.Run(1);
             return sim;
         }
@@ -250,14 +248,12 @@ public class ScalarDeletionTests
         var tired = Armed(0.6);
         Assert.Equal(0.0, MilWarMax(calm));
         Assert.True(tired.Nations.All(n => n.World.SelfPower!.WarExhaustion > 0), "前提：厭戦のストックが残っている");
-        if (flag > 0) Assert.Equal(0.0, MilWarMax(tired));   // 旗 1：厭戦→闘争度の目標項は外れた
-        else Assert.True(MilWarMax(tired) > 0.0, "旗 0：厭戦 0.6 で闘争度の目標項 MilWar が 0＝厭戦→闘争度の経路が消えている");
+        Assert.Equal(0.0, MilWarMax(tired));   // 厭戦→闘争度の目標項は外れた
         foreach (var name in new[] { "清", "ロシア" })
         {
             double m0 = calm.Nations.First(n => n.World.SelfPower!.Name == name).World.DynasticMandate;
             double m1 = tired.Nations.First(n => n.World.SelfPower!.Name == name).World.DynasticMandate;
-            if (flag > 0) Assert.True(m1 == m0, $"{name}：旗 1 で天命が厭戦で動いた（{m0}→{m1}）＝天命の戦争の項が残っている");
-            else Assert.True(m1 < m0, $"{name}：旗 0 で厭戦 0.6 で天命が下がらない（{m0}→{m1}）＝天命の戦争の項が消えている");
+            Assert.True(m1 == m0, $"{name}：天命が厭戦で動いた（{m0}→{m1}）＝天命の戦争の項が残っている");
         }
     }
 }

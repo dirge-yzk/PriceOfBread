@@ -38,8 +38,6 @@ public sealed partial class Coefficients
     public double ArmyPcPressure = 0.02;           // 王権寄りの軍（lean>0）が文民統制の確立を毎期押し戻す（プロイセン統帥権・憲法紛争1862）
     public double DefeatNationalism = 1.0;         // 思想の門（発見の2値）・ファシズム式の前に加算＝r[9]の燃料として自動で効く
     public double LostLandNationalism = 0.1;       // 失地ストック×これ→ r[4] の長期項（国内の思想分布へ持続して効く）。0で恒等
-    public double WarRallyCoercion = 0.3;          // 厭戦で減衰させないと二月革命型が構造的に消える＝恒常抑制にしない
-    public double WarRallyDecayPoint = 0.4;        // 結束が消える厭戦水準（開戦時+30%→WE0.4でゼロ→以後はドレインが上回る）
     public double RevolutionSurrenderWeight = 0.4; // 厭戦崩壊(WE≥1)の決着は不変
     public double AllyJoinFoodMin = 0.7;   // 根拠＝どれも「政府が対外戦争に人と金を割ける状態にない」ことの現物
     public Share AllyJoinFundingMin = new(0.6);

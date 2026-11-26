@@ -28,13 +28,11 @@ public class RevoltIgnitionTests
         // ★段2（設計メモ §7-3・作者裁定2026-09-09）で確定した4値＝史実から逆算した数（勘で置いていない）。うっかり動いたらここが赤になる。
         if (!ov.Contains("MilitancySpeed", StringComparison.Ordinal)) Assert.Equal(0.30, c.MilitancySpeed.Value);
         if (!ov.Contains("RegionalRevoltThreshold", StringComparison.Ordinal)) Assert.Equal(0.50, c.RegionalRevoltThreshold);
-        if (!ov.Contains("WarWearinessMilitancy", StringComparison.Ordinal)) Assert.Equal(0.35, c.WarWearinessMilitancy);
         if (!ov.Contains("RegionalRevoltStrength", StringComparison.Ordinal)) Assert.Equal(0.5, c.RegionalRevoltStrength);
         // ★構造条件（設計メモ §7-3）：σ が門を下回っていないと、平穏な州が1四半期の欠乏で一揆を起こす＝作者裁定「一瞬の飢餓では起きない」が破れる。
         Assert.True(c.MilitancySpeed.Value < c.RegionalRevoltThreshold, "構造条件 σ < 門 が破れた＝1四半期の欠乏で一揆が発火する");
         Assert.True(1.0 - Math.Pow(1.0 - c.MilitancySpeed.Value, 2) > c.RegionalRevoltThreshold, "2四半期でも門に届かない＝「半年の飢餓で大量の反乱軍」が表せない");
-        // ★満期の厭戦（0.9）が単独では門に届かない＝ナポレオン戦争級の長期戦でも戦争だけでは全土蜂起しない（飢餓が足されて初めて越える）。
-        Assert.True(0.9 * c.WarWearinessMilitancy < c.RegionalRevoltThreshold, "厭戦だけで門を越える＝1.5年超の全戦争が全土蜂起になる");
+        // (1385) c147wb：厭戦の項（WarWearinessMilitancy）は焼き込みで消えた＝〈満期の厭戦が単独で門に届かない〉の 2 行は旧の係数を固定する番人だった＝消した（厭戦は闘争度の目標に入らない）。
     }
 
     [Fact]
