@@ -1,0 +1,17 @@
+start 2026-11-27 03:40:11 head=89ed61160
+end 2026-11-27 04:27:08
+成功!   -失敗:     0、合格:  3063、スキップ:     2、合計:  3065、期間: 38 m 38 s - PriceOfBread.Tests.dll (net10.0)
+成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 37 s - PriceOfBread.Tests.Ui.dll (net10.0)
+成功!   -失敗:     0、合格:     3、スキップ:     0、合計:     3、期間: 5 m 52 s - PriceOfBread.Tests.dll (net10.0)
+--list-tests（PriceOfBread.Tests）: 3068＝Category!=FullLength 3065＋FullLength 3
+== 絞った試験（旗 1 の木 32485ec9f・腕 B と並べた・FullLength はフルスイートへ）
+失敗!   -失敗:     7、合格:   711、スキップ:     1、合計:   719、期間: 37 m 32 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 1339) [1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 0, declared: 9931110) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 17420888) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 2, declared: 1977) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 33, declared: 179644) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 1716) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 1902892) [< 1 ms]
+== 取り直しの後（89ed61160）
+成功!   -失敗:     0、合格:    62、スキップ:     0、合計:    62、期間: 1 m 40 s - PriceOfBread.Tests.dll (net10.0)

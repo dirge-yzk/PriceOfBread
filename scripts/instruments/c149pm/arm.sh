@@ -5,7 +5,7 @@ export POB_WORK=D:/PoB_work/c149pm_work
 export TEMP=$POB_WORK/tmp TMP=$POB_WORK/tmp; mkdir -p $TEMP
 A=${1:?腕}; T=${2:?木}
 S=D:/PoB_work/wt_c149pm/scripts/instruments
-export POB_INSTRUMENTS_TABLES="$(ls D:/PoB_work/keep_1383/a11 | sed 's/_s[0-9]*\.tsv$//' | sort -u | tr '\n' ',')pxstep"
+export POB_INSTRUMENTS_TABLES="$(ls D:/PoB_work/keep_1383/a11 | sed 's/[0-9]*\.tsv$//' | sort -u | tr '\n' ',')pxstep_s"   # 名は nation_s の形（Instruments.Wants）
 export POB_INSTRUMENTS_NATIONS="清,ロシア,オスマン,フランス,イギリス,プロイセン,オーストリア,日本,アメリカ"
 rm -f $POB_WORK/coef_$A.txt
 FREE=$(python -c "import shutil;print(round(shutil.disk_usage('D:/').free/1e9,2))")
