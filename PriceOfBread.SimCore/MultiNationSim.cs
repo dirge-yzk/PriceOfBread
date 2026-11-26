@@ -411,7 +411,7 @@ public sealed class MultiNationSim
             GdpPerMonth = nw.GdpPerMonth, TradeWeight = DefaultTradeWeightBase,
             Culture = reg.Culture, Religion = reg.Religion,   // 次の毎月同期まで州ラベルで代用
             // 史実の独立戦争は年単位（ギリシア1821-29・スペイン領アメリカ1810-25・ハンガリー1848-49・合衆国1861-65）。〔履歴 MultiNationSim.cs#45〕
-            WarExhaustion = capitalRising ? parentPower.WarExhaustion : 0,
+            WarExhaustion = capitalRising && !(pw.Coef.WarExitFromCapacity > 0) ? parentPower.WarExhaustion : 0,
         };
         Instruments.CweBorn(power, capitalRising);   // (1359) 継いだ厭戦（読むだけ）
         power.SpawnedDuringPlay = true;   // ★プレイ中に生まれた国＝ハーネスの「満足度・最小国」の対象外（Validation.WorstSat）
