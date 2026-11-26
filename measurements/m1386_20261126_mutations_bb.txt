@@ -1,0 +1,17 @@
+(1386) c147bb 突然変異の記録（使い捨ての書き換え→絞った試験→元へ戻す。木 HEAD は項 B のコミット）
+台本：scripts/instruments/c147bb/mut_apply.py <ファイル> <旧> <新>（旧がちょうど 1 か所のときだけ書き換える）。
+
+μ1 EconomyStep.cs `bool shortage = rm.LastShortage > 0;` → `rm.LastDemand > rm.LastProduced + rm.Stock`（旧の式）
+   BankruptReentryShortageTests：失敗 2（在庫を取り崩した月は品薄でない・在庫の掃引）＝赤。
+μ2 同 → `!(rm.LastShortage <= 0)`（NaN を品薄の側へ）
+   BankruptReentryShortageTests：失敗 1（足りない量が非有限なら品薄でない側へ）＝赤。
+μ3a InstrumentsTransport.cs 吸い込みの閾 `s.LastInputFill < 0.05` → `< 0.0`
+   InstrumentColumnTests：失敗 1＝赤。
+μ3b 同 `double wgt = s.LaborWeight * s.Scale;` → `s.LaborWeight`（Scale を掛けない）
+   InstrumentColumnTests：失敗 1＝赤。
+μ3c 同 貯蓄で削る条件 `Math.Min(stockBefore, want) * priceBefore > savingsBefore` → `want * priceBefore > savingsBefore + 1e9`
+   InstrumentColumnTests：失敗 1＝赤。
+全て元へ戻して git status が空（bgm-preview/ を除く）を確認。
+
+(追記・フルスイートの後) 貯蓄で削る条件を、貯蓄の欄を読まない形（買えた量が min(在庫,want) に届かない）へ直した（.Value の件数の番人 ValueCountRatchetTests が +1 で赤だったため）。μ3c を取り直す：`bought < Math.Min(stockBefore, want) * (1.0 - 1e-12)` → `false`。結果は下に書く。
+μ3c（取り直し）：赤（InstrumentColumnTests 失敗 1）。元へ戻した。

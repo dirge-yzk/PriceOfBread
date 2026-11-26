@@ -2164,7 +2164,7 @@ public static partial class Instruments
         {
             sk.Region.WriteLine("quarter\tyear\tnationIndex\tnation\tregion\ttier\tactiveFlag\tpopulationK\truralPopulationK\topportunityIndex\tholdingFactor\twageFactor\tlandFactor\temploymentShare\tpushFactor\thousingFactor\twagePremium\tarableLand\t"
                 + "migrationOutKPerQuarter\tmigrationInKPerQuarter\tcrossBorderOutKPerQuarter\tcrossBorderInKPerQuarter\twarIntensity\tfoodFillShare\t"
-                + "theftPoolPerMonth\ttheftRecipientsEarnedPerMonth\tearnedPerMonth\t" + RegionProdHeaderText);   // ttheftRecipientsEarnedPerMonth〔履歴 Instruments.cs#421〕
+                + "theftPoolPerMonth\ttheftRecipientsEarnedPerMonth\tearnedPerMonth\t" + RegionProdHeaderText + "\t" + RegionExtraHeaderText);   // ttheftRecipientsEarnedPerMonth〔履歴 Instruments.cs#421〕
             sk.Migration.WriteLine("quarter\tfromRegion\ttoRegion\tmovedKPerQuarter\trouteKm");   // WriteLine〔履歴 Instruments.cs#422〕
             sk.RegionHeader = true;
         }
@@ -2181,6 +2181,7 @@ public static partial class Instruments
         for (int i = 0; i < sim.Nations.Count; i++)
         {
             var w = sim.Nations[i].World; var c = w.Coef; string nation = NameOf(w);
+            var extraRows = RegionExtraRows(w);   // (1386) 末尾 7 列（国ごとに ShareBasis と産出の和を 1 回）
             foreach (var r in w.Regions)
             {
                 double pop = 0, rural = 0, unemp = 0, unrest = 0, foodMet = 0, foodNeed = 0, earned = 0;
@@ -2198,7 +2199,7 @@ public static partial class Instruments
                 sk.Region.WriteLine(string.Join('\t', I(q), I(year), I(i), nation, r.Name, r.Tier.ToString(), "1", F(pop), F(rural),
                     F(Territory.Opportunity(r, c)), F(Territory.Holding(r, c)), F(wage), F(Territory.LandFactor(r, rural, c)), F(emp), F(push), F(hous), F(r.WagePremium), F(r.ArableLand),
                     F(f.MigrationOutK), F(f.MigrationInK), F(f.CrossBorderOutK), F(f.CrossBorderInK), F(r.LastWarIntensity), F(foodNeed > 0 ? foodMet / foodNeed : 1),
-                    F(Calendar.PerQuarterToPerMonth(f.TheftPoolSum)), F(Calendar.PerQuarterToPerMonth(f.TheftRecipientsEarnedSum)), F(earned)) + "\t" + string.Join('\t', RegionProdRow(r).Select(F)));   // F〔履歴 Instruments.cs#426〕
+                    F(Calendar.PerQuarterToPerMonth(f.TheftPoolSum)), F(Calendar.PerQuarterToPerMonth(f.TheftRecipientsEarnedSum)), F(earned)) + "\t" + string.Join('\t', RegionProdRow(r).Select(F)) + "\t" + extraRows[r]);   // F〔履歴 Instruments.cs#426〕
                 if (f.MigrationTo is { } to)
                 {
                     int cfgW = RouteKm.CfgOf(w);
