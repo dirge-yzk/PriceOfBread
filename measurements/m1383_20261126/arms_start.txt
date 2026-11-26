@@ -1,0 +1,8 @@
+identZ start 2026-11-26 11:50:25 tree=7ea854332 Dfree=54.22GB armsfree=6
+m1383p5 start 2026-11-26 11:51:25 tree=7e8dd6f97 Dfree=53.75GB armsfree=4 coef=
+m1383p5 end 2026-11-26 12:07:03 rc=0
+identZ end 2026-11-26 12:23:35 rc=1
+m1383M start 2026-11-26 12:34:21 tree=7e8dd6f97 Dfree=52.49GB armsfree=6 coef=
+m1383M end 2026-11-26 12:51:48 rc=0
+m1383S11 start 2026-11-26 12:53:46 tree=7e8dd6f97 Dfree=20.61GB armsfree=6 coef=
+m1383S11 end 2026-11-26 13:09:29 rc=0
