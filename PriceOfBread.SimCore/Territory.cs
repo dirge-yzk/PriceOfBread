@@ -277,7 +277,7 @@ public static class Territory
         {
             if ((leaving is not null && leaving.Contains(q))) continue;
             if (coreFirst ? q.Tier != top : (homeOnly && q.Tier == RegionTier.Colonial)) continue;
-            double g = 0; foreach (var s in q.Producers) { var good = q.GoodOf(s.GoodId); if (good is null || good.Tier == GoodTier.Service) continue; g += s.Output * good.RefPrice; }
+            double g = q.OutputRefValue();   // (1392) 州の産出の参照価値＝Region.OutputRefValue（同じ式・同じ順）
             if (g > capBest || (g == capBest && (cap is null || q.Id < cap.Id))) { capBest = g; cap = q; }
         }
         return cap;
