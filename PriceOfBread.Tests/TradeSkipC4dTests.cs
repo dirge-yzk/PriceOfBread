@@ -137,7 +137,7 @@ public class TradeSkipC4dTests
             Assert.True(xo >= 0 && xb >= 0);
 
             var sl = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, $"sellr_s{Seed}.tsv"));
-            var sh = sl[0].Split('\t'); Assert.Equal("rentRMul", sh[^3]);   // (1386) 末尾に price・inputPricePerUnit が続く
+            var sh = sl[0].Split('\t'); foreach (var hn in new[] { "rentR", "rentRMul", "price", "inputPricePerUnit" }) Assert.True(Array.IndexOf(sh, hn) >= 0, "列が無い " + hn);   // (1392) 列は位置でなく列名で引く
             int ri = Array.IndexOf(sh, "rentR"), mi = Array.IndexOf(sh, "rentRMul"); int neg = 0, n = 0;
             foreach (var l in sl.Skip(1))
             {

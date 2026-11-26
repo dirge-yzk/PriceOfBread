@@ -61,6 +61,39 @@ public class InstrumentColumnTests
         Assert.Equal(3.0 * r.GoodOf(Catalog.BreadId)!.RefPrice, Instruments.RegionOutputRef(r), 12);
     }
 
+    /// <summary>(1392) bb① workerSinkShareEnd の母集合：労働の財と設備つきの倒産の生産者は分子にも分母にも数えない。閾は WorkerSinkFillThreshold。</summary>
+    [Fact]
+    public void WorkerSinkShare_労働の財と設備つきの倒産は母集合から外れる()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var r = sim.Nations[0].World.Regions[0];
+        Producer P(int gid, double lw, double scale, double fill, bool bk = false) => new() { GoodId = gid, BuysLabor = true, LaborPopIndex = 1, LaborWeight = lw, Scale = scale, LastInputFill = fill, Bankrupt = bk };
+        r.Producers.Clear();
+        r.Producers.Add(P(Catalog.BreadId, 2.0, 1.0, 1.0));   // 重み 2.0・吸い込みでない
+        r.Producers.Add(P(Catalog.BreadId, 1.0, 1.0, 0.0));   // 重み 1.0・吸い込み
+        Assert.Equal(1.0 / 3.0, Instruments.WorkerSinkShare(r), 12);
+        r.Producers.Add(P(Catalog.BreadId, 10.0, 1.0, 0.0, bk: true));   // 設備つきの倒産＝外れる
+        Assert.Equal(1.0 / 3.0, Instruments.WorkerSinkShare(r), 12);
+        r.Producers.Add(P(Catalog.LaborId, 10.0, 1.0, 0.0));             // 労働の財＝外れる
+        Assert.Equal(1.0 / 3.0, Instruments.WorkerSinkShare(r), 12);
+        Assert.Equal(0.05, Instruments.WorkerSinkFillThreshold);
+        r.Producers.Clear();
+        r.Producers.Add(P(Catalog.BreadId, 1.0, 1.0, 0.0, bk: true));   // 全て外れる＝nan
+        Assert.True(double.IsNaN(Instruments.WorkerSinkShare(r)));
+    }
+
+    /// <summary>(1392) bb② inputPricePerUnit：投入が 2 つある財（小銃＝鋼 0.6・材木 0.4）は各投入の地元の値段×量の和。</summary>
+    [Fact]
+    public void InputPricePerUnit_投入が2つの盤面は値段と量の積の和()
+    {
+        var sim = new MultiNationSim([WorldData.ByName("イギリス")], seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
+        var r = sim.Nations[0].World.Regions[0];
+        r.Markets[Catalog.SteelId].Price = 5.0; r.Markets[Catalog.LumberId].Price = 10.0;
+        Assert.Equal(0.6 * 5.0 + 0.4 * 10.0, Instruments.InputPricePerUnitOf(r, Catalog.RifleId), 12);
+        r.Markets[Catalog.LumberId].Price = 20.0;
+        Assert.Equal(0.6 * 5.0 + 0.4 * 20.0, Instruments.InputPricePerUnitOf(r, Catalog.RifleId), 12);
+    }
+
     /// <summary>(1386) sellr_s の inputPricePerUnit：パンの投入（小麦粉 1.0）の地元の値段×量。</summary>
     [Fact]
     public void InputPricePerUnit_投入の地元の値段と名前どおりの量の積()

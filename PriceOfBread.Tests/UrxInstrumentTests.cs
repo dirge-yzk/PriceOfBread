@@ -206,7 +206,7 @@ public class UrxInstrumentTests
             Instruments.Close(sim);
             // 州の生産の列：region_s の最後の四半期の行の和＝CapRow（factory_s の元）の工場の列
             var (h, rows) = Table(System.IO.Path.Combine(dir, "region_s1789.tsv"));
-            Assert.EndsWith(Instruments.RegionProdHeaderText + "\t" + Instruments.RegionExtraHeaderText, string.Join('\t', h));   // (1386) 州の生産の列の後に c147bb の末尾 7 列が続く
+            foreach (var hn in (Instruments.RegionProdHeaderText + "	" + Instruments.RegionExtraHeaderText).Split('	')) Assert.True(Array.IndexOf(h, hn) >= 0, "列が無い " + hn);   // (1392) 列は位置でなく列名で引く
             Assert.All(rows, x => Assert.Equal(h.Length, x.Length));
             int ci(string c2) { int i = Array.IndexOf(h, c2); Assert.True(i >= 0, "列が無い " + c2); return i; }
             int lastQ = rows.Max(x => int.Parse(x[ci("quarter")]));
