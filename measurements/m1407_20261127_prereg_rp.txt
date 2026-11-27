@@ -1,0 +1,104 @@
+m1407 事前登録 (1407) c150rp 挙動：線路と機関車の財の調達を同じ国の州の在庫へ広げる（旗 RailProcureNational 既定 0→1・内陸の州の容量の罠の第 1 案・3 回の規則の 1 回目）
+出発：00一覧〈次の波（波150〜）〉2 の③〈線路の調達が 1849 年から詰まる形〉。根の読み measurements/m1374_20261126/report.txt :55〜:92（第 1 案は AI の案・確証なし）。
+形の型：入口（州の投資家が線路と機関車を買う入口を、自分の州の市場から同じ国の他の州の市場へ広げる）。基線 m1404（main 871430d15）・比べる生 D:/PoB_work/keep_1404/base_ins。
+この事前登録は腕の前の最初のコミット。署名のモデル：Claude Opus 5.5。
+
+[0] 指示文の読みの直し（腕の前・ソースで確かめた）
+ (a) 指示文の座標は 871430d15 で Transport.cs:133〜:215＝BuyToward・:198 が Procure。実際の木では Procure の行は :205（:198 は注の前の行）。呼ぶ口は :206 の計器の受け口の直後に 1 行（:207）を足す＝:205 の Procure の行と :129 の燃料の Procure の行は動かない（cearn_s・cpop_s の経路の行番号は変わらない）。
+ (b) BuyToward は国（World w）ごとに呼ばれる＝w.Regions が〈同じ国の州〉。国をまたぐ参照は SimCore の World に無い＝国外の州から買う道は構造の上で無い（突然変異 M4 は使い捨ての木で全ての国の州の表を足して作る）。
+ (c) 清算（BilateralMarket）はすでに国の中の州どうしで線路と機関車を運ぶ（m.Stock += qA・LastImport）。在庫の無い州が詰まるのは清算の陸の容量（transportCapEnd・tradeThrottleEnd）で絞られるため＝この線は清算の外の 2 本目の買い道を足す形（容量の取り分は触らない）。
+ (d) 計器の新しい列は足さない（InstrumentsTransport.cs はこの線の持ち主の一覧に無い）。旧と新を同じ盤面で数える観測量は既にある列の差で読む：国の中から買った単位＝boughtCapPerYear÷TransportCapPerUnit(30)−procureGotUnitsPerYear（Procured の受け口は州の調達だけを受け取り、Post は国の中の分を含む買えた単位を受け取る）。旗 0 の基線でこの差は 10 種の全ての行で絶対値 1.7e-6 以下（表の丸めだけ）＝[2] の紙の台本。
+
+[1] 形（案 a に決めた）
+ 旗 RailProcureNational（既定 0・Coefficients.p04_trade.cs の RailNeedByOutput の次の 1 行）。旗 1 で、BuyToward の州の枝（RailByRegion＞0）で州 r の Procure が want に届かない時（want−buy＞1e-9）、足りない分を Transport.ProcureNational で買う。
+  候補：同じ国の r 以外の州で、その財の在庫＞1e-9・値段＞1e-9・座標あり・陸の道の距離が有限の州（例外の州を作らない＝作者 2026-11-16 ③・港かどうかを見ない）。
+  選び：運賃つきの値段＝値段×(1＋運賃の率) が一番安い 1 州。
+  運賃の率＝FreightRatePer10Mm×(道の距離×½×(両端の陸の倍率の和))÷DistanceNormKm。陸の倍率＝((1−φ)×馬の地形の費用＋φ×鉄道の地形の費用×RailCostFraction)×LandSeaCostRatio（水の地形の上書きも同じ）＝清算の陸の道（BilateralMarket.PairKmCore の viaLand・:431〜:446 の旗 RailByRegion の枝の terrCost×landRatio）と同じ式。道の距離＝PathGraph.LandDistanceKm（清算の raw＋両端の接ぎ＝同じ量）。新しい係数は置かない。
+  量：min(足りない分, 投資家の貯蓄÷運賃つきの値段)。売り買いは InternationalMarket.Procure を売り手の州で呼ぶ（Procure の本体は変えない・InternationalMarket.cs は 0 行）＝売り手の州の在庫が買った量だけ減り、売り上げは売り手の州の生産者へ（州の調達と同じ PaySales の道）。
+  運賃の払い先（清算の陸の運びの記帳 railRecv と freightPool の形を国の中へ写す）：売り手の端の鉄道の分（φ_B×鉄道の費用×LandSeaCostRatio÷両端の倍率の和）は売り手の州の投資家へ・買い手の端の鉄道の分は払い手自身（買い手の州の投資家）＝動かさない・残りは国の商人（各州の商人の POP・居なければ全ての POP＝清算の shipOwners と同じ作り）へ。全て World.Transfer（POP から POP・同じ国）。
+  買えた単位は今の道のまま線路へ積む（r.RailTrack += 買えた量×CapPerUnit÷地形・boughtUnits に足す＝計器の G2 が成り立つ）。
+ 案 b（港の州だけから）を採らない理由：例外の州（港）を作らない（作者 2026-11-16 ③）。m1404 の B 型 130 件の中にも港の州（チャールストン・ラングーン・マンガロール）が入る＝罠は内陸に限らない。
+ 新しい状態・閾値・クールダウンは 0（作者 2026-11-16 ②③）。セーブの新しい欄 0。船の調達（rail: false）は変えない。
+ 〈確証なし〉（AI が決めた細部）：一番安い 1 州だけから買う（2 州目へ回さない）・陸の道だけ（海の道の運賃は使わない）・運賃の残りは自国の商人へ（清算は世界の運賃の池を船の持ち分で全ての国の商人へ配る）・鉄道の分の外資の持ち分（ForeignShares）は写さない・
+  売り手の州の LastDemand にも足りない分の want が載る（買い手の州の LastDemand は今のまま want 全部）＝同じ欲しさを 2 つの州の需要に数える（設計思想⑨に触れうる・記録）。
+
+[2] 紙の台本（今の盤面 keep_1404/base_ins・scripts/instruments/c150rp/paper_rp.py・出力 measurements/m1407_20261127_paper_base.txt）
+ B 型（本国格の州〔region_s の tier が Core か Integrated〕で φ＜0.2・必要＞1,000・買った容量 0 の年が 10 年＝40 四半期以上続く州×種）：基線 130 件（種ごと 13・8・20・13・4・26・10・15・2・19・10/10 種）。英のバーミンガムは種 1・3・4（種 4 はロンドンも）。
+ B 型の州×年のうち 10 年ごとの写し（sellr_s）に当たる 283 州×年で、同じ国の他の州に線路の在庫がある 259（92%）・機関車の在庫がある 254（90%）＝国の中から買える在庫はたいてい有る。
+ 国の中から買った単位（[0](d) の差）：旗 0 の基線で 10 種の行ごとの絶対値の最大 1.7e-6・種の和の絶対値 6e-6 以下＝0（門 G1 は旗 0 で落ちる）。
+ 州の調達の和（procureGotUnitsPerYear の全ての行と年の和・種ごと）：1.28e6・5.79e5・1.01e6・1.13e6・3.58e5・1.17e6・1.32e6・1.15e6・1.20e6・1.29e6。want の和は 2.2〜3.8 倍（届かない分が約 6 割）。
+ procureStockZeroGoodMonths の和（種ごと）：216,240・67,337・224,023・202,876・73,136・197,422・255,314・218,820・230,971・237,100。
+ 英の州の線路の和（railTrackEnd）：1850 年 104,196・0・63,970・61,085・0・91,185・172,178・60,583・57,063・121,093／1880 年 98,378・82,808・68,376・97,306・0・73,884・163,948・93,533・78,706・99,424。
+
+[3] 段 0 の予言（符号と大きさ・記録・腕の前にコミット）
+ ① 国の中から買った単位（種の和）：正・州の調達の和の 5〜30%〈推〉（届かない 6 割のうち、在庫が他の州にあり投資家に貯蓄がある分）。
+ ② B 型の数：130 → 下がる・65 以下〈推〉（[2] の 92%）。ただし B 型の州の投資家の貯蓄が尽きている件は残る（procureSavingsBind の側）。
+ ③ procureStockZeroGoodMonths：数え方は州の Procure の前（[0](d)）＝直には減らない。国の中の買いで売り手の州の在庫が減る分だけ上がりうる・清算の容量が上がって買い手の州に在庫が入る分だけ下がる＝向きは読めない・±15% 以内〈推〉。
+ ④ 英の州の線路の和：1850・1880 年とも 0〜+20%〈推〉（英は線路の在庫の有る州が多い）。
+ ⑤ 見込みは〈悪くする〉ではない（罠の州に線路が入る＝清算の容量が上がる）＝腕を回す。
+ ⑥ 副作用の向き（記録）：線路と機関車の作り手の州の在庫が減る→その州の値段が上がる・清算での線路の輸出が減る。運賃が国の商人へ移る。
+
+[4] 門（腕の前に固定・ループの中で変えない・作者 2026-11-16 ①）
+ 機構の試験（盤面を試験の中で置く・PriceOfBread.Tests/RailProcureNationalTests.cs）：
+  T1 内陸の州 A（線路 0・在庫 0・必要＞0・投資家の貯蓄 1e9）・同じ国の州 B（在庫 1e7）・他の州の投資家の貯蓄 0：旗 1 で Transport.Step の後 A の線路＞0・B の在庫が減る／旗 0 で A の線路 0・B の在庫は変わらない。
+  T2 ProcureNational を直に呼ぶ（足りない分 100）：買えた量 100・B の在庫は買った量だけ減る・A の投資家の払い＝買えた量×B の値段×(1＋試験の中で書いた運賃の率〔φ＝0 の両端の馬の地形の費用×LandSeaCostRatio〕)・国の中のお金（国庫＋全ての POP の貯蓄）は相対 1e-9 で保存。
+  T3 近くて高い州と遠くて安い州：運賃つきの値段の安い方だけの在庫が減る。
+  T4 二国の盤面（仏・普）：仏の州の在庫 0・普の州に在庫 1e7：仏の A は Transport.Step でも ProcureNational でも 0。
+  旗 0 で赤：T1 の〈旗 1〉の行は旗 0（RailProcureNational＝0 で同じ盤面）なら A の線路 0＝赤（[5] の M1 と同じ形）。
+ 腕 B の機構の観測量（狙いどおり働いたか・腕 B の生で数える）：
+  G1 国の中から買った単位（[0](d)）の種の和が、その種の州の調達の和（procureGotUnitsPerYear）の 1% 以上の種が 8/10 以上。旗 0（基線）は 10 種とも 0＝落ちる。
+  G2（形に固有の誤りの上限）：国の中から買った単位が足りない分（procureWantUnitsPerYear−procureGotUnitsPerYear）を相対 1e-6＋1e-6 より超える州×年の行 0。
+  G3 計器の G2（g2Viol：線路の増え×地形＝買えた容量）の和 0（旗 0 の基線も 0）。
+ 止める線（作者）：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・1 四半期に 100 倍以上の〈それ以外〉（建国の直後＝系列の最初の行から 4 四半期以内と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期は区分してヌル腕の件数と並べる＝㊳・基準とヌル腕を同じ台本で数え直す）・1e10 倍以上・非有限・
+  空洞化 1/10 未満で〈線が原因〉の物・推定の計算量 ＞248.5 秒・機構と不変条件を守るテストの赤（ソースを走査する番人を含む）。
+ 空洞化の判定の基準（結果を見る前に写す）：`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`（既定 -ex rule＝植民地格・緯度の絶対値 55 度以上・world.json の開幕の人口 20 千人未満＝7 州）でピークの 1/10 未満。主要国の州・本国格の州は例外にしない。
+  1 件ごとに基線の同じ種・同じ州を keep_1404/base_ins で読み、基線ですでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭・そうでなければ〈線が原因〉＝止める。
+ 史実の桁の線（10 倍）：記録（ng.sh・基準 rd:measurements/ng1404_20261127:m1404・読み手の出力フォルダは D:/… で渡す）。
+ 記録だけ（採否に使わない）：[3] の予言の当たり外れ・B 型の数・英の線路・nullgate.py の O・ヌル腕の幅・exact・near・NG・世界規模の補給崩壊・開幕の 1000 倍以上（同じ国が半分以上の種なら NG）・名目 GDP 0 の続き（gdp_zero10.py・先頭）・英の国債の不履行の種の数・旗 1 の出力が旗 0 と違う行の数。
+ 事前登録の点検（★(675)）：〈補給崩壊…倍〉〈10pt〉〈NG の正味〉の門は置いていない（上は全て記録）。符号だけの門は置いていない（G1 は州の調達の 1% の大きさの床）。
+
+[5] 突然変異ごとの門の表（㉚・使い捨ての木で確かめて measurements/m1407_20261127_mut_rp.txt へ）
+  M1 BuyToward の国の中から買う行（:207）を消す → T1〈旗 1〉赤（A の線路 0）。T2〜T4 は ProcureNational を直に呼ぶ＝緑のまま。腕 B なら G1 赤。
+  M2 運賃を 0（運賃の率 bestFr を 0）にする → T2 赤（払い≠値段×(1＋率)）。
+  M3 売り手の州の在庫を減らさない（Procure の後に買った量を在庫へ戻す）→ T2 赤（在庫の保存）・T3 赤・T1〈旗 1〉赤（B の在庫が減らない）。
+  M4 国外の州からも買う（使い捨ての木で MultiNationSim が全ての国の州の表を Transport に渡し、候補を全ての国の州にする）→ T4 赤。
+  M5 一番安い州でなく最初に見つかった州から買う → T3 赤（盤面で安い方が先に並ばない時だけ・並びを記録）。
+ 項を消した突然変異と元の形の差が雑音の内なら、その項は〈働いていない〉＝門が緑でも採る理由にしない。
+
+[6] 周辺の点検の節（既にある生とソースだけで読む・欠損は別の線へ）
+  線路の減価（Transport.cs:10 r.RailTrack×(1−TransportDecay)）：線路が増えた州は減価の量も比例して増える＝新しい道は無い。罠の州が買い直せるようになる（m1352 の〈敷いた後に買い直されず 0 へ〉の型）。
+  戦災（Transport.cs:64 r.RailTrack×=(1−wear)）：比例＝同じ。
+  容量の取り分（Transport.cs:93 RegionShare・BilateralMarket.cs:373 の railToPort＝r.RailTrack＋preRail×share・:410 の cap）：旗 RailByRegion では州の容量は州の線路そのもの＝この線は取り分の式に触れず、州の線路を通して容量を上げる。内陸の州は InlandRailAfterDecay（最寄りの港までの距離）を通る＝同じ。
+  主食の輸入（tsreg_s）：清算の容量が上がった罠の州で主食の輸入が上がる向き〈推〉（腕 B の tsreg_s で新÷旧を記録）。
+  Toward を通らない手書きの寄りと減衰（名だけ・直していない）：Transport.cs:10 線路の減価・Transport.cs:64 戦災・Transport.cs:162 wantCap＝TransportBuildRate×max(0,need−tPre)＋TransportDecay×min(tPre,need)。この線の新しい式に寄りは無い。
+
+[7] ソースを走査する番人の点検（㉘・871430d15 で grep）
+  工業化度の読み手の許可表（IndustrializationReaderTests）：読み手を足さない＝変わらない。`new MoneyStock(` の件数 SimCore 64＝変わらない（新しい行は World.Transfer と Procure だけ）。
+  scripts/instruments/flow262/route_anchors.tsv の鍵の行（Transport.cs の 2 行＝燃料の Procure と船と線路の Procure）：触らない。新しい Procure と Transfer は別の行（鍵の文字列と一致しない）＝鍵は 1 本ずつのまま（InstrumentsTests の〈経路名の鍵の行は移し方の呼び出しを指す〉は緑の見込み）。
+  WriterRatchetTests：お金への書き手（Savings・Treasury ほか）を足さない・片側の記帳の内部の関数を呼ばない・計算量の宣言の表の行は旗 1 の 1 種 40 四半期で動く見込みは無い（Transport は計算量の台帳を持たない）＝変わる件数の予言 0。動いたら ★(749) の取り直しとして行と前と後を列挙する。
+  DormantIdentityTests：旗 0 の間は DormantZeroFields に RailProcureNational の 1 行（:34）・旗を倒すコミットでこの行を〈★…点火＝この表から外した〉の注へ。
+
+[8] 旗 1 の木でフルスイートの番人が旧の規則を固定していないかの grep（㉜）
+  置き換える旧の規則＝〈線路と機関車は投資家の州の市場の在庫からだけ買う〉。
+  RailTrack・BuyToward・procureGot・procureWant・procureStockZero・RailByRegion を Tests/ で grep＝BillBlockedColumnsTests・CearnTradeColumnsTests・ClearingFillInstrumentTests・ClearingScopeTests・ConservationTests・DormantIdentityTests・FuelOperatingCostTests・ImportPayerLiveTests・
+   InstrumentColumnTests・RailByRegionTests・RailLocoGateWorldTests・RailNeedByOutputTests・RkInstrumentTests・TakeDustFloorTests・TradeClearingTests・TransitTests・TransportInstrumentTests・WriterRatchetTests。
+  旧の規則そのものを既定の値として固定する試験は見つからない（InstrumentColumnTests :122・:152 は計器の受け口に値を直に渡す列の試験）。赤が出れば ㉜ の改め（作者 2026-11-19）のとおり新しい規則の試験へ書き換える・軌道に依る試験の赤は区分を名乗って直す。
+  絞った試験＝上のクラス＋RailProcureNationalTests＋㉘ の束（IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests）＋FullLength＋savetest＋leakhunt（赤は trx で読む）。
+
+[9] 計算量の割り当て
+  予言：州の在庫が足りない州×財×月だけ、国の州を 1 回なめる（座標と陸の道の距離はメモの引き）。在庫 0 の財×月は種あたり 7〜26 万（[2]）＝1 種で約 20 万回×州 10〜60＝+0.3 秒以下〈推〉（POB_TIME の段 MonthSettle〔m1404 の素の 1 種で 86.467 秒〕の中）。
+  2 秒以下の割り当て＝1 本の腕で門にしない（合流の木の累計の .cost で読む）。M 225.2 秒・余り 23.3 秒。
+
+[10] 重なり（他の線の持ち主の一覧と grep）
+  c150wz：Coefficients.p04_trade.cs は :118 の WarPushSpeed の行だけ（この線は :81 に 1 行を挿す＝別の塊）。DormantIdentityTests.cs は自分の行（:41 の WarExitFromCapacity ほか）＝この線は :34。
+  c150sd：Coefficients.cs :101・Simulation.cs は読むだけ＝この線は触れない。Transport.cs・InternationalMarket.cs・RailProcureNationalTests.cs を触る線は他に無い。WriterRatchetTests.cs は取り直しが要る時の自分の行だけ。
+  App・Display・Runner は 0 行。読み手は無い（RailProcureNational を App・Runner で grep して 0 件）。
+
+[11] 腕と順
+  ①この事前登録 ②旗（既定 0）と ProcureNational と試験 RailProcureNationalTests と DormantIdentityTests の 1 行→すぐに ㉘ の束
+  ③tm.done の後 `bash scripts/instruments/ident/ident.sh run c150rpz --tree D:/PoB_work/wt_c150rp`（走っている間はこの木にコミットしない）で〈判定: 恒等〉
+  ④突然変異 M1〜M5（使い捨ての木・出力 measurements/m1407_20261127_mut_rp.txt）
+  ⑤旗の既定を 1 にするコミット→絞った試験（[8]）→腕 B `INS=1 bash scripts/instruments/batch.sh run c150rpB 10`（計器つき 10 種・種 1〜10・--work D:/PoB_work/c150rp_work・
+   表は nation_s,stock_s,wars_s,casualty_s,region_s,class_s,migration_s,pxmonth_s,scalars_s,fiscal_s,trrail_s,sellr_s,tsreg_s・約 3GB〈推〉・起こす直前に D: が 38GB 以上）
+  ⑥門 G1〜G3・止める線（an_h2・100 倍・1e10・gdp_zero10）・新÷旧・nullgate（記録）・.cost・ng.sh・開幕の 1000 倍・英の不履行
+  ⑦腕 B のコミットの木でフルスイート 1 回（Category!=FullLength・Ui・FullLength を分けて --list-tests と突き合わせ・--logger trx）。形の変え直しは 1 回だけ。腕 B の生は合流の判断まで消さない。
