@@ -2,3 +2,4 @@
 2026-11-27 消した：ident_c150wz（線 wz の ident の生 14GB・判定: 恒等・反証役 v が読み終えた・一覧 measurements/ident_c150wz_manifest.tsv）＝指示〈線の読み終えた生と ident_c150wz を先に消す〉
 2026-11-27 移した：c150sd_work/out_c150sdB_10 → keep_1411_rej/c150sdB（採らなかった腕の生・2.0GB）
 2026-11-27 消した：ident_m1411z（腕 Z の ident の生・判定: 恒等の後・要約 keepsum_ident_m1411z_ins.tsv・rsum_ident_m1411z.tsv）
+2026-11-27 消した：c150rp_work/out_c150rpB_10（線 rp の腕 B の生 4.2GB・線と反証役 v・v2 が読み終えた・合流の M の共通の 150 表と全てバイト一致を確かめた後・要約 keepsum_c150rpB.tsv）
