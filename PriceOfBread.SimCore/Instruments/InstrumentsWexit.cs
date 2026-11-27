@@ -9,6 +9,8 @@ public static partial class Instruments
 
     sealed class WxState { public int Seq; public readonly System.Collections.Generic.List<string> Rows = new(); }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, WxState> WxStates = new();
+    /// <summary>戦争ごとの前の月の累計の押し（A・B）。月の押し＝今の累計−前の累計（同点の決め手に使う・計器の側の辞書でエンジンの欄は足さない）。</summary>
+    static readonly System.Runtime.CompilerServices.ConditionalWeakTable<War, double[]> WxPrevPush = new();
 
     /// <summary>計器が自分で数える：その国が内戦の当事かどうか（戦争の一覧を回す）。国のない側は偽。</summary>
     static bool WxInCivil(Diplomacy d, Power p)
@@ -44,6 +46,9 @@ public static partial class Instruments
         if (!On || !Tg.Cede || !Wants("wexit_s")) return;
         var st = WxStates.GetValue(d, _ => new WxState()); var cps = CpOf(d);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var prevPush = WxPrevPush.GetValue(war, _ => new double[2]);
+        double monthA = war.PushA - prevPush[0], monthB = war.PushB - prevPush[1];   // 旧の同点の決め手＝その月の押し（計器は累計の差で数える）
+        prevPush[0] = war.PushA; prevPush[1] = war.PushB;
         double kA = WxK(war.A, c), kB = WxK(war.B, c), s = scoreBeforeCollapse;   // 旧の崩壊が war.Score を書き換える前の値（oldDecisiveFlag だけは書き換えた後の値 sOld で数える）
         double cutA = WxCut(war.A, c), cutB = WxCut(war.B, c);
         bool colA = war.A.WarExhaustion >= 1.0 * cutA, colB = war.B.WarExhaustion >= 1.0 * cutB;
@@ -53,7 +58,7 @@ public static partial class Instruments
         double sOld = s;
         if ((colA || colB) && !(c.ForcedPeaceBlankOverCollapse > 0 && war.ForcedPeace))
         {
-            bool aLoses = colA && colB ? (war.A.WarExhaustion != war.B.WarExhaustion ? war.A.WarExhaustion > war.B.WarExhaustion : war.PushA < war.PushB) : colA;   // 同点の決め手は累計の押し（月の押しは計器に無い・同点は稀）
+            bool aLoses = colA && colB ? (war.A.WarExhaustion != war.B.WarExhaustion ? war.A.WarExhaustion > war.B.WarExhaustion : monthA < monthB) : colA;   // 同点の決め手は旧の規則と同じく月の押し（前の月の累計との差）
             double winPush = aLoses ? war.PushB : war.PushA, losePush = aLoses ? war.PushA : war.PushB;
             double reach = System.Math.Max(0.0, System.Math.Min(1.0, 2.0 * winPush / (winPush + losePush + 1e-12)));
             double impose = Diplomacy.CollapseScore * reach;

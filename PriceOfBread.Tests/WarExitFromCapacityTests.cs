@@ -406,4 +406,39 @@ public class WarExitFromCapacityTests
         Assert.Equal(a.SelfPower!.Id.ToString(), Col("powerIdA")); Assert.Equal(b.SelfPower!.Id.ToString(), Col("powerIdB"));
         Assert.Equal(h.Length, row.Length);
     }
+
+    /// <summary>(1421) 反証役 v の中 4 の直し・μ12（同点の決め手を累計の押しへ戻すと赤）：両側が厭戦 1.0 の同点では、旧の規則は月の押し（その月の A の押し＜B の押し）で敗者を決める。
+    /// 盤面：1 か月目で累計を (1e12,0) に置き（計器が前の月の累計を覚える）、2 か月目の前に累計を (1e12,2e11) にする＝その月の押しは A が 0・B が 2e11（A＜B で A が敗者）、累計は A＞B（累計で決めると B が敗者）。
+    /// A が敗者＝取り分 2×2e11÷(2e11＋1e12)＝1/3 → |±1.5×1/3|＝0.5＜1（決定的 0）、B が敗者＝取り分が満額で 1.5（決定的 1）。期待は試験の中の式から作る。</summary>
+    [Fact]
+    public void 計器wexitの同点は月の押しで敗者を決める()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_wex_" + System.Guid.NewGuid().ToString("N"));
+        Instruments.SelectTables("wexit_s");
+        Instruments.Configure(dir, "*");
+        const ulong Seed = 1789UL;
+        var sim = Make(0, "フランス", "イギリス");
+        var a = sim.Nations[0].World; var b = sim.Nations[1].World;
+        SetK(a, sim.Coef, 0.5); SetK(b, sim.Coef, 0.5);
+        var war = new War { A = a.SelfPower!, B = b.SelfPower!, Score = 0.3, PushA = 1e12, PushB = 0 };
+        sim.Diplomacy.Wars.Add(war);
+        a.SelfPower!.WarExhaustion = 0; b.SelfPower!.WarExhaustion = 0;
+        try
+        {
+            Instruments.Phase(sim, Seed, "open"); sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
+            war.PushB = 2e11; a.SelfPower!.WarExhaustion = 1.0; b.SelfPower!.WarExhaustion = 1.0;
+            sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 62);
+        }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); Instruments.SelectTables(null); }
+        var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, $"wexit_s{Seed}.tsv"));
+        try { System.IO.Directory.Delete(dir, true); } catch { }
+        var h = lines[0].Split('	'); var row = lines.Skip(1).Select(l => l.Split('	')).Last();
+        string Col(string name) => row[System.Array.IndexOf(h, name)];
+        Assert.Equal("1", Col("oldCollapseAFlag")); Assert.Equal("1", Col("oldCollapseBFlag"));
+        Assert.True(war.PushA > war.PushB, "前提が崩れた：累計は A が上のはず");
+        double expectedReachIfALoses = System.Math.Min(1.0, 2.0 * war.PushB / (war.PushB + war.PushA + 1e-12));
+        double expectedAbs = Diplomacy.CollapseScore * expectedReachIfALoses;
+        Assert.True(expectedAbs < 1.0, $"前提が崩れた：A が敗者の時の |戦勝点| が決定的に届く（{expectedAbs}）");
+        Assert.Equal("0", Col("oldDecisiveFlag"));   // 月の押しで A が敗者＝|戦勝点| が 1 に届かない（累計で決めると B が敗者で 1.5＝1 になり赤）
+    }
 }
