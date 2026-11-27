@@ -124,3 +124,10 @@
   記録（旗 0）：facSeen÷targetK 0.4619・参加の割合 partEngK÷popK 0.0982・partDK÷popK 0.0438・勢力の数の平均 2.858・facSeenCount の最大 19・cellsAboveP の平均 7.5・cellsAboveN の平均 1.963。
 - ident（bash scripts/instruments/ident/ident.sh run c152sdz --tree D:/PoB_work/wt_c152sd --work D:/PoB_work/ident_c152sd --added-tables facfloor_s --tests-delta 9・木 fb9386ecd・段 2・00:10〜01:2x）：〈判定: 恒等〉（測った種で一致）。
   素の 5 種 b5 は m1418 と全行バイト一致（179 行・推定 227.2 秒）・計器つき 10 種 b10 は全行バイト一致（180 行・推定 226.1 秒）・計器の表 1825 本＝バイト一致 1805＋既知の揺れ 20・足した表 facfloor_s 10 本・注視の表 4788 行一致・試験の数 +9（Tests 3104＝基準 3095＋この線 7〔FactionFloorByParticipationTests 6・InstrumentHookClosureTests 1〕＋c150sd 2）。出力の要約は measurements/m1422_20261127/ident_c152sdz.txt。
+
+== [追記 2]（2026-11-28・腕 B の前・旗 1 の木 d1b2cf2ca の絞った試験＝㉜ の改め・scripts/instruments/c152sd/narrow_sd.sh・01:24:25〜02:14）
+- 当たったクラス（差分の名 FactionFloorByParticipation・FloorOf・MinSizeFraction・PrdsCount・facfloor・SatReadersToDiscontent・Factions・FactionSnapshot を Tests と Tests.Ui で grep）＋㉘ の束＋計器の束（Instrument）：
+  Tests 1177 件（失敗 2・合格 1174・スキップ 1）・FullLength 3/3・Tests.Ui（PlayHarnessTests・LaborMarketFormTests・ObservationFixTests）65/65。trx は D:/PoB_work/c152sd_work/narrow1/trx/。
+- savetest：savetest OK：12四半期後も全61カ国が継続系列と一致（最大相�（値の違い 0）。leakhunt：完走・保存則違反なし。
+- 赤 2 件＝WriterRatchetTests の計算量の宣言の表（★(749)〈軌道の件数を写しただけの番人〉・新しい計数の処理は無い）＝取り直した：ClaimProducers 1927→2066（+7.2%）・DiploHegemonScans 2662704→2850976（+7.1%）。
+- 旗 0 の器で赤だった DiscontentReaderTests の 2 件は旗 1 で緑（c150sd の旗 1 の規則の試験＝想定どおり）。旧の規則の番人の赤は 0（PrdsShadowTests は器のコミットで FloorOf へ直した形のまま緑）。
