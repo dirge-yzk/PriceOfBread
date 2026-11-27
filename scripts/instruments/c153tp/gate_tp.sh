@@ -30,6 +30,6 @@ mk m4; python - $OUT/f_m4.sh <<'PY'
 import sys; p=sys.argv[1]; s=open(p,encoding='utf-8').read(); s=s.replace('HEAVY_CLASSES="InstrumentsTests InstrumentHookClosureTests"','HEAVY_CLASSES="NoSuchClassZ"'); open(p,'w',encoding='utf-8',newline='\n').write(s)
 PY
 for m in m1 m2 m4; do
-  FILTERS_SH=$OUT/f_$m.sh ART=$AW/art SKIPFULL=1 SKIPINS=1 bash $R/scripts/instruments/suite/split_suite.sh $OUT/w_$m > /dev/null 2>&1; rc=$?
+  FILTERS_SH=$OUT/f_$m.sh ART=${ART:-$AW/art} SKIPFULL=1 SKIPINS=1 bash $R/scripts/instruments/suite/split_suite.sh $OUT/w_$m > /dev/null 2>&1; rc=$?
   echo "μ$m(list 段) rc=$rc $(grep -E 'STOP|list-tests' $OUT/w_$m/suite.txt | tr '\n' ' ')" | tee -a $OUT/gate.txt
 done
