@@ -1,3 +1,6 @@
 # (1425) 合流が消した物（新しい ident.cfg 58c9dc29e を push した後・INSRAW でも KEEPNULL でもない古い keep・作者 2026-11-11「再開」の D: の問いを推奨 (a) で採った）
 2026-11-28 06:05:03 D:/PoB_work/keep_1418/base_ins（33GB・旧 INSRAW・要約は measurements/m1418_20261127 の成績表と keepsum）
 2026-11-28 06:05:04 D:/PoB_work/keep_1418/a11（15GB・旧 KEEPNULL の S11）
+2026-11-28 06:53:18 D:/PoB_work/keep_1418/n1（15GB・旧 KEEPNULL の N1・段 2 の ident.cfg 804216032 を push した後）
+2026-11-28 06:53:18 D:/PoB_work/keep_1418（空のフォルダ）
+2026-11-28 06:53:35 D:/PoB_work/m1425_work（合流の作業フォルダ・中の r1424_untracked は main の scripts/instruments/r1424 と同じ中身＝c152rw の未追跡の台本の退避・コミットに入った）
