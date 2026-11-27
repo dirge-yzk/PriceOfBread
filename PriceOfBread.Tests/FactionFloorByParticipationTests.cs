@@ -12,9 +12,9 @@ public class FactionFloorByParticipationTests
 {
     private const int Lib = (int)Ideology.Liberalism;
 
-    private static World Board(double floorFlag)
+    private static World Board(double floorFlag, NationConfig? cfg = null)
     {
-        var sim = new Simulation(NationConfig.France().ToScenario(1789), new NullAgent());
+        var sim = new Simulation((cfg ?? NationConfig.France()).ToScenario(1789), new NullAgent());
         sim.Run(8);
         var w = sim.World; var c = w.Coef;
         c.SatReadersToDiscontent = 1;
@@ -132,7 +132,7 @@ public class FactionFloorByParticipationTests
     [Fact]
     public void T5_足切りを越えた組の数は1割るファイ以下()
     {
-        var w = Board(1.0);
+        var w = Board(1.0, NationConfig.Russia());   // 組の数が 1/φ を超える盤面（州の多い国）
         var rng = new Random(1422);
         foreach (var r in w.Regions)
             foreach (var p in r.Pops)

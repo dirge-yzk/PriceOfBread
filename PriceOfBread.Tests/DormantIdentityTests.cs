@@ -162,6 +162,7 @@ public class DormantIdentityTests
         // ★FemalePartLawFree（(1356) c143k59 構造の女性の参加率を FemalePartBase の 1 本に）は 2026-11-25 に 1 で点火し、(1379) c146kt で旗ごと焼いて消えた＝この表に無い（番人 FemalePartLawFreeTests は旗なし）。
         // ★WarWearyPoliticsCut（(1371) c145rv 厭戦の政治の側の 3 本の読みを外す旗）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した。(1385) c147wb で旗ごと焼いた（番人 WarWearyPoliticsCutTests は旗なし）。(1377) c146wy
         // ★SatReadersToDiscontent（(1371) c145rv 不満度から声の項を抜き参加と思想が D を読む旗）は 2026-11-27 に (1398) c149sd で 1 に点火（腕 B の木）＝この表から外した（旗 0 と 1 の番人は SatReadersToDiscontentTests）。
+        "SatReadersToDiscontent",       // (1422) c152sd 旗 0 の器の木で表へ戻した（0＝今の式・番人 SatReadersToDiscontentTests）。腕 B の木で 1 にして外す
         "FactionFloorByParticipation",  // (1422) c152sd 勢力の足切りを 0.01×参加の総量へ（0＝0.01×人口・番人 FactionFloorByParticipationTests）
         "ArrearsOnePredicate",          // (1284) c132df 本位の停止の門を不履行の導火線と同じ述語にして判定の前へ（0＝今の形・番人 ArrearsOnePredicateTests）。点火時にこの表から外す
         // ★RepayFloorOnly（(1416) c151fl 国債の返済を床だけにする）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は RepayFloorOnlyTests の T0）。
