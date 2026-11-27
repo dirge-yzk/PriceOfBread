@@ -15,7 +15,7 @@ public sealed partial class Coefficients
     public double PanicBuyWeight = 0.5;   // 点火2026-09-06＝0.0→0.5・〔6-2〕主食の買占め（B3 自己成就期待の残り半分）
     public Share SerfCashShareFloor = new(0.15);       // 0=恒等
     public Share MaxSoldierFraction = new(0.04);               // 平時の上限＝兵役の母数（働き盛りの男＝Military.RecruitMen）のこの割合
-    public double MilitarismStrengthBonus = 1.3;            // 同じ兵数で軍が強い（訓練・規律・動員）＝労働を奪わないので経済を弱めず軍事に出る
+    public double MilitarismStrengthBonus = 1.0;            // (1423) 1.3→1.0（作者 2026-11-11 の問い 10 の A＝消す・段 1）＝練度は戦力に掛からない。欄と Quality の要素の削除は段 2
     public double MilitarismClout = 0.5;                   // 旧支配層(将校貴族)が軍から得る政治力＝MilitarismClout×軍の政治的優位（軍の圧力×(1−文民制度の弁)∈[0,1]）
     public double SoldierPayMult = 1.0;                     // 兵士給与＝民間の働き盛り1人あたり月収（徴募の母数・Military.RecruitWage）×これ（同等待遇を目指す。払えなければ r で単価が下がる＝充足↓＝弱兵）
     public double SoldierVacancyFromZero = 1;               // (1166) 旗：大きさ 0 の兵士の POP を、空きがあれば社会移動の職の行き先にする（所得は Meritocracy.EmptySeatIncome）。0＝旧の形（大きさ 0 の兵の席は候補にならない）
