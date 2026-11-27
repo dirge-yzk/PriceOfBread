@@ -1,0 +1,6 @@
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 34, declared: 1481) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 2662704) [< 1 ms]
+  失敗 PriceOfBread.Tests.InstrumentsTests.州の人口と移動の表が揃い流れの出と入が合う [1 m 49 s]
+失敗!   -失敗:     3、合格:   278、スキップ:     0、合計:   281、期間: 15 m 36 s - PriceOfBread.Tests.dll (net10.0)
+savetest rc=0 savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt rc=0 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）

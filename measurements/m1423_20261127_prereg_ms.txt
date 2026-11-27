@@ -97,3 +97,14 @@
   → 5 突然変異（mut.sh）→ 6 腕 B（INS=1・計器つき 10 種・種 1〜10・scripts/instruments/c152ms/arm.sh・表＝nation_s,wars_s,wexit_s,armsfill_s,fm_s,casualty_s,region_s,stock_s,scalars_s,class_s,fiscal_s,migration_s,pxmonth_s〔ng.sh が stock_s を、home_break が stock_s を読む＝指示の表に stock_s・class_s を足した〕・起こす直前に D: の空き 38GB 以上）
   → 7 読む（read_ms.sh）→ 8 フルスイート 1 回（suite_ms.sh・--logger trx・腕 B の後）→ 9 印 D:/PoB_work/c152ms_work/ms.mark。
 - 形の変え直しは 1 回だけ。結果を見た後に門と線を変えない。
+
+9. 追記（腕 B の前・絞った試験の赤の区分・㊴ と ★(749)）
+- 絞った試験（旗 1 の木 0f9d24ef6・trx D:/PoB_work/c152ms_work/trx/narrow1.trx）：281 本のうち赤 3。原因はどれも軌道に依る数で、機構の番人の赤ではない。
+- ① WriterRatchetTests.計算量の見た件数は宣言した表を超えない（項 34 倒産の生産者×月 1481→1520〔+2.6%〕・項 11 外交の覇権の判定の国×国 2662704→3469584〔+30.3%〕）
+  区分＝★(749) 計算量の宣言の表（軌道の件数を写しただけの番人・機構の向きと大きさを主張しない）。表の 2 行を実測へ取り直す。新しい計数の処理は無い。全長の計算量は腕 B の .cost で読む（止める線 248.5 秒）。
+- ② InstrumentsTests.州の人口と移動の表が揃い流れの出と入が合う（越境の移民が 1 件も写っていない）
+  区分＝★(743) の軌道に依る前提（(1277)(1404) と同じ型＝1789〜1800 の全ての種で越境 0）。
+  旧の盤面に番人を固定する形に当たらない理由：試す種の範囲を 1830 まで延ばすだけで、規則の検査（①〜④）・対照の Assert（totalCross＞0・tried≥1）の文と閾値は変えない。旗 0 では選ばれる種が前と同じ（1789〜1800 の中で立つ＝m1418 のフルスイートが緑）。
+  直しを外す突然変異（範囲を 1800 へ戻す）＝旗 1 の木で赤（narrow1.trx が既にその形）。旗 0（係数 1.3）でも緑を確かめる。
+- savetest：savetest OK・最大相対差 0.0E+000。
+- 結果（腕 B の前）：範囲 1830 の直しは旗 1（0f9d24ef6）で緑・旗 0（係数 1.3）で緑（measurements/m1423_20261127/seedfix.txt・台本 scripts/instruments/c152ms/seedfix.sh）。直しを外す形（1800）は旗 1 で赤（narrow1.txt）。
