@@ -400,8 +400,6 @@ public sealed class World
     public double NavySkill => ArmySkill;            // 海の読み手の名前（Diplomacy の同期〔NavySkillMul〕と計器 mil2 の注入が読む・App には読み手が無い）＝陸と同じ値
     public double MilitaryReadiness { get; internal set; } = 1.0;  // 軍の即応度（0..1）。兵の暮らしの充足×装備の充足＝戦力の乗数（Military.cs の兵士の段が設定）
     public double HarvestFactor { get; internal set; } = 1.0;      // 今年の豊作/不作係数（1±変動。主食RGO産出と自給に乗算。不作＝飢饉→貧農の不満）
-    private double[]? _cropHealth;
-    public double[] CropHealth { get { if (_cropHealth is null) { _cropHealth = new double[Catalog.Goods.Length]; for (int i = 0; i < _cropHealth.Length; i++) _cropHealth[i] = 1.0; } return _cropHealth; } }   // 作物別の健全度（病虫害で<1・年次ロール）。栽培州の産出に乗る＝作物固有の不作（アイルランドのジャガイモ胴枯病型）。1.0=健全
     public double WeatherBandFactor { get; internal set; } = 1.0;  // 緯度帯（気候帯）の天候係数（MultiNationSim が年次設定）。同じ帯の国は一緒に不作＝欧州一帯の凶作。HarvestFactorと積算。単一国（較正）は1.0＝中立
     public double FoodFill { get; internal set; } = 1.0;          // 国民の主食充足（消費ベース∈[0,1]）。DemographicStep が扶養力のマルサス項に使う。凶作/過密/高騰で<1＝飢饉
     public double FoodRatioProductionSmoothed { get; internal set; } = -1;   // 主食の生産比（実産出÷必要量）のEMA（FoodFillSmoothing共用・-1=未捕捉→初回直接初期化）。〔履歴 World.cs#73〕
@@ -657,7 +655,7 @@ public sealed class World
     public double LastEmigration { get; internal set; }               // 診断：今四半期の移民流出（越境）
     public List<FactionState> Factions { get; } = [];        // F3a：持続する国内勢力（クラスタの永続化）。ParliamentEnabled世界のみFactions.Stepが更新
     public FactionState? RevoltingFaction { get; internal set; }   // F3b：進行中の内乱の主体（経済決着の要求源・SecedingRegionと同じ参照作法）
-    public DeterministicRng? FactionRng { get; internal set; } public DeterministicRng? AiRng { get; internal set; }     // F3：変異の独立RNG系列（主系列・豊凶・疫病と分離＝較正/決定論に非干渉。〔履歴 World.cs#103〕
+    public DeterministicRng? FactionRng { get; internal set; }     // F3：変異の独立RNG系列（主系列・豊凶・疫病と分離＝較正/決定論に非干渉。〔履歴 World.cs#103〕
     public int FactionMutations { get; internal set; }             // 診断カウンタ（leanバッチでも数える＝GoldSuspensions同型）
     public double RebelArmsSpent { get; internal set; }            // 休眠（RebelArmsMarketEnabled=0）では書き手が走らず0のまま〔履歴 World.cs#104〕
     public int FactionRevolts { get; internal set; }               // 診断カウンタ：F3b内乱の発火数

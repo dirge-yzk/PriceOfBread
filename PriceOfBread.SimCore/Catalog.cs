@@ -215,7 +215,6 @@ public static class Catalog
         _ => "農場",
     };
 
-    public static bool IsDiseaseProneCrop(int id) => id is WheatId or FruitId or RiceId or PotatoId or MaizeId or CoffeeId;
 
     public static bool IsColonial(int id) => id is RawRubberId or PalmOilId or IvoryId or SugarCaneId or CocoaId or SpiceId or OpiumId or GuanoId or TeaId or CoffeeId or CinchonaBarkId;
 

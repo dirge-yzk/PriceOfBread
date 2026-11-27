@@ -13,10 +13,8 @@ public static partial class Instruments
         int allies = 0;
         if (w.Diplomacy is { } dip && w.SelfPower is { } sp)
             foreach (var o in dip.Powers) if (o != sp && dip.HasAlliance(sp, o)) allies++;
-        int sick = 0; double min = 1.0;
-        foreach (var h in w.CropHealth) { if (h < 1.0) sick++; if (h < min) min = h; }
         sk.Rnd ??= Open("rnd", seed);
         if (!sk.RndHeader) { sk.Rnd.WriteLine(RndHeaderText); sk.RndHeader = true; }
-        sk.Rnd.WriteLine(string.Join('\t', I(q), I(w.Year), I(S(w).Uid), NameOf(w), I(allies), I(sick), F(min)));
+        sk.Rnd.WriteLine(string.Join('\t', I(q), I(w.Year), I(S(w).Uid), NameOf(w), I(allies), I(0), F(1.0)));   // (1413) 作物の病気は消した＝列は同じ値（病気の数 0・最小の健全度 1.0）を書いて表の形を保つ
     }
 }
