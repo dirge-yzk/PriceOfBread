@@ -376,4 +376,33 @@ public class WarExitFromCapacityTests
         Assert.False(SuzerainJoins(0, 0.95, false), "旗 0：厭戦の宗主が参戦した");
         Assert.True(SuzerainJoins(0, 0.0, false), "旗 0：前提が崩れた（厭戦のない宗主が参戦しない）");
     }
+
+    /// <summary>(1414) 項 1 の検算の試験：旧の崩壊の書き換えの後の戦勝点（±1.5×取り分）で oldDecisiveFlag を数える（μ1＝書き換える前の戦勝点 s で数えると赤）。
+    /// 盤面：旗 0・A が厭戦の崩壊線・戦勝点 0.3（|s|＜1）・敗者へ向く押しは勝ち側が圧倒＝書き換え後は −1.5。期待は試験の中の式（|−1.5|≥1）から作る。</summary>
+    [Fact]
+    public void 計器wexitの旧の決定的は崩壊の書き換えの後の戦勝点で数える()
+    {
+        string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "pob_wex_" + System.Guid.NewGuid().ToString("N"));
+        Instruments.SelectTables("wexit_s");
+        Instruments.Configure(dir, "*");
+        const ulong Seed = 1789UL;
+        var sim = Make(0, "フランス", "イギリス");
+        var a = sim.Nations[0].World; var b = sim.Nations[1].World;
+        SetK(a, sim.Coef, 0.5); SetK(b, sim.Coef, 0.5);
+        var war = new War { A = a.SelfPower!, B = b.SelfPower!, Score = 0.3, PushA = 0, PushB = 1e12 };
+        sim.Diplomacy.Wars.Add(war);
+        a.SelfPower!.WarExhaustion = 1.0; b.SelfPower!.WarExhaustion = 0;
+        try { Instruments.Phase(sim, Seed, "open"); sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61); }
+        finally { Instruments.Close(sim); Instruments.Configure(null, null); Instruments.SelectTables(null); }
+        var lines = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, $"wexit_s{Seed}.tsv"));
+        try { System.IO.Directory.Delete(dir, true); } catch { }
+        var h = lines[0].Split('\t'); var row = lines.Skip(1).Select(l => l.Split('\t')).First(r => r[System.Array.IndexOf(h, "oldCollapseAFlag")] == "1");
+        string Col(string name) => row[System.Array.IndexOf(h, name)];
+        double s = double.Parse(Col("scoreIndex"), System.Globalization.CultureInfo.InvariantCulture);
+        Assert.True(System.Math.Abs(s) < 1.0, $"前提が崩れた：書き換える前の戦勝点が決定的の線に届いている（{s}）");
+        Assert.Equal("1", Col("oldDecisiveFlag"));   // 書き換えの後は −1.5＝決定的（|−1.5|≥1）
+        Assert.Equal("1", Col("oldCollapseAFlag")); Assert.Equal("0", Col("oldCollapseBFlag"));
+        Assert.Equal(a.SelfPower!.Id.ToString(), Col("powerIdA")); Assert.Equal(b.SelfPower!.Id.ToString(), Col("powerIdB"));
+        Assert.Equal(h.Length, row.Length);
+    }
 }
