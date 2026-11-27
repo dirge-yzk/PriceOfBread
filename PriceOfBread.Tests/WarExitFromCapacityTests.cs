@@ -257,4 +257,123 @@ public class WarExitFromCapacityTests
         Assert.False(sim.Diplomacy.Wars.Contains(w1) || sim.Diplomacy.Wars.Contains(w2), "2 戦争とも終わるはず");
         Assert.Equal(e0 + 2, sim.Diplomacy.EndedWars.Count);
     }
+
+    // (1414) c151wr 項 2・3：旗 1 の枝のうち試験の無かった所に試験を置く。盤面は試験の中で置き、期待は試験の中の式から作る。
+
+    [Fact]
+    public void 旗1は2戦争の敗者の束ねを前走査の取り分の順で終える()   // 項 2：前走査の集合を歩の本体が読む（μ2＝歩の本体が前走査の集合を読まない形に戻すと、束ねず歩く順＝添字の降順で終わり赤）
+    {
+        var sim = Make(1, "フランス", "イギリス", "スペイン");
+        sim.Coef.CollapsePeaceOneShare = 1;
+        var a = sim.Nations[0].World; var b = sim.Nations[1].World; var s = sim.Nations[2].World;
+        SetK(a, sim.Coef, 0.5); SetK(b, sim.Coef, 0.5); SetK(s, sim.Coef, 0.5);
+        var w1 = new War { A = a.SelfPower!, B = b.SelfPower!, Score = -0.6, PushB = 1e12 };   // 添字 0・敗者 A に向く押しが大きい＝取り分が大きい
+        var w2 = new War { A = a.SelfPower!, B = s.SelfPower!, Score = -0.6, PushB = 1e6 };   // 添字 1
+        sim.Diplomacy.Wars.Add(w1); sim.Diplomacy.Wars.Add(w2);
+        int e0 = sim.Diplomacy.EndedWars.Count;
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
+        Assert.Equal(e0 + 2, sim.Diplomacy.EndedWars.Count);
+        // 歩は添字の降順（w2 が先）。束ねれば取り分の大きい w1 が先に終わる。
+        Assert.Equal(b.SelfPower!.Id, sim.Diplomacy.EndedWars[e0].BId);
+        Assert.Equal(s.SelfPower!.Id, sim.Diplomacy.EndedWars[e0 + 1].BId);
+    }
+
+    /// <summary>項 3 ②：調停の応諾（AcceptsPeace）の厭戦の項。旗 1＝1−持ちこたえる力・旗 0＝厭戦÷線。調停者の軍を 0 にして味方の比 lean を 0 に置く。</summary>
+    private static (bool forced, int refused) Mediate(double flag, double exhaustion, double kA, double kB)
+    {
+        var sim = Make(flag, "フランス", "イギリス", "スペイン");
+        var c = sim.Coef; c.InterventionSubmitBar = 0.5; c.WarPeaceExhaustion = 0.9;
+        var g = sim.Nations[0].World.SelfPower!; var a = sim.Nations[1].World; var bw = sim.Nations[2].World;
+        SetK(a, c, kA); SetK(bw, c, kB);
+        g.Military = 0; a.SelfPower!.Military = 1000; bw.SelfPower!.Military = 1000;
+        a.SelfPower!.WarExhaustion = exhaustion; bw.SelfPower!.WarExhaustion = exhaustion;
+        var war = new War { A = a.SelfPower!, B = bw.SelfPower!, Score = 0 };
+        sim.Diplomacy.Wars.Add(war);
+        int r0 = sim.Diplomacy.PeaceOffersRefused;
+        typeof(Diplomacy).GetMethod("ExecuteMediation", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(sim.Diplomacy, [g, war, c]);
+        return (war.ForcedPeace, sim.Diplomacy.PeaceOffersRefused - r0);
+    }
+
+    [Fact]
+    public void 調停の応諾は旗1で持ちこたえる力を読み厭戦を読まない()   // ②
+    {
+        var (f1, r1) = Mediate(1, 0.95, 1.0, 0.0);   // 厭戦 0.95 でも A は力 1＝応諾の項 0 で拒む・B は力 0＝項 1 で応じる
+        Assert.False(f1, "旗 1：A が拒むのに講和した"); Assert.Equal(1, r1);
+        var (f2, r2) = Mediate(1, 0.0, 0.0, 0.0);     // 厭戦 0 でも力 0 の両側は応じる
+        Assert.True(f2, "旗 1：力 0 の両側が応じない"); Assert.Equal(0, r2);
+        var (f0, r0) = Mediate(0, 0.95, 1.0, 0.0);    // 旗 0：厭戦が線を超えれば力に依らず両側が応じる
+        Assert.True(f0, "旗 0：厭戦 0.95 の両側が応じない"); Assert.Equal(0, r0);
+    }
+
+    /// <summary>項 3 ⑬′：戦時の徴兵の深さ。旗 1 は厭戦を読まない（深さ＝戦線と敵の比だけ）・旗 0 は厭戦の重みを足す。兵の増えを両方の旗で数える。</summary>
+    private static double ConscriptGain(double flag, double exhaustion)
+    {
+        var sim = Make(flag, "フランス", "イギリス");
+        var w = sim.Nations[0].World; var c = sim.Coef;
+        w.ConscriptionLaw = ConscriptionLaw.Universal;
+        c.ConscriptionFrontStep = 0; c.ConscriptionEnemyRatioWeight = 0; c.ConscriptionExhaustionWeight = 1.0;
+        foreach (var r in w.Regions) foreach (var p in r.Pops) if (p.IsSoldier) p.Size = 1.0;
+        sim.Diplomacy.Wars.Add(new War { A = w.SelfPower!, B = sim.Nations[1].World.SelfPower!, Score = 0 });
+        w.SelfPower!.WarExhaustion = exhaustion;
+        double before = w.SoldierSizeK();
+        Military.Step(w, c, atWar: true);
+        return w.SoldierSizeK() - before;
+    }
+
+    [Fact]
+    public void 戦時の徴兵の深さは旗1で厭戦を読まない()   // ⑬′
+    {
+        double g1 = ConscriptGain(1, 0.95), g1z = ConscriptGain(1, 0.0), g0 = ConscriptGain(0, 0.95), g0z = ConscriptGain(0, 0.0);
+        Assert.True(g1z > 0 && g0z > 0, $"前提が崩れた：徴兵が立たない（{g1z}・{g0z}）");
+        Close(g1z, g1);                                  // 旗 1：厭戦の高さは兵の増えを変えない
+        Assert.True(g0 > g0z * 1.0000001, $"旗 0：厭戦が深さを上げない（{g0}・{g0z}）");   // 旗 0：厭戦で深さが上がる
+    }
+
+    /// <summary>項 3 MultiNationSim.cs:414：首都の蜂起で生まれた国が親の厭戦を継ぐか。旗 1＝0・旗 0＝親の値。</summary>
+    private static double SpawnedExhaustion(double flag)
+    {
+        var sim = Make(flag, "イギリス", "フランス");
+        var parent = sim.Nations[0]; var pw = parent.World;
+        Assert.True(pw.Regions.Count >= 3, "前提が崩れた：親の州が 3 つ未満");
+        pw.SelfPower!.WarExhaustion = 0.8;
+        var regs = new System.Collections.Generic.List<Region> { pw.Regions[0] };
+        int n0 = sim.Nations.Count;
+        typeof(MultiNationSim).GetMethod("SpawnNation", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.Invoke(sim, [parent, regs, null]);
+        Assert.Equal(n0 + 1, sim.Nations.Count);
+        return sim.Nations[^1].World.SelfPower!.WarExhaustion;
+    }
+
+    [Fact]
+    public void 首都の蜂起で生まれた国は旗1で親の厭戦を継がない()
+    {
+        double w0 = SpawnedExhaustion(0), w1 = SpawnedExhaustion(1);
+        Assert.True(w0 > 0.5, $"前提が崩れた：旗 0 で厭戦を継がない（{w0}）");   // 継ぐ側が立つ盤面であること（首都の州を割る）
+        Assert.Equal(0.0, w1);
+    }
+
+    /// <summary>項 3 DefendDependent：宗主が属国の防衛に参戦するか。旗 1＝内戦中でなければ参戦（厭戦は読まない）・旗 0＝厭戦が線を超えれば見殺し。</summary>
+    private static bool SuzerainJoins(double flag, double exhaustion, bool civil)
+    {
+        var sim = Make(flag, "フランス", "イギリス", "スペイン", "プロイセン");
+        sim.StepQuarter();
+        var c = sim.Coef; c.WarExitFromCapacity = flag; c.DefendProjectionMin = 0;
+        var dip = sim.Diplomacy;
+        var dep = sim.Nations[0].World.SelfPower!; var suz = sim.Nations[1].World.SelfPower!; var enemy = sim.Nations[2].World.SelfPower!; var rebel = sim.Nations[3].World.SelfPower!;
+        dip.SetDependency(suz, dep);
+        Assert.Equal(suz, dip.Suzerain(dep));
+        suz.WarExhaustion = exhaustion; dep.WarExhaustion = 0;
+        if (civil) dip.Wars.Add(new War { A = suz, B = rebel, CivilWarParent = rebel });
+        Assert.Equal(civil, suz.Nation!.InCivilWar);
+        Assert.True(dip.DeclareWar(dep, enemy, c), "前提が崩れた：宣戦できない");
+        return dip.IsAtWar(suz, enemy);
+    }
+
+    [Fact]
+    public void 宗主の防衛参戦は旗1で厭戦では見殺しにせず内戦なら見殺しにする()
+    {
+        Assert.True(SuzerainJoins(1, 0.95, false), "旗 1：厭戦の宗主が参戦しない");
+        Assert.False(SuzerainJoins(1, 0.0, true), "旗 1：内戦中の宗主が参戦した");
+        Assert.False(SuzerainJoins(0, 0.95, false), "旗 0：厭戦の宗主が参戦した");
+        Assert.True(SuzerainJoins(0, 0.0, false), "旗 0：前提が崩れた（厭戦のない宗主が参戦しない）");
+    }
 }
