@@ -20,7 +20,7 @@ def one(base):
         for v in rows('cwend', s, base):
             n += 1
             vd = VERD.get(v['verdictCode'], v['verdictCode']); all_v[vd] += 1
-            qe = int(v['quarter']); qs = qe - int(v['months']) // 3
+            qe = int(v['quarter']); qs = qe - (-(-int(v['months']) // 3))   # (1408) 項 7：端数は切り上げ（切り捨てだと開戦の四半期が窓から落ちる）
             seq = sorted(x for x in by_uid.get(v['rebelUid'], []) if qs <= x[0] <= qe)
             if not seq:
                 miss += 1; miss_v[vd] += 1; mo_miss.append(int(v['months']))
