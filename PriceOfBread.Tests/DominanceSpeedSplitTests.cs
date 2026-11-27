@@ -42,4 +42,34 @@ public class DominanceSpeedSplitTests
         d.TreatyPortLapse(sim.Coef, 3);
         Assert.Equal(expected, region.ForeignShares[0], 12);
     }
+
+    // (1414) c151wr 項 5（B13）：Politics の 2 本（支配度の積分＝DominanceIntegralSpeed・4 区分の目標への寄り＝RuleRelaxSpeed）を別の値で読む。
+    // 3 本が同じ 0.025 のままだと取り違えても緑＝2 本を別の値にして、同じ 1 四半期の踏みで支配度の増分と区分の増分を別々に確かめる。
+
+    private static (double dRegion, double ungov) OneStep(double integral, double relax)
+    {
+        var sim = new Simulation(OpeningFixture.Named("フランス").ToScenario(1789), new NullAgent());
+        var w = sim.World; var c = w.Coef;
+        c.RuleOrderByRegion = 0;
+        c.DominanceIntegralSpeed = FractionPerQuarter.FromQuarter(integral);
+        c.RuleRelaxSpeed = FractionPerQuarter.FromQuarter(relax);
+        w.PublicOrder = 0.5;
+        foreach (var r in w.Regions) { r.Rule = [1.0, 0.0, 0.0, 0.0]; r.RuleInit = [1.0, 0.0, 0.0, 0.0]; r.Dominance = 0.5; }
+        Politics.CheckSecession(w, c, 0.0);
+        var m = w.Regions.Single(r => r.Name == "マルセイユ");
+        return (m.Dominance - 0.5, m.Rule[3]);
+    }
+
+    [Fact]
+    public void 支配度の積分と区分の寄りは別の速さを読む()
+    {
+        var (d1, u1) = OneStep(0.1, 0.1);
+        var (d4, u4) = OneStep(0.4, 0.1);   // 積分だけ 4 倍
+        var (_, u9) = OneStep(0.1, 0.3);    // 区分の寄りだけ 3 倍
+        Assert.True(System.Math.Abs(d1) > 1e-6, $"前提が崩れた：支配度が動かない（{d1}）");
+        Assert.Equal(4.0, d4 / d1, 6);                                  // 支配度の増分は積分の速さに比例し、区分の速さに依らない
+        Assert.Equal(u1, u4, 12);                                       // 区分は積分の速さに依らない
+        Assert.Equal(3.0, u9 / u1, 6);                                  // 区分の増分は寄りの速さに比例
+        Assert.InRange(u1, 0.0030, 0.0032);                             // 無統治の目標 0.5×(1−0.93813)×0.1（RuleSharesFormTests の D2 と同じ盤面・速さだけ別）
+    }
 }
