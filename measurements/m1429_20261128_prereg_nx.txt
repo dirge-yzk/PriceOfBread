@@ -124,3 +124,12 @@
   WarExitFromCapacity の段 2 の経路・Coefficients.p04_trade.cs の他の行・App・Display・Runner。
 - 他の線との重なり：c153rg＝Coefficients.p05_port_insurance.cs・c153fb＝Fiscal.cs と Coefficients.cs・c153tp＝scripts/instruments/suite と ident.sh＝持ち主のファイルは重ならない。
   共有のファイル（DormantIdentityTests.cs・WriterRatchetTests.cs）は自分の行だけを触る＝合流で解く（触る行は報告に列挙する）。
+
+9. 追記（腕 B の前・2026-11-28）
+- 突然変異（使い捨ての木 D:/PoB_work/wt_c153nx_mut・8734c9e9b・measurements/m1429_20261128/mut_M*.txt）：M1→T1 だけ赤・M2→T2 だけ赤・M3→T3 だけ赤＝4-3 の表の予言どおり。
+- 旗 0 の器の木 8734c9e9b の ㉘ の束＋NoContactWarExitTests＋WarExitFromCapacityTests＋InstrumentHookClosureTests：286 緑・赤 0・スキップ 1（measurements/m1429_20261128/scan0.txt）。
+- 旗 1 の木 e4a14ad9e の絞った試験（narrow.sh の既定の束・trx D:/PoB_work/c153nx_work/trx/narrow1.trx・measurements/m1429_20261128/narrow1.txt）：435 本のうち赤 1。
+  ① WriterRatchetTests.計算量の見た件数は宣言した表を超えない（項 11 外交の覇権の判定の国×国 3469584→3550272〔+2.3%・許し +2%〕）
+  区分＝★(749) 計算量の宣言の表（軌道の件数を写しただけの番人・機構の向きと大きさを主張しない）。表の 1 行を実測へ取り直す。新しい計数の処理は無い。全長の計算量は腕 B の .cost で読む。
+  2 の候補 6 本（CollapsePeaceTests ほか）の赤は 0＝旧の規則を固定する番人は無かった（予言 0〜1 本の内）。
+- savetest：savetest OK・最大相対差 0.0E+000。leakhunt：説明できない増減 人口 0 四半期・基礎貨幣 0 四半期。
