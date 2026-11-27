@@ -2348,7 +2348,7 @@ public sealed class Diplomacy
             if (!(a + b > 0)) lk *= 0.0;
             double sh = a + b > 0 ? (a - b) / (a + b) : 0;
             if (!(sh >= -1 && sh <= 1)) sh = 0;
-            return Math.Clamp(w.Score + c.WarPushSpeed * sh + lk, -CollapseScore, CollapseScore);
+            return Math.Clamp(w.Score + c.WarPushSpeed.Close(sh) + lk, -CollapseScore, CollapseScore);
         }
         Power? WexLoser(War w, int wi)
         {
@@ -2398,8 +2398,8 @@ public sealed class Diplomacy
             // ゲージは装備の充足・質・兵数で時代と規模により約1000倍動くので、     前近代と小国の戦争は押しがほぼ0で運（±WarLuck）だけで決まり、後期の大国は1か月で決着した（1914年以降の戦争は平均約4か月）。〔履歴 Diplomacy.cs#254〕
             double pushShare = aPush + bPush > 0 ? (aPush - bPush) / (aPush + bPush) : 0;
             if (!(pushShare >= -1 && pushShare <= 1)) pushShare = 0;
-            war.Score = Math.Clamp(war.Score + c.WarPushSpeed * pushShare + luck, -CollapseScore, CollapseScore);
-            double delta = c.WarPushSpeed * pushShare + luck;   // 記帳用（この値は war.Score の計算に使わない）
+            war.Score = Math.Clamp(war.Score + c.WarPushSpeed.Close(pushShare) + luck, -CollapseScore, CollapseScore);
+            double delta = c.WarPushSpeed.Close(pushShare) + luck;   // 記帳用（この値は war.Score の計算に使わない）
             war.PushA += aPush; war.PushB += bPush;   // 崩壊講和の取り分の材料（純記帳・war.Score の式には一切入れない）
 
             // 1ヵ月1ラウンド」）。〔履歴 Diplomacy.cs#255〕

@@ -16,7 +16,7 @@ public class WarExitFromCapacityTests
         var sim = new MultiNationSim(System.Array.ConvertAll(names, OpeningFixture.Named), seed: 1789, coef: new Coefficients()) { DiplomacyFrozen = true };
         var c = sim.Coef;
         c.WarExitFromCapacity = flag;
-        c.WarLuck = 0; c.WarPushSpeed = 0; c.TrenchDefenseWeight = 0; c.SeaInvasionControlMin = 0;
+        c.WarLuck = 0; c.WarPushSpeed = new FractionPerMonth(0); c.TrenchDefenseWeight = 0; c.SeaInvasionControlMin = 0;
         c.TreatyPortWinnerDistanceKm = 0; c.ConcertReparationRestraint = 0; c.ColonyCaptureBudget = 0; c.TerritoryCessionScore = 1e9;
         foreach (var n in sim.Nations) n.World.SelfPower!.WarExhaustion = 0;
         return sim;
