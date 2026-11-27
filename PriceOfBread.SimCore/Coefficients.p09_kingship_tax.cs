@@ -35,9 +35,6 @@ public sealed partial class Coefficients
     // --- 創発的国内勢力F3＝牙と変異（2026-07-12・F3a=永続化/変異は即時・F3b=内乱化は常に有効〔旧の旗 FactionRevoltScale は (739) で焼き込み〕）---
     public double FactionCohesionGrowth = 0.05;    // 結束の四半期成長率×(0.5+ブロック意識)（変異済みは2倍）
     public double FactionCohesionDecay = 0.10;     // 不在クラスタの結束減衰（四半期あたり・結束が 0.05 未満になった四半期に忘却＝(749) c-11 で連続不在の時計を外した）
-    public double FactionMutationRate = 0.002;      // 変異の受理率×危機（州の飢え/敗戦ショック）
-    public double FactionMutationCrisisFloor = 0.5;   // 変異ロールの危機下限（平時は絶対に変異しない）
-    public double MutantCohesionFloor = 0.5;       // 変異時の結束の床（旗の下の凝集）
     public double RebelArmsMarketEnabled = 0.0;   // 国軍と同じ市場で同じ財を買う（首都州の運動は国庫と同じ配給を奪い合う）
     public double FactionCohesionFightThreshold = 0.8;   // 内乱化に要る結束（≈持続3年超の組織運動のみ＝一揆や瞬間革命と役割分担）
     public double RevoltIgnitionIntensity = 0.0;   // 戦争の形の再併合も旧経路の鎮圧の行（Politics.SettleRevolt の1本＝返還州の闘争度の緩和・断裂の窓・運動の燃え尽き）を常に通る
