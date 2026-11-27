@@ -135,6 +135,7 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public RatePerYear BondBaseRatePerYear = new(0.04);           // 国債の基礎金利
     public double BondRateDebtScale = 0.018;     // 金利上昇＝×(債務/年名目GDP)
     public RatePerMonth BondRepayFracPerMonth = Calendar.PerYearToPerMonth(new RatePerYear(0.01));   // 月に国庫の余剰から返す国債の割合（減債基金）
+    public double RepayFloorOnly = 0;   // (1416) c151fl 旗：＞0＝国債の返済は床（残高×BondRepayFracPerMonth・余剰で頭打ち）だけ＝豊かさの線の上の余りでは返さない（余りは国庫に残り減税と歳出の読み手へ）。0＝旧（床と余りの大きい方）
     public RatioToGdpYear AusterityStartDebt = new(0.3);      // 債務÷年名目GDP がこれ超で緊縮開始（借金がかさむほど弱者救済を削り逆進課税を上げる＝赤字を貸し手に響かない形で閉じる負のフィードバック）
     public RatioToGdpYear AusterityRange = new(0.7);          // ここ幅で緊縮が0→満額（債務÷年名目GDP = Start+Range＝1.0 で弱者救済ゼロ・逆進課税が最大上乗せ）
     public double AusterityTaxHike = 0.5;        // 満額緊縮時に人頭税へ上乗せする逆進課税の幅（貴族免除の人頭税＝負担は弱者に集中）
