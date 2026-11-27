@@ -1,0 +1,12 @@
+(1407) c150rp 試験の記録（赤は trx で読む）
+㉘ の束＋RailProcureNationalTests（旗 0 の木 e6e09c7b4）：成功! -失敗: 0、合格: 143、スキップ: 0、合計: 143、期間: 15 m 2 s - PriceOfBread.Tests.dll (net10.0)（trx D:/PoB_work/c150rp_work/t28_flag0.trx）
+㉜ の絞った試験（旗 1 の木 aa424cb31・22 クラス・Category!=FullLength）：成功! -失敗: 0、合格: 308、スキップ: 0、合計: 308、期間: 14 m 39 s - PriceOfBread.Tests.dll (net10.0)（trx D:/PoB_work/c150rp_work/t32_flag1.trx）
+FullLength（旗 1 の木 aa424cb31）：成功! -失敗: 0、合格: 3、スキップ: 0、合計: 3、期間: 18 m 21 s - PriceOfBread.Tests.dll (net10.0)（trx D:/PoB_work/c150rp_work/tfull_flag1.trx）
+savetest（旗 1）：savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt（旗 1）：leakhunt 完走（seed=1789・200四半期・保存則違反なし）
+フルスイート（腕 B のコミット aa424cb31・D:/PoB_work/wt_c150rp_mut・11:49:38〜12:23:51）：
+  Tests Category!=FullLength：成功! -失敗: 0、合格: 3088、スキップ: 2、合計: 3090、期間: 31 m 55 s - PriceOfBread.Tests.dll (net10.0)
+  Tests.Ui：成功! -失敗: 0、合格: 232、スキップ: 0、合計: 232、期間: 1 m 28 s - PriceOfBread.Tests.Ui.dll (net10.0)
+  FullLength：上の旗 1 の木の 3 本（同じコミット）
+  合計 3090＋232＝3322＝--list-tests の Category!=FullLength 3322（ident の試験の腕・基準 3317＋5）・FullLength 3
+突然変異：measurements/m1407_20261127_mut_rp.txt
