@@ -1078,7 +1078,7 @@ public sealed class MultiNationSim
                 var m = Nations[j].World;
                 if (m.EpidemicActiveYears <= 0) continue;   // 感染源でない
                 double km = Geo.DistanceKm(w.Latitude, w.Longitude, m.Latitude, m.Longitude);
-                double proximity = PoliticalQuantities.Clamp01(1.0 - km / (_coef.EpidemicTransmitRange * _coef.EraFactor(w.WorldTechLevel, _coef.EraEpidemicRange)));   // =0で×1恒等）              // 陸路＝近いほど強い〔履歴 MultiNationSim.cs#118〕
+                double proximity = PoliticalQuantities.Clamp01(1.0 - km / _coef.EpidemicTransmitRange);   // =0で×1恒等）              // 陸路＝近いほど強い〔履歴 MultiNationSim.cs#118〕
                 double trade = _coef.EpidemicTradeTransmit * w.ExternalTradeAccess() * m.ExternalTradeAccess();   // 海路＝両国が交易に開かれているほど（港経由のコレラ）
                 // 戦争＝距離に依らない強制的な濃厚接触（軍営・前線・補給線・復員兵）＝最強の伝播経路（スペイン風邪1918型）。
                 double war = w.SelfPower is { } sp && m.SelfPower is { } mp && Diplomacy.IsAtWar(sp, mp) ? _coef.EpidemicWarTransmit : 0;

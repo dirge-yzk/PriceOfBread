@@ -109,7 +109,7 @@ public class TerritoryTests
         c.ImmigrationReceiveCapPerQuarter = new RatePerQuarter(1e9);   // 受け入れの上限を外す（上限で縮められて0になるのを除く）
         const double O = 2.0, delta = 0.006;
         Region S = w.Regions.First(r => r.Name == "リール"), a = w.Regions.First(r => r.Name == "パリ"), b = w.Regions.First(r => r.Name == "マルセイユ");
-        Assert.True(Math.Abs(c.EraFactor(w.WorldTechLevel, c.EraMigrationScale) - 1.0) < 1e-12 && c.MigrationDistanceScale == 10000.0 && c.TransportFriction == 0.15, "前提が崩れた：時代の係数・尺・摩擦");
+        Assert.True(c.MigrationDistanceScale == 10000.0 && c.TransportFriction == 0.15, "前提が崩れた：尺・摩擦（時代の係数の因子は項 6 で外した）");
         foreach (var r in w.Regions)
         {
             double o = Territory.Opportunity(r, c);
