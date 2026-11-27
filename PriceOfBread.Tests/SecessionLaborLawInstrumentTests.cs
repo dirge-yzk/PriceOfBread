@@ -6,7 +6,7 @@ namespace PriceOfBread.Tests;
 /// <summary>
 /// ★(395) 恒等の線 ic2 の計器の番人（読むだけ・軌道に触れない）。
 /// ①州の分離の内訳 <c>secession_s</c>：組み直した圧力の差 pressureRebuildGapIndex は (1220) 以後は作りから 0（本体と同じ値を 1 回だけ求めて使う＝独立の突き合わせではない）・組み直した中央の保持力が本体の hold×共有分母に合う・
-///   連続する 2 四半期の行で、支配度の増分が行の marginIndex×DominanceSpeed に合う（本体が独立に書いた r.Dominance との突き合わせ＝行の中だけで閉じない）・
+///   連続する 2 四半期の行で、支配度の増分が行の marginIndex×DominanceIntegralSpeed に合う（本体が独立に書いた r.Dominance との突き合わせ＝行の中だけで閉じない）・
 ///   最後の四半期の行の支配度と関税利害が世界の Region.Dominance／TariffInterest に合う。
 /// ②労働の列を財ごとに：3 財の BoundDesired／BoundLoss／Need の和が既存の合算列に合い（同じ分類を財ごとに割っただけ）・plainLabor の市場の列が既存の労働力の列に合い・
 ///   最後の四半期の行が、番人の側で別の書き方（最小の配給率の財を直に探す）で数え直した値に合う。
@@ -77,7 +77,7 @@ public class SecessionLaborLawInstrumentTests
                 if (Col(h, r, "marginIndex") != 0) withMargin++;
             }
             Assert.True(nonZeroPressure > 20, $"圧力が正の行が少ない {nonZeroPressure}（対照＝全て 0 なら列が空）");
-            // 連続する 2 四半期（同じ国・同じ州）：支配度の増分＝次の行の marginIndex × DominanceSpeed（クランプにかからない範囲）。本体が書いた r.Dominance の差との突き合わせ。
+            // 連続する 2 四半期（同じ国・同じ州）：支配度の増分＝次の行の marginIndex × DominanceIntegralSpeed（クランプにかからない範囲）。本体が書いた r.Dominance の差との突き合わせ。
             var byKey = rows.GroupBy(r => (Nation: r[Array.IndexOf(h, "nation")], Region: r[Array.IndexOf(h, "region")]))
                             .ToDictionary(g => g.Key, g => g.OrderBy(r => Col(h, r, "quarter")).ToList());
             int checkedPairs = 0; var pairSeries = new HashSet<(string Nation, string Region)>();
