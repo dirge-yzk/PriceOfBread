@@ -193,4 +193,68 @@ public class WarExitFromCapacityTests
         Assert.False(joined, "旗 1：内戦中の同盟国が参戦した");
         Assert.True(refusal > 0, "旗 1：断りの緊張が積まない");
     }
+
+    // (1408) 反証役 v の中 4 件 (a)：枝の試験（⑧ 調停の門・⑬ 統一戦争の門）。厭戦と内戦の読み分けを旗ごとに置く。
+    private static string OfferReason(double flag, double exhaustion, bool civil)
+    {
+        var sim = Make(flag, "フランス", "イギリス", "スペイン", "プロイセン");
+        var c = sim.Coef;
+        var g = sim.Nations[0].World.SelfPower!; var a = sim.Nations[1].World.SelfPower!; var b = sim.Nations[2].World.SelfPower!; var rebel = sim.Nations[3].World.SelfPower!;
+        sim.Diplomacy.Wars.Add(new War { A = a, B = b });
+        if (civil) sim.Diplomacy.Wars.Add(new War { A = g, B = rebel, CivilWarParent = rebel });
+        Assert.Equal(civil, g.Nation!.InCivilWar);
+        g.WarExhaustion = exhaustion;
+        var war = sim.Diplomacy.Wars[0];
+        sim.Diplomacy.CanOfferPeace(g, war, c, out string reason);
+        return reason;
+    }
+
+    [Fact]
+    public void 調停の門は旗0で厭戦なら厭戦で閉じる()   // ⑧ の対
+    {
+        Assert.Equal("厭戦", OfferReason(0, 0.9, false));
+    }
+
+    [Fact]
+    public void 調停の門は旗1で厭戦では閉じず内戦なら国難で閉じる()   // ⑧
+    {
+        string r1 = OfferReason(1, 0.9, false);
+        Assert.NotEqual("厭戦", r1); Assert.NotEqual("国難", r1);
+        Assert.Equal("国難", OfferReason(1, 0.0, true));
+    }
+
+    private static Formations.UnificationBlock UnifBlock(double flag, double exhaustion, bool civil)
+    {
+        var sim = Make(flag, "フランス", "イギリス", "プロイセン");
+        var c = sim.Coef; c.UnificationWarWeary = 1;
+        var p = sim.Nations[0].World.SelfPower!; var t = sim.Nations[1].World.SelfPower!; var rebel = sim.Nations[2].World.SelfPower!;
+        if (civil) sim.Diplomacy.Wars.Add(new War { A = p, B = rebel, CivilWarParent = rebel });
+        Assert.Equal(civil, p.Nation!.InCivilWar);
+        p.WarExhaustion = exhaustion;
+        return Formations.UnificationWarBlock(sim.Diplomacy, p, [t], t, c);
+    }
+
+    [Fact]
+    public void 統一戦争の門は旗0で厭戦ならWearyで旗1では厭戦で閉じず内戦で閉じる()   // ⑬
+    {
+        Assert.Equal(Formations.UnificationBlock.Weary, UnifBlock(0, 0.9, false));
+        Assert.Equal(Formations.UnificationBlock.None, UnifBlock(1, 0.9, false));
+        Assert.Equal(Formations.UnificationBlock.Weary, UnifBlock(1, 0.0, true));
+    }
+
+    [Fact]
+    public void 旗1は同じ敗者の2戦争が前走査の集合で束ねて終わる()   // (b)：押しの無い盤面では前走査と歩の集合は同じ＝束ねの経路が旗 1 でも通ることの番人（集合がずれる盤面は軌道の押しに依るので置けない＝突然変異 μ3 は緑のまま・穴として報告）
+    {
+        var sim = Make(1, "フランス", "イギリス", "スペイン");
+        sim.Coef.CollapsePeaceOneShare = 1;
+        var a = sim.Nations[0].World; var b = sim.Nations[1].World; var s = sim.Nations[2].World;
+        SetK(a, sim.Coef, 0.5); SetK(b, sim.Coef, 0.5); SetK(s, sim.Coef, 0.5);
+        var w1 = new War { A = a.SelfPower!, B = b.SelfPower!, Score = -0.6 };   // A の持ちこたえる力 0.5 を下回る側が負け
+        var w2 = new War { A = a.SelfPower!, B = s.SelfPower!, Score = -0.6 };
+        sim.Diplomacy.Wars.Add(w1); sim.Diplomacy.Wars.Add(w2);
+        int e0 = sim.Diplomacy.EndedWars.Count;
+        sim.Diplomacy.Step(sim.Coef, sim.Rng, month: 61);
+        Assert.False(sim.Diplomacy.Wars.Contains(w1) || sim.Diplomacy.Wars.Contains(w2), "2 戦争とも終わるはず");
+        Assert.Equal(e0 + 2, sim.Diplomacy.EndedWars.Count);
+    }
 }
