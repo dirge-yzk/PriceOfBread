@@ -1,0 +1,11 @@
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+M4 rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  成功 PriceOfBread.Tests.ReligionTensionRemovalTests.T1_同じ宗教の組で宗教の緩和は0 
+  成功 PriceOfBread.Tests.ReligionTensionRemovalTests.T2_違う系統の宗教の組で宗教の緊張は0 
+  成功 PriceOfBread.Tests.ReligionTensionRemovalTests.T3_保護の利害の分は今の式のまま 
+  失敗 PriceOfBread.Tests.ReligionTensionRemovalTests.T4_属国の統治の費用は異端の加点を読んだまま 
+テストの合計数: 4
+     成功: 3
+     失敗: 1
+合計時間: 2.3151 秒
