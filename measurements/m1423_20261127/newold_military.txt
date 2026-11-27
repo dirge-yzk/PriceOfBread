@@ -1,0 +1,10 @@
+# 列 militaryIndex・landPowerIndex・soldierK の 1880 年以後の平均（10 種）の新÷旧
+アメリカ	military 0.7327	land 0.6866	soldierK 0.8905
+イギリス	military 0.7594	land 0.7356	soldierK 1.1832
+オスマン	military 0.7996	land 0.8067	soldierK 1.0743
+オーストリア	military 0.8875	land 0.8744	soldierK 0.8431
+フランス	military 0.9855	land 0.9976	soldierK 1.1516
+プロイセン	military 0.7031	land 0.7518	soldierK 0.7921
+ロシア	military 0.5955	land 0.5972	soldierK 0.7320
+日本	military 0.5947	land 0.5819	soldierK 1.0167
+清	military 0.8960	land 0.8755	soldierK 0.8334
