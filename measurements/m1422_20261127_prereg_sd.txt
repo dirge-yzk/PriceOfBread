@@ -1,0 +1,114 @@
+(1422) c152sd 事前登録：点火 SatReadersToDiscontent の 2 回目＋足切りの根（fy の案 A・旗 FactionFloorByParticipation〔仮名〕を同じ腕に重ねる）
+書いた日 2026-11-27・枝 c152sd（origin/c150sd 09ffb8c95 に main 526586684 を merge した木 fd3a827a7 から）・worktree D:/PoB_work/wt_c152sd・腕の前のコミット。
+形は〈入口〉（参加の読み手の入口の差し替え＋足切りの物差しの差し替え）。3 回の規則は sd の 2 回目に数える（足切りの旗は同じ腕に重ねる＝別に数えない）。
+書き手：Claude Opus 5.5（線の担当）。案は全て〈AI の案・確証なし〉（fy の下書きの案 A を推奨で採った＝作者「全て推奨で」）。
+
+== [0] どの裁定を上書きしたか（作者 2026-11-16 の決まり⑤）
+- 上書き 1：MinSizeFraction の足切り〈φ×国の人口〉（Factions.Step の古い既定・作者の原文の裁定は無い）を、旗 1 で〈φ×参加の総量 P_n〉へ。φ のリテラル 0.01 は変えない。
+- 上書き 2：fy の下書き U1 の根拠〈チェノウェスの 3.5% と同じ参加の割合〉〈分子と分母の非対称を消す〉は、(1418) の反証役の訂正（中）で立たない＝この線の根拠は〈尺度に依らない〉（全ての π を λ 倍しても組が同じ＝D の式を次に変えても足切りを較正し直さない）だけ。
+  今の φN を参加の縮みに合わせる案（φ を 0.01×P/N へ下げる）との差：その案は P/N が国と時代で動くのを 1 つの数で固定する＝D の式を変えるたびに較正し直す。案 A は較正の数を持たない。
+- 上書き 3：指示の〈dcont の partNewK は partDK へ（W-1）〉は、dcont の列を書き換えず、新しい表 facfloor_s に partDK を置く形で入れる（dcont_s は旗 0 でバイトの同じ＝ident の宣言が要らない・partNewK は〈max(D, 闘争度) の規則の参加〉の名のまま正しい）。W-1 の〈旗 1 の本当の参加〉は facfloor_s の partDK で読む。
+- 作者 2026-11-25（原文）「ただし、不満度が高いかつ、投票権がない、政治意識がない場合は、それらは暴力的なアクションを起こす経路は残したい。」＝門 G3 と機構の試験 T4 がこの経路を読む。
+
+== [1] 形（526586684＋c150sd の木で grep した行）
+- 旗 1 本：Coefficients.cs:101 の SatReadersToDiscontent の隣に FactionFloorByParticipation（既定 0）。旗 0 の器のコミットでは SatReadersToDiscontent も 0.0 へ戻す（c150sd は 1）＝ident は旗 2 本とも 0 で m1418 と比べる。腕 B の木で 2 本とも 1。
+- 足切りの関数 1 本：FactionSnapshot.FloorOf(World w, double totalPop, double participationTotal)
+  旗 0＝MinSizeFraction × totalPop（今と同じ評価の順・同じ double）／旗 1＝MinSizeFraction × P_n。
+  P_n＝Σ_p N_p π_p（π は FactionSnapshot.Participation＝:68 と同じ参加の関数）＝その四半期のクラスタの大きさの和（ComputeClusters の戻り値を足す・POP の回りは増えない・保存しない）。
+  読み手：Factions.cs:35（作る側）・:49（見えたかの側）＝Step の頭で 1 回だけ求めた floor を両方が読む（T3 の性質）・FactionSnapshot.cs:86（Compute）・計器 InstrumentsDiscontent.cs:67・InstrumentsPrdf.cs:20・InstrumentsPrds.cs:45（PrdsCount に floor を渡す）。
+  dcont と prds は P_n を自分で足す（dcont＝POP の回りの d か max(d, M)・prds＝旗 1 のときだけ ComputeClusters の和）。
+- 新しい計器 facfloor_s（新しいファイル InstrumentsFacfloor.cs・Tg.Facfloor・Factions.Step の終わりの計器の行で呼ぶ＝同じ盤面）。列（国×四半期）：
+  quarter year nation floorFlag popK partDK partMaxK partEngK cellsAboveN cellsAboveP targetK targetAboveNK targetAbovePK partAboveNK partAbovePK milSumDK facSeenCount facSeenTargetK factionsCount riotHeatRegions
+  ・計器は POP を自分で回す（不満度は FactionSnapshot.DiscontentOf・闘争度・ブロックと思想・声 v＝InterestGroups.FranchiseVoice を自分で読む）。対象の層の重み＝N·D·(1−v)·(1−C)（C＝意識）。
+  ・partEngK＝エンジンの規則の参加の総量（旗 SatReadersToDiscontent 1 なら partDK・0 なら partMaxK）。足切り N 側＝0.01×w.TotalPopulation・P 側＝0.01×partEngK。組の大きさはエンジンの規則の参加。
+  ・facSeenTargetK＝w.Factions（エンジンが実際に作った勢力）の組のうち、計器が数えたその組の大きさがエンジンの規則の足切り（旗 0＝N 側・旗 1＝P 側）以上の組の対象の層の頭数（同じ組は 1 回）。facSeenCount はその組の数。
+  ・riotHeatRegions＝州の平民の闘争度の頭数加重の平均が RegionalRevoltThreshold（0.5）を超える州の数（一揆の条件の州×四半期）。
+  ・計器の列は旗 0 で他の表を 1 バイトも変えない（足すのは表 1 本）。
+- 新しい状態 0・新しい係数 0（φ は同じリテラル）・新しい閾値 0。セーブ：旗は Coefficients の double＝反射で載る（新しい型なし）。
+- 入れない物：U_p（闘争度の生活の項）・強さの式の作り直し・sd の焼き込み・群 8・App／Display／Runner の読み手（GameViewModel.Politics.cs:356・:381・:412・Runner Program.cs:4357・:4378・Display ProblemScan.cs:166＝〈次の波〉5 の束へ名を報告）。
+- 持ち主の外で触る行（合流で解く前提・報告に列挙）：Factions.cs は :35・:49 のほかに floor を求める 1 行と計器の呼びの行（既存の `if (Instruments.On)` の行に足す＝On の読みの数は増やさない）・InstrumentsTg.cs の Facfloor の 2 行・Instruments.cs の表の書き出しと閉じの 2 行・InstrumentHookClosureTests.cs の InlineData 1 行。
+
+== [2] 周辺の点検（参加・MinSizeFraction・勢力の強さを閾値で読む機構・木 fd3a827a7 で grep）
+- 参加 FactionSnapshot.Participation の読み手：ComputeClusters（:33）・EconomyStep.cs:1223（反乱の武器の市場＝RebelArmsMarketEnabled 0.0＝走らない）・InstrumentsPrds.cs:119。→ 足切りを読まない。変わらない。
+- MinSizeFraction の読み手：Factions.cs:35・:49・FactionSnapshot.cs:86・InstrumentsDiscontent.cs:67・InstrumentsPrdf.cs:20・InstrumentsPrds.cs:45・PrdsShadowTests.cs:182・:266・:326・:327・App GameViewModel.Politics.cs:356（注だけ）。→ 全て FloorOf へ（試験は [6]）。
+- w.Factions の読み手と閾値：
+  ・蜂起 Politics.cs:489〜（CheckFactionRevolt）：結束 ≥ FactionCohesionFightThreshold 0.8 の組だけ・強さ＝Size×AvgMil×Cohesion×(1−声)（:616）を保持力（州の強制力＋忠誠の民兵）と比べる＝絶対の頭数の物差し。小さい組は強さが小さい＝足切りが下がっても蜂起の閾値は意味を保つ（新しい物差しに合う）。勢力の数が増えれば候補は増える＝蜂起は増えるか同じ〈推〉。
+  ・政党の結成 Parliament.cs:204・:230（Qualifies＝結束 ≥ PartyFormCohesion 0.3 かつ声 > 0）：大きさを読まない＝足切りが下がると小さい組からも政党が立ちうる（政党の数と解散 PartyAbsenceDissolveQuarters が動く〈推〉）。閾値は結束だけ＝新しい物差しに合うかは記録で読む（政党の数は成績表と計器の記録）。
+  ・合流 Factions.cs:52〜（800km 以内の同じブロックと思想）：勢力の数の 2 乗の対＝計算量（[5]）。
+  ・UnionBargaining.cs:23：計器の数え（facScan）だけ。
+  ・分離独立 CheckSecession・首都の蜂起 Transition（Politics.cs:371 の route 3）・一揆 CheckRegionalRevolt（州の闘争度の平均 > 0.5）：勢力も足切りも読まない＝旗 FactionFloorByParticipation では変わらない（SatReadersToDiscontent 1 の思想と闘争度の道では変わりうる＝c150sd の記録）。内戦：勢力の蜂起から始まる道だけが足切りに触れる。
+  ・計器 3 本（dcont・prdf・prds）：[1] のとおり同じ関数。
+  ・AI の不穏（SelfPlay.cs の UnrestOf＝D̄）・信任（Credit.cs:16）：勢力を読まない＝旗 FactionFloorByParticipation では変わらない（SatReadersToDiscontent の道は c150sd と同じ）。
+- 閾値が新しい物差しに合わない恐れ：政党の結成（大きさを読まない）。この線では直さない＝記録（政党の数）。
+
+== [3] 紙の台本（今の盤面 keep_1418/base_ins＝m1418 の計器つき 10 種・scripts/instruments/c152sd/paper_g1.py・出力は measurements/m1422_20261127/paper_base.txt）
+- 5 大国（イギリス・フランス・プロイセン・オーストリア・ロシア）の暴力の道（10 種の和）：勢力の蜂起 0・首都の蜂起 route3 7（英 2・仏 1・露 4）・一揆の条件の州×四半期＝基準に列が無い。
+  全ての国：勢力の蜂起 70・route3 35・勢力の数の平均 3.26。
+- c150sdB（sd の 1 回目・旗 1・古い木 keep_1411_rej/c150sdB/ins・記録だけ）：5 大国の勢力の蜂起 0・route3 3（仏 2・露 1）。全ての国：勢力の蜂起 2・route3 14・勢力の数の平均 1.23。
+- 一揆の条件の基準の数：旗 0 の腕 Z（ident・m1418 と全行一致の世界）の facfloor_s の riotHeatRegions の 5 大国の和で取り、腕 B の前に追記する（基準の世界と同じ軌道＝同じ台本で数えた基準の数）。
+- G3 の旗 0 の確かめ：旗 0 の盤面では facSeenTargetK＝targetAboveNK が式の上で成り立つ（エンジンは N 側の足切り以上の組を全て作る・計器は同じ組を数える）＝門 G3（下の比 ≥ 1.10）は旗 0 で 1.00＝赤。腕 Z の facfloor_s で全ての行の facSeenTargetK＝targetAboveNK（差の最大）を数えて腕 B の前に追記する（同じでなければ計器の誤り＝腕 B を回さず直す）。
+
+== [4] 予言（記録・門ではない）
+- 勢力の数の平均（dcont factionsCount）：1.23（c150sdB）より増え、3.26（基準）に近づくか超える〈推〉。facSeenCount ≤ 100（1/φ）。
+- 結束 ≥ 0.8 の勢力の行は増える。強い勢力の行と勢力の蜂起は c150sdB の 4・2 から大きくは戻らない（fy U0-1・強さの道が主因・〈約 70〜89%〈推〉〉）。
+- 政党の数は増えるか同じ〈推〉。
+- 旗 1 の出力が旗 0 と違う行の数は腕 B の成績表の diff の行数で記録する。
+
+== [5] 計算量（割り当て 2.0 秒・上限 248.5・余り 保守側 S11 約 21.7 秒の内）
+- P_n の和：組の数（1 国×四半期 数十〜千）の足し算を Factions.Step・Compute で各 1 回＝61 国×668 四半期×千以下＝4×10^7 回以下の加算＝0.1 秒未満〈推〉。旗 0 では足さない。
+- 勢力の数が増える分（1 国 1/φ＝100 以下）：Factions.cs:46 の線形の一致（観測×F）・:49 の見えたかの回り（F×組）・合流の F² の対（同じブロックと思想の対だけ距離を計る）・蜂起と政党の回り（F）。
+  最悪 1 国 100 勢力×千組＝10^5／四半期 ×4×10^4 国×四半期＝4×10^9 の比べ＝数秒の恐れ。典型（勢力 10〜30）では 0.5〜1.5 秒〈推〉。
+- 予言：推定の計算量の差 0〜+1.5 秒。★(694)：2 秒以下の割り当ては 1 本の腕で門にしない＝.cost の推定は記録。止める線は推定 248.5 秒。
+  .cost の推定は台帳の行で数える＝勢力の回りを数える台帳の行は無い（CostLedger はこの線の持ち主の外）＝腕 B の経過の秒（壁の時計）を並べて記録する。
+
+== [6] 置き換える旧の規則と、それを固定する試験（㉜ の改め・腕の前）
+- 置き換える旧の規則：勢力の足切り〈組の参加の大きさ ≥ 0.01×国の人口〉（旗 1 で 0.01×P_n）。
+- 固定する試験（grep MinSizeFraction・FactionSnapshot.Compute・ComputeClusters・w.Factions の件数を Tests と Tests.Ui で）：
+  PrdsShadowTests.cs:182・:266（数え直しの足切り）→ FloorOf を読む形へ（同じ盤面の数え直しの検査は残す）。
+  PrdsShadowTests.cs:326（N≥1 なら最大のセル ≥ φ）→ 旗 1 では足切りの割合が φ×P_n/N＝同じ盤面の FloorOf÷人口と比べる形へ。:327（最大のセル ≥ φ なら N≥1）は P_n≤N から旗 1 でも成り立つ＝残す。
+  PrdsShadowTests.cs:150〜:160（PrdsCount の手計算の表）→ 引数に floor を足す（値は 0.01×1000＝今と同じ）。
+  勢力の数や蜂起の件数を固定する試験（SatReadersToDiscontentTests・RevoltIgnitionTests・PolicyPoliticsTests・DiscontentSplitTests・PartyTests ほか）は旗 1 の絞った試験で赤を読み、旧の規則の番人なら新しい規則の機構の試験へ書き換える（区分を追記に書く）。
+- ㉜ の grep（旗 1 の木でフルスイートの番人が旧の規則を固定していないか）：上の一覧に加え、DiscontentReaderTests.cs:307 の〈Discontent( の呼び手の本数〉は facfloor が FactionSnapshot.DiscontentOf を読む＝本数は変わらない（予言 0）。
+
+== [7] ソースを走査する番人（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表：触らない（予言 0）。`new MoneyStock(` の件数（SimCore 64）：足さない（予言 0）。route_anchors.tsv（scripts/instruments/flow262/）：Faction・Discontent・Prdf・Prds の鍵の行なし（予言 0）。
+- WriterRatchetTests の宣言の表：CostLedger の行を足さない（予言 0）。旗 0 の木では m1418 の値（merge で main の側を取った ClaimProducers 1927・DiploHegemonScans 2662704）のまま緑の予言。旗 1 の木では 1 種 40 四半期の軌道が動く＝★(749)〈軌道の件数を写しただけの番人〉として絞った試験で取り直す（取り直した行を報告に列挙）。
+- DiscontentReaderTests.cs:307：予言 0（上）。InstrumentHookClosureTests：InlineData を 1 行足す（Facfloor→facfloor_s）。DormantIdentityTests：新しい旗 FactionFloorByParticipation を休眠の器の表に要るなら自分の行だけ足す。
+
+== [8] 門（作者 2026-11-16 ①）・許しは計器の印字の桁（F＝有効 6〜9 桁）より広く書く（★(1418)）
+- G0 止める線：破綻（クラッシュ・NaN・保存則・savetest・進行不能）・〈100 倍〉の〈それ以外〉（stoplines906・stoplines1330・建国の直後と政府の人口の跳びは区分で数え、基準 keep_1418/base_ins とヌル腕 keep_1418/n1 も同じ台本で数え直す）・1e10 倍以上
+  ・空洞化 1/10 未満で〈線が原因〉の物（規則 A2・an_h2.py -v4。基線 keep_1418/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない）・推定の計算量 ＞248.5 秒・機構の試験の赤（走査の番人を含む）。
+- G1 史実の桁（10 倍・§0-2 ★(1418) Q2 の推奨）：暴力の道 3 本（勢力の蜂起＝dcont factionRevoltsCum の国ごとの最大・一揆の条件の州×四半期＝facfloor riotHeatRegions・首都の蜂起＝coupgate route 3 の行）の和を 5 大国×10 種で数える（paper_g1.py）。
+  史実の線〈1 国あたり 8〜18 回〉の 10 倍の幅＝5 国×10 種で 40〜9000。
+  下側：基準の和 B（[3] の 7＋腕 Z の一揆の条件）が 40 以上なら〈腕 ≥ 40〉・40 未満なら〈元からの弱さ〉の型で〈腕 ≥ B/10〉。
+  上側：B ≤ 9000 なら〈腕 ≤ 9000〉・B > 9000 なら〈腕 ≤ 10×B〉。許し：件数（整数）＝許しなし。
+  落ちる恐れ（紙）：c150sdB の 5 大国は勢力の蜂起 0・route3 3（基準 7）＝一揆の条件が基準で 0 なら下側の門は〈腕 ≥ 0.7〉＝1 件で通る。fy の U0-1 のとおり勢力の蜂起は戻らない〈推〉＝落ちるなら route3 と一揆の条件が両方 0 の時だけ。
+  〈それでも回す理由〉（㉗）：この段の狙いは足切りの物差しを参加の単位へ揃えること・蜂起の戻りは段 2（U_p）の狙い。
+- G2 機構の試験（盤面を試験の中で置く・FactionFloorByParticipationTests.cs）：
+  T1：大きな国（N 大）で参加の総量が小さい盤面に、φP_n ≤ S < φN の組を置く → 旗 1 で Factions.Step が勢力を作る・旗 0 で作らない（旗 0 で赤）。
+  T2：全ての POP の不満度を半分に下げても（参加を λ 倍）旗 1 で勢力の組の集合が同じ・旗 0 で変わる（旗 0 で赤）。
+  T3：作られた組（φP ≤ S < φN）が同じ Step の中で〈見えない〉と読まれない＝結束が育った値のまま（減衰を受けない）（性質・旗 0 では対象の組が無いので空で緑）。
+  T4：選挙権の無い大衆・意識の低い組の強さ F > 0、同じ組で参政権 AdultMale なら F＝0（σ を守る性質・旗 0 でも緑）。
+  T5：乱数の盤面で、その四半期に足切りを越えた組の数 ≤ 1/φ（性質・旗 0 でも緑）。
+  TG3：試験の中の盤面で、旗 1 の facSeenTargetK ＞ targetAboveNK（旗 0 では等しい＝赤）。
+  c150sd の T1〜T9（SatReadersToDiscontentTests）は残す。
+- G3〈誰に届いたか〉（反証役の訂正の形）：分子＝facSeenTargetK（エンジンが実際に作った勢力の中の対象の層の頭数）・分母＝targetK。
+  門：腕 B の 10 種の全ての行の和で Σ facSeenTargetK ≥ 1.10 × Σ targetAboveNK（同じ盤面で旧の足切り φN を越えた組の対象の層の頭数・分母 targetK は両辺で同じ）。
+  旗 0 の盤面では 1.00（[3]）＝赤。Σ targetAboveNK が 0 なら〈Σ facSeenTargetK ＞ 0〉で読む。許し：比の 1.10 は計器の印字の桁（相対 1e-6 程度）より十分に広い。
+  記録：Σ facSeenTargetK ÷ Σ targetK（腕 B と腕 Z）。
+- 内戦の始まりは反証役の分け（勢力の蜂起・route 3・その他を同じ国の同じ四半期±1 で）で記録（門ではない）。
+
+== [9] 突然変異と赤になる門（㉚・紙の予言・使い捨ての木で回して measurements/m1422_20261127/mut/ へ）
+| 突然変異 | T1 | T2 | T3 | T4 | T5 | TG3 | G3（腕） |
+| μ1 足切りを φN へ戻す（FloorOf が旗を読まない） | 赤 | 赤 | 緑 | 緑 | 緑 | 赤 | 記録 |
+| μ2 P_n を N_p だけで足す（π を掛けない＝φN と同じ） | 赤 | 赤 | 緑 | 緑 | 緑 | 赤 | 記録 |
+| μ3 P_n を組の州の中だけで足す | 緑か赤 | 緑 | 緑 | 緑 | 赤 | 緑か赤 | 記録 |
+| μ4 :35 だけ新しい足切り・:49 は旧 | 赤か緑 | 赤か緑 | 赤 | 緑 | 緑 | 緑 | 記録 |
+| μ5 σ（1−声）を 1 に固定 | 緑 | 緑 | 緑 | 赤 | 緑 | 緑 | 記録 |
+- 突然変異で試験が緑のままなら同じ線で機構の試験を足し、その突然変異で赤を確かめる（★(790)）。
+
+== [10] 手順
+1. この事前登録（最初のコミット）→ 2. 旗 0 の器（FloorOf・旗・計器・試験）のコミット → 3. tq2.done を待つ → 4. ㉘ の束と足した試験（隔離ビルド D:/PoB_work/c152sd_art）
+→ 5. ident（段 1→計器が違えば段 2・--work D:/PoB_work/ident_c152sd・--added-tables facfloor_s）で〈判定: 恒等〉→ 6. 旗 2 本の既定を 1 にするコミット → 旗 1 の絞った試験（差分の名の grep で当たったクラス・FullLength・㉘・㉜・savetest・leakhunt・trx）
+→ 7. 腕 B（INS=1・10 種・表＝dcont_s,facfloor_s,nation_s,cwend_s,coupgate_s,scalars_s,region_s,wars_s,pxmonth_s,migration_s,stock_s,casualty_s・起こす直前に 38GB 以上）→ 8. フルスイート 1 回（腕 B の後・Category で分け --list-tests と突き合わせる）→ 9. 印 D:/PoB_work/c152sd_work/sd.mark → push。
+- 形の変え直しは 1 回だけ。落ちたら採らないで止める（同じ腕で物差しを替えない）。腕 B の生は合流の判断まで消さない。種 11〜20 は線では回さない。
