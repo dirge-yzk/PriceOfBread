@@ -163,7 +163,7 @@ public class DormantIdentityTests
         // ★WarWearyPoliticsCut（(1371) c145rv 厭戦の政治の側の 3 本の読みを外す旗）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した。(1385) c147wb で旗ごと焼いた（番人 WarWearyPoliticsCutTests は旗なし）。(1377) c146wy
         "SatReadersToDiscontent",       // (1371) c145rv 不満度から声の項を抜き参加と思想が D を読む旗（0＝今の式・番人 SatReadersToDiscontentTests）。点火は波146
         "ArrearsOnePredicate",          // (1284) c132df 本位の停止の門を不履行の導火線と同じ述語にして判定の前へ（0＝今の形・番人 ArrearsOnePredicateTests）。点火時にこの表から外す
-        "RepayFloorOnly",               // (1416) c151fl 国債の返済を床だけにする（0＝今の形・番人 RepayFloorOnlyTests）。点火時にこの表から外す
+        // ★RepayFloorOnly（(1416) c151fl 国債の返済を床だけにする）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は RepayFloorOnlyTests の T0）。
         // ★LawPrefSinglePeaked（(1323) c138lp 法の好みの向き＝後退は 1 段下からの上げの好みの反転）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は LawPreferenceDirectionTests＝旗を明示）
         // ★MajorityLabelTierOrder（(1290) c133mr 国の主流の札を格の順で選ぶ）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は MajorityLabelTierOrderTests の T1）。
         // ★NextCapitalHomeFirst（(1304) c135nc 首都の付け替えを格の順に）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は NextCapitalHomeFirstTests の T1・T7）。
