@@ -1,0 +1,32 @@
+total min 94.9 Instruments coll min 16.5 classes in Instruments 142
+InstrumentsTests	4.6	37	Instruments
+StateDigestToolTests	4.6	3	-
+StartWarmupTests4	4.4	5	-
+TreasuryLedgerTests	4.3	11	-
+MultiNationTests2	4.2	4	-
+InstrumentHookClosureTests	4.0	98	Instruments
+MultiNationTests	3.7	5	-
+TechInstitutionTests	3.7	4	-
+StartWarmupTests	3.5	4	-
+PolicyPoliticsTests	3.5	85	-
+MultiNationTests4	3.1	5	-
+NationModelTests	3.1	6	-
+WarThemeTests	3.1	43	-
+StartWarmupTests2	3.0	3	-
+ExplainTests	2.8	2	-
+MultiNationTests3	2.7	3	-
+--- Instruments collection top
+InstrumentsTests	4.58	37
+InstrumentHookClosureTests	3.95	98
+TradeInstrumentTests	0.47	11
+WriterRatchetTests	0.39	58
+ZeroPopSkipTests	0.36	5
+TransportInstrumentTests	0.30	7
+SecessionLaborLawInstrumentTests	0.30	5
+InstrumentsMonTests	0.28	8
+BuyShadowInstrumentTests	0.27	5
+TradeBilateralInstrumentTests	0.25	8
+TradeT1Tests	0.21	10
+TradeSkipC4Tests	0.20	8
+--- other collections
+Counter({'Instruments': 144})

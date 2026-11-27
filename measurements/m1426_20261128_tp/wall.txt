@@ -1,0 +1,7 @@
+# (1426) c153tp 壁と効き（記録・近似）
+分ける前（suite_m1425.sh の形・同じ木 cf288696e・SKIPINS=1）：Tests(Category!=FullLength) 期間 22 分 59 秒（1379 秒）・Ui 2 分 54 秒・FullLength 18 分 47 秒（FullLength は他の担当の腕と重なって伸びた＝NOT_QUIET・m1425 は 9 分 34 秒）
+分けた後（split_suite.sh・SKIPINS=1・SKIPFULL=1）：H 135 本 壁 548 秒（9 分 5 秒）・R 2976 本 壁 812 秒（13 分 29 秒）・Tests 全体の壁 812 秒（13 分 32 秒）・Ui 1 分 15 秒
+Tests の壁：1379 秒→812 秒＝567 秒（9.4 分）短い（事前登録の予言 4〜8 分より大きい＝分ける前は他の線の腕と重なっていた可能性・分ける前の Ui は 2 分 54 秒で m1425 の 1 分 15 秒の 2.3 倍＝NOT_QUIET）。
+静かさ（推定÷実測の CPU）は測っていない＝分ける前は NOT_QUIET・分けた後は他の担当の腕が見えなかった（記録のみ）。
+同じ trx の集合：分ける前の tests.trx＋ui.trx（3343）と分けた後の H＋R＋Ui（3343）は（名・結果）の集合が同じ（合格 3341・スキップ 2＝InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun と TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する・赤 0）。
+直列の尾（分ける前の trx の Instruments Collection）：16.5 分（Tests 壁 23 分の 72%）・うち重い組 InstrumentsTests 4.58＋InstrumentHookClosureTests 3.95＝8.5 分（尾の 52%）。事前登録の表の 14.1 分は混雑の回の trx の値＝この静かな回の値で上書き。
