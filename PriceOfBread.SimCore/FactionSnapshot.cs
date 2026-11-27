@@ -69,6 +69,23 @@ public static class FactionSnapshot
         return Math.Max(d, p.Militancy);
     }
 
+    /// <summary>(1422) 勢力の足切りの頭数＝Factions.Step（作る側・見えたかの側）・Compute・計器 dcont・prdf・prds が読む 1 本。
+    /// 旗 FactionFloorByParticipation 0＝MinSizeFraction×人口・1＝MinSizeFraction×参加の総量 P_n（Σ N_p π_p＝その四半期の組の大きさの和・保存しない）。</summary>
+    internal static double FloorOf(World w, double totalPop, double participationTotal)
+        => w.Coef.FactionFloorByParticipation > 0 ? MinSizeFraction * participationTotal : MinSizeFraction * totalPop;
+
+    /// <summary>(1422) 組（<see cref="ComputeClusters"/> の戻り値）から足切りを出す。旗 0 では組を足さない。</summary>
+    internal static double FloorOf(World w, double totalPop, List<(Region Region, int Bloc, int Ideo, double Size, double MilSum)> clusters)
+        => FloorOf(w, totalPop, w.Coef.FactionFloorByParticipation > 0 ? ParticipationTotal(clusters) : 0.0);
+
+    /// <summary>(1422) 参加の総量 P_n＝組の大きさの和（組の大きさ＝Σ N_p π_p）。</summary>
+    internal static double ParticipationTotal(List<(Region Region, int Bloc, int Ideo, double Size, double MilSum)> clusters)
+    {
+        double s = 0;
+        foreach (var cl in clusters) s += cl.Size;
+        return s;
+    }
+
     internal static (int Bloc, int Ideo) BlocIdeo(Pop p)
         => (PolicyPreferences.BlocOf(p), ArgMax(p.IdeologyShares));
 
@@ -81,9 +98,10 @@ public static class FactionSnapshot
 
         var demandsByBloc = new List<Demand>?[PolicyPreferences.BlocCount];
         var result = new List<Faction>();
+        double floor = FloorOf(w, totalPop, clusters);
         foreach (var (reg, bloc, ideoIdx, size, milSum) in clusters)
         {
-            if (size < MinSizeFraction * totalPop) continue;
+            if (size < floor) continue;
             demandsByBloc[bloc] ??= ComputeDemands(w, bloc);
             var ideo = (Ideology)ideoIdx;
             result.Add(new Faction

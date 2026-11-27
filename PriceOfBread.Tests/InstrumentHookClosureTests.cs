@@ -207,6 +207,7 @@ public class InstrumentHookClosureTests
         [InlineData("Paysale", "paysale2_s")]
         [InlineData("Portch", "portch_s,portlm_s")]
         [InlineData("Prdf", "prdf_s")]
+        [InlineData("Facfloor", "facfloor_s")]   // (1422)
         [InlineData("Prds", "prds_s")]
         [InlineData("Pxstep", "csc_s,cscx_s,pxstep_s")]
         [InlineData("RailSpend", "railspend_s")]

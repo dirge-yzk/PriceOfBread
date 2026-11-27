@@ -31,9 +31,9 @@ public static partial class Instruments
     internal readonly record struct PrdsCellCount(int NCell, int NBody, double MaxFrac, int TopRegion, int TopBloc);
 
     /// <summary>
-    /// 足切りは FactionSnapshot.MinSizeFraction×totalPop（Factions.Step と同じ不等式）。〔履歴 InstrumentsPrds.cs#7〕
+    /// 足切りは呼び手が渡す <paramref name="floor"/>＝FactionSnapshot.FloorOf（Factions.Step と同じ不等式・(1422)）。〔履歴 InstrumentsPrds.cs#7〕
     /// </summary>
-    internal static PrdsCellCount PrdsCount(IEnumerable<(int Region, int Bloc, int Axis, double Size)> items, int axis, double totalPop)
+    internal static PrdsCellCount PrdsCount(IEnumerable<(int Region, int Bloc, int Axis, double Size)> items, int axis, double totalPop, double floor)
     {
         var cell = new Dictionary<(int Region, int Bloc), double>();
         foreach (var (reg, bloc, ax, size) in items)
@@ -42,7 +42,7 @@ public static partial class Instruments
             var key = (reg, bloc);
             cell[key] = cell.TryGetValue(key, out var cur) ? cur + size : size;
         }
-        double thr = FactionSnapshot.MinSizeFraction * totalPop, max = 0;
+        double thr = floor, max = 0;   // (1422) 足切りは FactionSnapshot.FloorOf（呼び手が渡す）
         int nBody = 0;
         int topReg = -1, topBloc = -1;
         foreach (var (key, v) in cell) { if (v >= thr) nBody++; if (v > max) { max = v; topReg = key.Region; topBloc = key.Bloc; } }   // 同点＝挿入順で先のセル
@@ -151,10 +151,11 @@ public static partial class Instruments
             shadowItems.Add((rid, c.Bloc, c.ShadowAxis, sz));
         }
         double totalPop = w.TotalPopulation;
-        var comS = PrdsCount(shadowItems, (int)Ideology.Communism, totalPop);
-        var comR = PrdsCount(realItems, (int)Ideology.Communism, totalPop);
-        var socS = PrdsCount(shadowItems, (int)Ideology.Socialism, totalPop);
-        var socR = PrdsCount(realItems, (int)Ideology.Socialism, totalPop);
+        double floor = FactionSnapshot.FloorOf(w, totalPop, w.Coef.FactionFloorByParticipation > 0 ? FactionSnapshot.ParticipationTotal(FactionSnapshot.ComputeClusters(w)) : 0.0);   // (1422) 旗 1 のときだけ P_n を足す
+        var comS = PrdsCount(shadowItems, (int)Ideology.Communism, totalPop, floor);
+        var comR = PrdsCount(realItems, (int)Ideology.Communism, totalPop, floor);
+        var socS = PrdsCount(shadowItems, (int)Ideology.Socialism, totalPop, floor);
+        var socR = PrdsCount(realItems, (int)Ideology.Socialism, totalPop, floor);
         double leftMean = Fr(a.LeftSum);
         double tMean = Fr(a.TNormSum);
         var vt = PrdsVoiceTerciles(a.Voice);   // vt〔履歴 InstrumentsPrds.cs#12〕

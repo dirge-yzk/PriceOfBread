@@ -147,17 +147,17 @@ public class PrdsShadowTests
             (1, 2, (int)Ideology.Communism, 10.0),
             (1, 2, (int)Ideology.Socialism, 30.0),
         };
-        var com = Instruments.PrdsCount(items, (int)Ideology.Communism, 1000.0);
+        var com = Instruments.PrdsCount(items, (int)Ideology.Communism, 1000.0, FactionSnapshot.MinSizeFraction * 1000.0);
         Assert.Equal(3, com.NCell); Assert.Equal(2, com.NBody); Assert.Equal(11.0 / 1000.0, com.MaxFrac, 12);
         Assert.Equal(0, com.TopRegion); Assert.Equal(2, com.TopBloc);   // 最大のセル＝地域 0・束 2（6+5）
-        var none0 = Instruments.PrdsCount(new List<(int Region, int Bloc, int Axis, double Size)>(), (int)Ideology.Communism, 1000.0);
+        var none0 = Instruments.PrdsCount(new List<(int Region, int Bloc, int Axis, double Size)>(), (int)Ideology.Communism, 1000.0, FactionSnapshot.MinSizeFraction * 1000.0);
         Assert.Equal(-1, none0.TopRegion); Assert.Equal(-1, none0.TopBloc);
-        var soc = Instruments.PrdsCount(items, (int)Ideology.Socialism, 1000.0);
+        var soc = Instruments.PrdsCount(items, (int)Ideology.Socialism, 1000.0, FactionSnapshot.MinSizeFraction * 1000.0);
         Assert.Equal(1, soc.NCell); Assert.Equal(1, soc.NBody); Assert.Equal(0.03, soc.MaxFrac, 12);
-        var none = Instruments.PrdsCount(items, (int)Ideology.Anarchism, 1000.0);
+        var none = Instruments.PrdsCount(items, (int)Ideology.Anarchism, 1000.0, FactionSnapshot.MinSizeFraction * 1000.0);
         Assert.Equal(0, none.NCell); Assert.Equal(0, none.NBody); Assert.Equal(0.0, none.MaxFrac);
         // 人口 0 の世界は 0 を返す（0 割りで NaN にならない）
-        Assert.Equal(0.0, Instruments.PrdsCount(items, (int)Ideology.Communism, 0.0).MaxFrac);
+        Assert.Equal(0.0, Instruments.PrdsCount(items, (int)Ideology.Communism, 0.0, 0.0).MaxFrac);
     }
 
     [Fact]
@@ -176,10 +176,12 @@ public class PrdsShadowTests
                 foreach (var n in on.Nations)
                 {
                     double totalPop = n.World.TotalPopulation, mx = 0; int body = 0;
-                    foreach (var (_, _, ideo, size, _) in FactionSnapshot.ComputeClusters(n.World))
+                    var cls = FactionSnapshot.ComputeClusters(n.World);
+                    double floor = FactionSnapshot.FloorOf(n.World, totalPop, cls);   // (1422) エンジンと同じ足切りの関数
+                    foreach (var (_, _, ideo, size, _) in cls)
                     {
                         if (ideo != (int)Ideology.Socialism && ideo != (int)Ideology.Communism) continue;
-                        if (size >= FactionSnapshot.MinSizeFraction * totalPop) body++;
+                        if (size >= floor) body++;
                         if (size > mx) mx = size;
                     }
                     clusterMax[Instruments.NameOf(n.World)] = totalPop > 0 ? mx / totalPop : 0; clusterBody[Instruments.NameOf(n.World)] = body;
@@ -250,6 +252,7 @@ public class PrdsShadowTests
             MultiNationSim on;
             List<double[]> onBits;
             var lastShares = new Dictionary<string, (double RealCom, double TotalK)>();
+            var floorFrac = new Dictionary<string, double>();   // (1422) 最後の盤面の足切り÷人口（旗 0＝0.01・旗 1＝0.01×P_n÷人口）
             var comWeightMean = new Dictionary<string, double>();   // (724) 世界の POP を数え直した共産主義の重みの人数加重の平均（3 分位の列とは別の経路）
             var clusterCount = new Dictionary<string, (int ComBody, int ComCell, double ComMax, int SocBody)>();   // (708) 別の経路（本体の ComputeClusters）の数え直し
             try
@@ -263,9 +266,11 @@ public class PrdsShadowTests
                     lastShares[Instruments.NameOf(n.World)] = (all > 0 ? com / all : 0, all);
                     double cw = 0; foreach (var p in n.World.AllPops()) { if (p.Size <= 1e-9) continue; cw += p.Size * p.IdeologyShares[6]; }
                     comWeightMean[Instruments.NameOf(n.World)] = all > 0 ? cw / all : 0;
-                    double totalPop = n.World.TotalPopulation, thr = FactionSnapshot.MinSizeFraction * totalPop, mx = 0;
+                    var cls = FactionSnapshot.ComputeClusters(n.World);
+                    double totalPop = n.World.TotalPopulation, thr = FactionSnapshot.FloorOf(n.World, totalPop, cls), mx = 0;   // (1422) エンジンと同じ足切りの関数
+                    floorFrac[Instruments.NameOf(n.World)] = totalPop > 0 ? thr / totalPop : 0;
                     int comBody = 0, comCell = 0, socBody = 0;
-                    foreach (var (_, _, ideo, size, _) in FactionSnapshot.ComputeClusters(n.World))
+                    foreach (var (_, _, ideo, size, _) in cls)
                     {
                         if (ideo == (int)Ideology.Communism) { comCell++; if (size >= thr) comBody++; if (size > mx) mx = size; }
                         else if (ideo == (int)Ideology.Socialism && size >= thr) socBody++;
@@ -323,7 +328,7 @@ public class PrdsShadowTests
                 Assert.True(Col(r, "maxCellFracComShadow") + 1e-12 >= Col(r, "maxCellFracComReal"));
                 Assert.True(Col(r, "nBodyComShadow") <= Col(r, "nCellComShadow"));
                 Assert.InRange(Col(r, "maxCellFracComShadow"), 0.0, 1.0 + 1e-9);
-                if (Col(r, "nBodyComShadow") > 0) Assert.True(Col(r, "maxCellFracComShadow") + 1e-12 >= FactionSnapshot.MinSizeFraction, "N≧1 なのに最大のセルが足切り未満");
+                if (Col(r, "nBodyComShadow") > 0) Assert.True(Col(r, "maxCellFracComShadow") + 1e-12 >= floorFrac[Name(r)], "N≧1 なのに最大のセルが足切り未満");
                 if (Col(r, "maxCellFracComShadow") >= FactionSnapshot.MinSizeFraction + 1e-9) Assert.True(Col(r, "nBodyComShadow") >= 1, "最大のセルが足切り以上なのに N＝0");
             }
             Assert.Contains(last, r => Col(r, "nBodyComShadow") > Col(r, "nBodyComReal"));   // 対照：移し替えで新しく共産主義の運動体が立つ国がある（闘争度 1・組合非合法の盤面）＝影の N を検査している

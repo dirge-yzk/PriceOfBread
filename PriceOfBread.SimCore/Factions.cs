@@ -29,10 +29,11 @@ public static class Factions
         if (totalPop <= 1e-9) return;
 
         var observed = FactionSnapshot.ComputeClusters(w, countCost: true);
+        double floor = FactionSnapshot.FloorOf(w, totalPop, observed);   // (1422) 作る側と見えたかの側が同じ足切りを読む
         var consciousnessByBloc = new double?[PolicyPreferences.BlocCount];
         foreach (var (reg, bloc, ideo, size, milSum) in observed)
         {
-            if (size < FactionSnapshot.MinSizeFraction * totalPop) continue;
+            if (size < floor) continue;
             FactionState? st = null;
             foreach (var f in w.Factions) if (ReferenceEquals(f.Region, reg) && f.Bloc == bloc && f.Ideo == ideo) { st = f; break; }
             if (st is null) { st = new FactionState { Region = reg, Bloc = bloc, Ideo = ideo }; w.Factions.Add(st); }
@@ -46,7 +47,7 @@ public static class Factions
             var f = w.Factions[i];
             bool seen = false;
             foreach (var (reg, bloc, ideo, size, _) in observed)
-                if (ReferenceEquals(f.Region, reg) && f.Bloc == bloc && f.Ideo == ideo && size >= FactionSnapshot.MinSizeFraction * totalPop) { seen = true; break; }
+                if (ReferenceEquals(f.Region, reg) && f.Bloc == bloc && f.Ideo == ideo && size >= floor) { seen = true; break; }
             if (seen) continue;
             f.Cohesion *= 1.0 - c.FactionCohesionDecay;
             if (f.Cohesion < ForgetCohesionFloor) w.Factions.RemoveAt(i);
@@ -74,7 +75,7 @@ public static class Factions
                     w.LogAdd($"{w.Year} {DisplayName(small)}が{DisplayName(big)}に合流した");
                 }
         }
-        if (Instruments.On) Instruments.PrdfObserve(w, observed, totalPop);
+        if (Instruments.On) { Instruments.PrdfObserve(w, observed, totalPop); Instruments.FacfloorObserve(w); }
     }
 
     public static string DisplayName(FactionState f) =>

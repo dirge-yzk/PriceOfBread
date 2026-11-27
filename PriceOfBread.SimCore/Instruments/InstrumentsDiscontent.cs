@@ -21,7 +21,7 @@ public static partial class Instruments
         double[] coord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
         double[] gap = c.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
         double mass = 0, sat = 0, dis = 0, mil = 0, mVoice = 0, mWar = 0, mNation = 0, mFamine = 0, chronic = 0, drop = 0, hiHi = 0;
-        double partOld = 0, partNew = 0, partMil = 0, dGtM = 0, partDen = 0;
+        double partOld = 0, partNew = 0, partMil = 0, dGtM = 0, partDen = 0, partD = 0;   // partD＝Σ N d（(1422) 旗 1 の足切りの P_n を計器が自分で足す）
         var oldCl = new Dictionary<(int, int, int), (double Size, double MilSum)>();
         var newCl = new Dictionary<(int, int, int), (double Size, double MilSum)>();
         var milCl = new Dictionary<(int, int, int), (double Size, double MilSum)>();
@@ -56,6 +56,7 @@ public static partial class Instruments
                 if (d > p.Militancy) dGtM += p.Size;
                 if (pOld > 0) partOld += p.Size * pOld;
                 if (pNew > 0) partNew += p.Size * pNew;
+                if (d > 0) partD += p.Size * d;
                 if (pMil > 0) partMil += p.Size * pMil;
                 var (bloc, ideo) = FactionSnapshot.BlocIdeo(p);
                 var key = (r.Id, bloc, ideo);
@@ -64,7 +65,7 @@ public static partial class Instruments
                 if (pMil > 0) { milCl.TryGetValue(key, out var cur); milCl[key] = (cur.Size + p.Size * pMil, cur.MilSum + p.Militancy * p.Size * pMil); }
             }
         }
-        double totalPop = w.TotalPopulation, floor = FactionSnapshot.MinSizeFraction * totalPop;
+        double totalPop = w.TotalPopulation, floor = FactionSnapshot.FloorOf(w, totalPop, c.SatReadersToDiscontent > 0 ? partD : partNew);   // (1422) エンジンの参加の規則の P_n
         static (int Count, double AvgMil, double MilSum) Summ(Dictionary<(int, int, int), (double Size, double MilSum)> cl, double floor)
         {
             int n = 0; double sz = 0, ms = 0;

@@ -17,7 +17,7 @@ public static partial class Instruments
     {
         if (!Tg.Prdf) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         const int com = (int)Ideology.Communism, soc = (int)Ideology.Socialism;
-        double thr = FactionSnapshot.MinSizeFraction * totalPop;
+        double thr = FactionSnapshot.FloorOf(w, totalPop, observed);   // (1422) Factions.Step と同じ足切り
         int nBody = 0, nBodyCom = 0, nBodySoc = 0, nCellCom = 0;
         double maxCellCom = 0, maxCellSoc = 0;
         var bodyCom = new HashSet<(int Region, int Bloc)>();
