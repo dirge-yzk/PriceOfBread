@@ -358,10 +358,14 @@ public static partial class Instruments
         public double PrevPost = double.NaN, RunStartE, PreDecay, TPre, NeedPre;   // 年をまたいで持つ（Clear で消さない）
         public double MoveBefore = double.NaN;   // (1125) 割譲・分離・返還の時点の州の線路＝受け手の次の月の輸送の頭で読み直す（G4）。年をまたいで持つ
         public int RunLen;
+        // (1414) c151wr 項 8：国の中の買い（ProcureNational の呼び）を受け手の州の前の年の φ（年の終わりに計器が読んだ値・年をまたいで持つ）で 3 つに分けて数える。Clear で 0（PhiPrev だけ年をまたぐ）
+        public double PhiPrev = double.NaN;
+        public long[] NatCalls = new long[3]; public double[] NatWant = new double[3], NatGot = new double[3]; public int NatBucket = -1;
+        public long NatNoSellerStock, NatSavZeroLow; public double NatSavSumLow;
         public double ProcWant, ProcGot; public long ProcStockZero, ProcSavBind;   // (1386) 敷きの調達の want・買えた量・在庫 0 で 0 の財×月・貯蓄で削った財×月（Clear で 0）
         public double NeedUsedShare = double.NaN;   // (1137) その年の最後の敷きの月にエンジンが使った need÷計器の目標（Clear で nan）
         public long GnOutViol, G1FormulaOutViol;    // (1137) 計器が自分で組んだ〈産出の比〉の need・φ の混ぜの式と、エンジンの need・倍率が合わない月・側の数
-        public void Clear() { Bought = LaidTerr = DecayLoss = WarLoss = InsRail = PaidRail = PaidRailForeign = 0; Months = G2Rows = G2Viol = G7Excess = G7Fell = G7Lock = G7Hold12 = G1ZeroSides = G1ZeroViol = G1Jump = G1PosSides = G1FormulaViol = G3NoShare = G4Moves = G4Viol = 0; NeedUsedShare = double.NaN; GnOutViol = G1FormulaOutViol = 0; ProcWant = ProcGot = 0; ProcStockZero = ProcSavBind = 0; }
+        public void Clear() { Bought = LaidTerr = DecayLoss = WarLoss = InsRail = PaidRail = PaidRailForeign = 0; Months = G2Rows = G2Viol = G7Excess = G7Fell = G7Lock = G7Hold12 = G1ZeroSides = G1ZeroViol = G1Jump = G1PosSides = G1FormulaViol = G3NoShare = G4Moves = G4Viol = 0; NeedUsedShare = double.NaN; GnOutViol = G1FormulaOutViol = 0; ProcWant = ProcGot = 0; ProcStockZero = ProcSavBind = 0; System.Array.Clear(NatCalls); System.Array.Clear(NatWant); System.Array.Clear(NatGot); NatNoSellerStock = NatSavZeroLow = 0; NatSavSumLow = 0; NatBucket = -1; }
     }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Region, RailAcc> RailAccs = new();
     internal static RailAcc RailOf(Region r) => RailAccs.GetValue(r, _ => new RailAcc());
@@ -462,6 +466,31 @@ public static partial class Instruments
             a.ProcWant += want; a.ProcGot += bought;
             if (stockBefore <= 1e-9 || priceBefore <= 1e-9) a.ProcStockZero++;
             else if (bought < Math.Min(stockBefore, want) * (1.0 - 1e-12)) a.ProcSavBind++;   // 在庫と値段が立つ側で、買えた量が min(在庫,want) に届かない＝貯蓄で削った月（Procure が削るのは貯蓄だけ）
+        }
+        /// <summary>(1414) 国の中の買いの前（州×財）：受け手の前の年の φ で束を選び（nan は φ＜0.05 の束＝開幕の最初の年）、呼びの数と want を足す。
+        /// 売り手の候補（同じ国の他の州で在庫と値段が立つ州）が 1 つも無い財×月、罠の州（φ＜0.05）の投資家の貯蓄を、計器が自分で読む（エンジンの欄・関数は使わない）。</summary>
+        internal void NatPre(World w, Region r, int gi, double want, Pop investor)
+        {
+            var a = RailOf(r);
+            double phi = a.PhiPrev;
+            int k = !(phi >= 0.05) ? 0 : phi < 0.2 ? 1 : 2;
+            a.NatBucket = k; a.NatCalls[k]++; a.NatWant[k] += want;
+            bool any = false;
+            foreach (var b in w.Regions)
+            {
+                if (ReferenceEquals(b, r) || gi >= b.Markets.Length) continue;
+                var mb = b.Markets[gi];
+                if (mb.Stock > 1e-9 && mb.Price > 1e-9) { any = true; break; }
+            }
+            if (!any) a.NatNoSellerStock++;
+            if (k == 0) { double sv = investor.Savings.Value; a.NatSavSumLow += sv; if (!(sv > 1e-9)) a.NatSavZeroLow++; }
+        }
+        /// <summary>(1414) 国の中の買いの後：買えた量を NatPre が選んだ束へ足す。</summary>
+        internal void NatPost(Region r, double got)
+        {
+            var a = RailOf(r);
+            if (a.NatBucket >= 0) a.NatGot[a.NatBucket] += got;
+            a.NatBucket = -1;
         }
         /// <summary>敷きの後：G2（ΔT×地形＝買えた単位×CapPerUnit）・G7（need を超える州の月の積み）。</summary>
         internal void Post(Region r, double boughtUnits)
@@ -570,7 +599,7 @@ public static partial class Instruments
     }
 
     const string TrRailHeader = "year\tnation\tregion\tterrainCode\twaterFlag\trailTrackEnd\tneedEnd\tphiEnd\tmonthsCount\tboughtCapPerYear\tlaidCapTimesTerrainPerYear\tg2Rows\tg2Viol\tdecayLossPerYear\twarLossPerYear\t"
-        + "g7ExcessRows\tg7FellRows\tg7LockRows\tg7Hold12Rows\tg1ZeroSides\tg1ZeroViol\tg1JumpRows\tg1PosSides\tg1FormulaViol\trailFreightInsGoldPerYear\trailFreightPaidGoldPerYear\tg3NoShareRows\tg4Moves\tg4Viol\tneedOutShareEnd\tneedUsedShareEnd\tgnOutViol\tg1FormulaOutViol\trailFreightForeignPaidGoldPerYear\tprocureWantUnitsPerYear\tprocureStockZeroGoodMonths\tprocureSavingsBindGoodMonths\tprocureGotUnitsPerYear\ttPreEnd";
+        + "g7ExcessRows\tg7FellRows\tg7LockRows\tg7Hold12Rows\tg1ZeroSides\tg1ZeroViol\tg1JumpRows\tg1PosSides\tg1FormulaViol\trailFreightInsGoldPerYear\trailFreightPaidGoldPerYear\tg3NoShareRows\tg4Moves\tg4Viol\tneedOutShareEnd\tneedUsedShareEnd\tgnOutViol\tg1FormulaOutViol\trailFreightForeignPaidGoldPerYear\tprocureWantUnitsPerYear\tprocureStockZeroGoodMonths\tprocureSavingsBindGoodMonths\tprocureGotUnitsPerYear\ttPreEnd\tnatCallsPhiLow\tnatCallsPhiMid\tnatCallsPhiHigh\tnatWantPhiLow\tnatWantPhiMid\tnatWantPhiHigh\tnatGotPhiLow\tnatGotPhiMid\tnatGotPhiHigh\tnatNoSellerStockGoodMonths\tnatInvestorSavingsSumPhiLow\tnatInvestorSavingsZeroCallsPhiLow";
 
     /// <summary>年の終わり：全ての国の全ての州の行（州の線路・計器の need と φ・門の数）。旗 0 の世界でも書く（線路は 0・G1 の T＝0 の側の数）。</summary>
     static void TrRailRows(Sink sk, MultiNationSim sim, int year)
@@ -591,7 +620,9 @@ public static partial class Instruments
                 sk.TrRail.WriteLine(string.Join('\t', TrI(year), nation, r.Name, TrI((int)r.Terrain), RailInsWater(r, c) ? "1" : "0", F(r.RailTrack), F(needG), F(RailInsPhi(r.RailTrack, tg * share)),
                     L(a.Months), F(a.Bought), F(a.LaidTerr), L(a.G2Rows), L(a.G2Viol), F(a.DecayLoss), F(a.WarLoss),
                     L(a.G7Excess), L(a.G7Fell), L(a.G7Lock), L(a.G7Hold12), L(a.G1ZeroSides), L(a.G1ZeroViol), L(a.G1Jump), L(a.G1PosSides), L(a.G1FormulaViol), F(a.InsRail), F(a.PaidRail), L(a.G3NoShare), L(a.G4Moves), L(a.G4Viol),
-                    F(outSh[r]), F(a.NeedUsedShare), L(a.GnOutViol), L(a.G1FormulaOutViol), F(a.PaidRailForeign), F(a.ProcWant), L(a.ProcStockZero), L(a.ProcSavBind), F(a.ProcGot), F(a.TPre)));
+                    F(outSh[r]), F(a.NeedUsedShare), L(a.GnOutViol), L(a.G1FormulaOutViol), F(a.PaidRailForeign), F(a.ProcWant), L(a.ProcStockZero), L(a.ProcSavBind), F(a.ProcGot), F(a.TPre),
+                    L(a.NatCalls[0]), L(a.NatCalls[1]), L(a.NatCalls[2]), F(a.NatWant[0]), F(a.NatWant[1]), F(a.NatWant[2]), F(a.NatGot[0]), F(a.NatGot[1]), F(a.NatGot[2]), L(a.NatNoSellerStock), F(a.NatSavSumLow), L(a.NatSavZeroLow)));
+                a.PhiPrev = RailInsPhi(r.RailTrack, tg * share);   // 年の終わりの φ＝次の年の国の中の買いの束を決める
                 a.Clear();
             }
         }

@@ -204,7 +204,7 @@ public static class Transport
                 if (rm is not null) { stk0 = m.Stock; pr0 = m.Price; }   // (1386) 計器の受け口（呼ぶ前の値を読むだけ）
                 double buy = InternationalMarket.Procure(w, r, gi, want, investor);
                 if (byReg) rm?.Procured(r, want, buy, stk0, pr0);
-                if (byReg && c.RailProcureNational > 0 && want - buy > 1e-9) buy += ProcureNational(w, c, r, gi, want - buy, investor, target, basis);   // (1407) 州の在庫で足りない分を同じ国の他の州から
+                if (byReg && c.RailProcureNational > 0 && want - buy > 1e-9) { rm?.NatPre(w, r, gi, want - buy, investor); double natGot = ProcureNational(w, c, r, gi, want - buy, investor, target, basis); buy += natGot; rm?.NatPost(r, natGot); }   // (1414) 計器の呼び 2 行（読むだけ）   // (1407) 州の在庫で足りない分を同じ国の他の州から
                 if (buy <= 1e-9) continue;
                 double add = buy * c.TransportCapPerUnit * mult;
                 if (byReg) { r.RailTrack += add / terrLay; boughtUnits += buy; }
