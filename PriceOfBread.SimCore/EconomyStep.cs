@@ -145,8 +145,7 @@ public static class EconomyStep
     /// </summary>
     private static double StapleHarvestFactor(Region region, int gi, double regionLandFactor)
     {
-        double crop = region.CropHealth is { } ch && gi < ch.Length ? ch[gi] : 1.0;   // 主食id(=gi)の作物健全度（病虫害）
-        return region.HarvestFactor * region.WeatherBandFactor * crop * regionLandFactor;   // 市場向けと同じ収穫係数
+        return region.HarvestFactor * region.WeatherBandFactor * regionLandFactor;   // 市場向けと同じ収穫係数
     }
 
     /// <summary>
@@ -894,8 +893,6 @@ public static class EconomyStep
             double harvestSev = isStaple[s.GoodId] ? 1.0 : Catalog.WeatherExposure(s.GoodId);
             double effHarvest = region.HarvestFactor * region.WeatherBandFactor;   // 国の局地天候×緯度帯（気候帯）の天候＝積算（欧州一帯の凶作が国の不作に重なる）。単一国は帯=1.0で中立
             double harvestMul = fieldLike && harvestSev > 0 ? 1.0 + (effHarvest - 1.0) * harvestSev : 1.0;
-            // 作物固有の病虫害（胴枯れ）：その作物の健全度を産出に乗じる。天候(harvestMul)とは独立にロールされ**積算**＝両者の悪い目が重なれば栽培州の産出はほぼ0（アイルランド大飢饉型）。
-            if (region.CropHealth is { } ch && s.GoodId < ch.Length) harvestMul *= ch[s.GoodId];
             double mineralMul = Catalog.IsMineral(s.GoodId) ? region.MineralGradeFactor : 1.0;   // mineralMul〔履歴 EconomyStep.cs#119〕
             // 役務（教育・医療・行政・高度労働力）＝労働集約のまま＝倍率に乗らない（ボーモルのコスト病）。〔履歴 EconomyStep.cs#120〕
             bool isLabor = s.GoodId is Catalog.LaborId or Catalog.FarmLaborId;   // 人力（工場労働・農業労働）＝工業化(indMult)でのみ伸びる
@@ -1014,7 +1011,7 @@ public static class EconomyStep
                 buildCostPerUnit += coef.ConsRail * Math.Max(region.Markets[coef.RailGoodId].Price, Eps)
                               + coef.ConsLoco * locoGate * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps);
             // ── 実測（powertrace・1800年）───────────────────────────────────────   投資家の**所得**はGDPの約20%＝妥当（英17,198 / GDP86,742）。〔履歴 EconomyStep.cs#145〕
-            double budget = coef.IndInvestmentFrac.Value * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
+            double budget = coef.IndInvestmentFrac.Close(Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value));   // (1408) 項 5：型のまま読む（旧 .Value*）
             // 無補償で工場を取られた資本家は次の投資を控える。〔履歴 EconomyStep.cs#146〕
             if (region.SeizureChill > 0) budget *= Math.Max(0, 1.0 - region.SeizureChill);
             // 収益駆動の投資：工業化の限界収益（飽和カーブの傾き＝逓減）が資本コストを上回る限り投資する。〔履歴 EconomyStep.cs#147〕

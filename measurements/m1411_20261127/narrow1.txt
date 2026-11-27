@@ -1,0 +1,3 @@
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   498、スキップ:     1、合計:   499、期間: 44 m 10 s - PriceOfBread.Tests.dll (net10.0)
+木 36abd290b（合わせた木・旗 1）・束は scripts/instruments/m1411/narrow.sh＝赤 0・WriterRatchetTests の取り直し 0

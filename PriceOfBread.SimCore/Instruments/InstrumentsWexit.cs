@@ -39,12 +39,12 @@ public static partial class Instruments
            || (p.Nation is { } w && (WxInCivil(d, p) || !(w.FoodFill >= c.AllyJoinFoodMin) || !(w.FiscalFundingRatio >= c.AllyJoinFundingMin) || !(w.Legitimacy >= c.AllyJoinLegitimacyMin)));
 
     /// <summary>月の戦況の更新の直後（出口の判定の前）に 1 戦争 1 行。</summary>
-    internal static void WexitRow(Diplomacy d, Coefficients c, War war)
+    internal static void WexitRow(Diplomacy d, Coefficients c, War war, double scoreBeforeCollapse)
     {
         if (!On || !Tg.Cede || !Wants("wexit_s")) return;
         var st = WxStates.GetValue(d, _ => new WxState()); var cps = CpOf(d);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        double kA = WxK(war.A, c), kB = WxK(war.B, c), s = war.Score;
+        double kA = WxK(war.A, c), kB = WxK(war.B, c), s = scoreBeforeCollapse;   // 旧の崩壊が war.Score を書き換える前の値
         double cutA = WxCut(war.A, c), cutB = WxCut(war.B, c);
         bool colA = war.A.WarExhaustion >= 1.0 * cutA, colB = war.B.WarExhaustion >= 1.0 * cutB;
         bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * cutA) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * cutB);

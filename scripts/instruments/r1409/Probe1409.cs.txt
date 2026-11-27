@@ -1,0 +1,18 @@
+namespace PriceOfBread.SimCore;
+public static class Probe1409
+{
+    public static int Mask = -1;   // -1＝旗のまま・0〜31＝bit 1 同盟・2 植民の試行・4 勢力の変異・8 独占の押し・16 作物の病気（bit が立つ＝旗 1 の側）
+    public static bool On(int bit, Coefficients c) => Mask < 0 ? c.RandomOnlyClimateEpidemic > 0 : (Mask & bit) != 0;
+    public static readonly System.Collections.Generic.Dictionary<string, long> H = new();
+    public static long TasCalls;
+    static int _sm, _ajt;
+    public static void Sm(int ln) => _sm = ln;
+    public static bool Ajt(int ln) { _ajt = ln; return true; }
+    public static void Tas() => TasCalls++;
+    public static void Heg(int ln, long n)
+    {
+        string k = ln == 1599 ? (_ajt == 1443 ? $"AJT<-SideMilitary<-L{_sm}" : $"AJT<-L{_ajt}") : $"L{ln}";
+        H[k] = H.GetValueOrDefault(k) + n; H["calls:" + k] = H.GetValueOrDefault("calls:" + k) + 1;
+    }
+    public static void Reset() { H.Clear(); TasCalls = 0; }
+}

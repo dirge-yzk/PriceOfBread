@@ -31,6 +31,7 @@ public class DormantIdentityTests
         "CessionUnified",              // ★(723) 線 ces2：講和の割譲の 4 経路を 1 本の判定（陸の隣接か港の州で上陸の門）と講和 1 回に 1 本の予算へ（設計 20261031_割譲の候補と費用_設計.md 段2）＝0 で今の 4 経路・1 ビットも変わらない。旗 1 の腕は波51 以後（番人 CessionUnifiedTests）
         // ★RailByRegion（(1097) c105rr 支配の力の段 R・州の線路）は 2026-11-13 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は RailByRegionTests の旗 0 の 2 本）。
         // ★RailNeedByOutput（(1137) c111rb 段 R の need の基底・鉄道の need の取り分を州の産出の比へ）は 2026-11-14 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は RailByRegionTests の G3 と RailNeedByOutputTests の旗 0 の側）。
+        // ★RailProcureNational（(1407) c150rp 線路と機関車の調達を同じ国の州の在庫へ）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は RailProcureNationalTests の T1 の旗 0）。
         // ★CedeRuleToLocal（(902) c77ce 割譲の支配度 C1＋H-a）は (915) c79ce が 2026-11-07 に 1 で**点火**＝この表から外した。
         // ★SubsistenceStage2（(849) c69ss 自給の段 2）は (870) c72ss が 2026-11-06 に 1 で**点火**＝この表から外した。
         "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
@@ -162,13 +163,14 @@ public class DormantIdentityTests
         // ★WarWearyPoliticsCut（(1371) c145rv 厭戦の政治の側の 3 本の読みを外す旗）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した。(1385) c147wb で旗ごと焼いた（番人 WarWearyPoliticsCutTests は旗なし）。(1377) c146wy
         // ★SatReadersToDiscontent（(1371) c145rv 不満度から声の項を抜き参加と思想が D を読む旗）は 2026-11-27 に (1398) c149sd で 1 に点火（腕 B の木）＝この表から外した（旗 0 と 1 の番人は SatReadersToDiscontentTests）。
         "ArrearsOnePredicate",          // (1284) c132df 本位の停止の門を不履行の導火線と同じ述語にして判定の前へ（0＝今の形・番人 ArrearsOnePredicateTests）。点火時にこの表から外す
+        // ★RepayFloorOnly（(1416) c151fl 国債の返済を床だけにする）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は RepayFloorOnlyTests の T0）。
         // ★LawPrefSinglePeaked（(1323) c138lp 法の好みの向き＝後退は 1 段下からの上げの好みの反転）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は LawPreferenceDirectionTests＝旗を明示）
         // ★MajorityLabelTierOrder（(1290) c133mr 国の主流の札を格の順で選ぶ）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は MajorityLabelTierOrderTests の T1）。
         // ★NextCapitalHomeFirst（(1304) c135nc 首都の付け替えを格の順に）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は NextCapitalHomeFirstTests の T1・T7）。
         // ★NextCapitalCoreFirst（(1332) c139nc 首都の付け替えの候補を最も高い格の州だけに）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は NextCapitalHomeFirstTests の T8・T11）。
         // ★SecessionTreasuryByMoney（(1318) c137ak 分離の国庫の分与を民間の貨幣の比へ）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は SecessionTreasuryShareTests の T1・T2・T8）。
         // ★StateProcureAsSold（(1336) c140sp 国家の購入〔buyer null〕を LastExport でなく LastSold に積む）は 2026-11-25（(1357) c143sp）に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は StateProcureLedgerTests の T1〜T5）。
-        // ★RandomOnlyClimateEpidemic（(1401) c149rn 乱数を気候と疫病だけにする旗）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は RandomOnlyClimateEpidemicTests＝旗を明示・MonopolyPushTests の 2 件も旗を明示）。
+        // ★RandomOnlyClimateEpidemic（(1401) c149rn 乱数を気候と疫病だけにする旗）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した。(1413) で旗の宣言ごと焼いた（旗の無い番人は RandomOnlyClimateEpidemicTests の T1・T3・T5・T6）。
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
         // ★ColonyLabelsFromData（(1278) c131cr 植民地の州の文化と宗教の札を places.json から・国の主流の札は植民地格を数えない）は 2026-11-21 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は ColonyLabelsFromDataTests.T1c＝旗を明示）
         // ★LaborWeightsByPower（(1037) c98lw 労働力の重み）は 2026-11-11 に 1 で**点火**＝この表から外した（番人 LaborWeightTests）。
@@ -263,6 +265,8 @@ public class DormantIdentityTests
         "ResearcherFrac",
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
+        // (1415) c151lk：戦争の運を 0 にした（乱数は気候と疫病だけ・作者 2026-11-26）＝0 が正しい値。運の式と欄は段 2（恒等の線）で消し、その時にここからも外す
+        "WarLuck",
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。
@@ -397,6 +401,7 @@ public class DormantIdentityTests
         "MegaprojectEnabled", "MegaprojectStateFrac", "MegaprojectStateCap", "MegaprojectPrestige", "MegaprojectCounterCyclical", "MegaprojectCrisisDrawdown", "MegaprojectForeignShare", "MegaprojectForeignMinRank", "MegaprojectForeignDrawFrac", "MegaprojectForeignYield", "FormationLegitimacyBoost", "MonumentBuildQueue", "MonumentBuiltUnits", "MonumentApplied",   // (1081) c103dm：威信と巨大建造物を消した（係数 11 本・州の欄 3 本）
         "StockpilePanicWeight", "StockpileTensionSpan", "StockpileOtherFrac", "WarScareTension",   // (1174) c116hd：戦時の買いだめ（在庫の目標の倍率）を 0.5→0.0 で閉じた（S02-H004a）。(1185) c118hc で枝 Model.StockpileFactor と欄 WarScareTension・係数 StockpileTensionSpan・StockpileOtherFrac も消した＝(1192) c119kf で名簿へ
         "UnificationAiPursueChance", "UnificationAiCooldownYears", "UnificationAiWarGapYears",   // (1195) c119us：統一戦争の AI の乱数と待ちの係数 3 本を削除（(1188) で 1.0・0 にした道を焼いた＝候補と標的が立った四半期に必ず使う）
+        "EraEpidemicRange",   // (1408) c150wz 項 6：疫病の伝播距離の時代係数（EraFactor は常に 1.0＝因子を外して読み手が無くなった・App と Runner の読みは無い＝宣言を消した）
         "GridKeepPerMonth",   // (1255) c128ci：送電網の劣化の残存率 0.998（劣化は 1−GridReplaceRate の 1 本・ビット一致・(1262) で名簿へ）
     ];
 

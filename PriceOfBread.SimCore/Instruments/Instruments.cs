@@ -1961,6 +1961,7 @@ public static partial class Instruments
         if (DscOn) DscTable(sim, seed, q); // DscTable〔履歴 Instruments.cs#320〕
         NationgoodTable(sim, seed, q); NgEventsRoll(sim); TradeskipTable(sim, seed, q); RecipeoutTable(sim, seed, q); ProdcapTable(sim, seed, q);   // NationgoodTable〔履歴 Instruments.cs#321〕
         CapinvTable(sim, seed, q);         // (1255) capinv_s
+        SinkgoodTable(sim, seed, q);       // (1408) sinkgood_s
         SellrTable(sim, seed, q); PaysaleTable(sim, seed, q);          // SellrTable・PaysaleTable＝(1228)〔履歴 Instruments.cs#322〕
         BuyShadowTable(sim, seed, q);      // BuyShadowTable（T0a・s4cost_s・s7staple_s）
         TbTable(sim, seed, q);             // TbTable（T0b・tb_s）
@@ -2021,7 +2022,7 @@ public static partial class Instruments
         IdnClose(sim);   // IdnClose〔履歴 Instruments.cs#346〕
         SubstClose(sim); CornintClose(sim); MerchClose(sim); PxstepClose(sim); CorncfClose(sim); LordstatClose(sim);   // SubstClose〔履歴 Instruments.cs#347〕
         LandbaseClose(sim);   // LandbaseClose〔履歴 Instruments.cs#348〕
-        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim); CapinvClose(sim); PaysaleClose(sim); ReachClose(sim);   // BasisxClose〔履歴 Instruments.cs#349〕
+        BasisxClose(sim); NationgoodClose(sim); TradeskipClose(sim); RecipeoutClose(sim); ProdcapClose(sim); SellrClose(sim); CapinvClose(sim); SinkgoodClose(sim); PaysaleClose(sim); ReachClose(sim);   // BasisxClose〔履歴 Instruments.cs#349〕
         BuyShadowClose(sim);   // BuyShadowClose（T0a）
         TbClose(sim);          // TbClose（T0b）
         T1Close(sim);          // T1Close（(1144) T1）

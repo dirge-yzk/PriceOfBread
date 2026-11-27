@@ -78,6 +78,7 @@ public sealed partial class Coefficients
     public double RailByRegion = 1.0;   // 2026-11-13 に 1 で点火（腕 B の木・旗 0 の経路の番人は RailByRegionTests の旗 0 の 2 本）
     public double RailLayTerrain = 1.0;   // RailByRegion＝0 では読まない
     public double RailNeedByOutput = 1.0;   // 鉄道の need の取り分を州の産出の比へ（0＝潜在量の比）。RailByRegion＝0 では読まない。(1137) 2026-11-14 点火
+    public double RailProcureNational = 1.0;   // (1407) c150rp 線路と機関車の調達で州の在庫が足りない分を、同じ国の他の州のうち陸の運賃つきの値段が一番安い州の在庫から買う（0＝州の在庫だけ）。RailByRegion＝0 では読まない。2026-11-27 に 1（腕 B の木）
     public int[] ShipGoodIds = [Catalog.SailingShipId, Catalog.SteamshipId];            // 帆船(tier1)・汽船(tier2)
     public int ShipTier2GoodId = Catalog.SteamshipId;                // 汽船＝tier2輸送船（蒸気船）
     public double ShipTier2CapMult = 2.5;           // tier2輸送船は1単位あたり容量が大（蒸気船は帆船より高速・大容量＝海運の革命）
@@ -94,7 +95,6 @@ public sealed partial class Coefficients
     public double AllyJoinTension = 40;           // 同盟国が参戦する敵への緊張（参加義務なし＝利害一致時のみ）
     public int MaxAlliances = 2;                  // 1国の同盟数の上限（全員同盟を防ぐ）
     public double HegemonThreatMin = 0.3;         // 覇権と見なす最低脅威超過（GDP×0.6＋植民地×0.4 の平均超過分）
-    public double AntiHegemonAllianceChance = 0.7;// 覇権が共通の敵のときの同盟成立確率（通常0.4より高い＝合従が組まれやすい）
     public int AntiHegemonExtraAlliances = 1;     // 覇権に対抗する時だけ同盟上限を+これ（三国協商＝三極以上の合従を許す）
     public double AntiHegemonJoinFactor = 0.6;    // 敵が覇権のとき同盟国の参戦閾値をこの倍率に下げる（皆で覇権に雪崩れ込む）
     public double HegemonContainmentTrade = 0.40; // 封じ込めで覇権国が失う交易アクセス＝これ×脅威超過（0で無効）
@@ -115,8 +115,8 @@ public sealed partial class Coefficients
     public RatePerMonth ArmsWearRatePerMonth = new(0.02);            // 平時の月次摩耗率（定常で 目標×これ ＝ 現行の平時フローに一致するよう逆算）
     public double ArmsWarWearScale = 1.0;         // 戦闘消耗＝摩耗に (warMult−1)×これ を上乗せ（1.0＝9倍戦時は摩耗9倍）
     public double TrenchDefenseWeight = 0.5;   // 塹壕の防御の重み（装備が戦場に残る ArmsStock と対で意味を持つ）
-    public double WarPushSpeed = 0.10;            // 戦争スコアの押し合い速度（月・押しの割合1あたり）
-    public double WarLuck = 0.12;                 // 戦況の運（決定的会戦・補給・士気）＝毎月の戦勝点に±これの乱数を加算
+    public FractionPerMonth WarPushSpeed = new(0.10);            // 戦争スコアの押し合い速度（月・押しの割合1あたり・(1408) 項 4 で型を付けた＝読み手は Close(押しの割合)）
+    public double WarLuck = 0.0;                  // 戦況の運（決定的会戦・補給・士気）＝毎月の戦勝点に±これの乱数を加算
     public double SeaInvasionControlMin = 0.65;   // ＋精密化「厳密には、海戦で閾値に勝たない限り上陸はできない＝陸戦は起きるが、その被害は民間には出ない」
     public double WarDeclareTension = 140.0;      // 屈服経路（AISubmitMilRatio=3.0）の開通で一方的な組合せは戦わずに折れる＝旧140へ戻し互角の対立だけが戦争へ（160は屈服なし時代の戦争過多対策だった）
     public Share MobilizationConscriptFrac = new(0.22);   // 既存のDrawFromPoolで非兵士POPを兵士へ変換＝代償は自然（労働喪失で経済悪化・兵増で戦死増・国民意識ゲートで低NC国は届かない）

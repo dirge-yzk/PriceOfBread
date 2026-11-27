@@ -695,7 +695,6 @@ public sealed class Region
     public double SocialSecurity;
     public double HarvestFactor = 1.0;
     public double LastSubsistenceOutput;
-    public double[]? CropHealth;
     public double WeatherBandFactor = 1.0;
     public double FoodFill = 1.0;
     public double MineralDepositInitial = -1.0;

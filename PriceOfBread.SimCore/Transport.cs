@@ -204,6 +204,7 @@ public static class Transport
                 if (rm is not null) { stk0 = m.Stock; pr0 = m.Price; }   // (1386) 計器の受け口（呼ぶ前の値を読むだけ）
                 double buy = InternationalMarket.Procure(w, r, gi, want, investor);
                 if (byReg) rm?.Procured(r, want, buy, stk0, pr0);
+                if (byReg && c.RailProcureNational > 0 && want - buy > 1e-9) buy += ProcureNational(w, c, r, gi, want - buy, investor, target, basis);   // (1407) 州の在庫で足りない分を同じ国の他の州から
                 if (buy <= 1e-9) continue;
                 double add = buy * c.TransportCapPerUnit * mult;
                 if (byReg) { r.RailTrack += add / terrLay; boughtUnits += buy; }
@@ -214,5 +215,72 @@ public static class Transport
             if (byReg) rm?.Post(r, boughtUnits);
         }
         return (addTotal, addSteam);
+    }
+
+    /// <summary>(1407) c150rp 旗 RailProcureNational：州 r の在庫で足りない線路・機関車（deficit 単位）を、同じ国（w）の他の州のうち陸の運賃つきの値段が一番安い 1 州の在庫から、r の投資家が買う。
+    /// 売り買いは Procure を売り手の州で呼ぶ（売り手の州の在庫・売り上げ・需要の記帳と、売り手の生産者への払いは州の調達と同じ道）。
+    /// 運賃＝荷価×FreightRatePer10Mm×陸の等価距離÷DistanceNormKm。陸の等価距離は清算の陸の道（BilateralMarket.PairKmCore の viaLand）と同じ形＝道の距離×½×(両端の陸の倍率の和)・陸の倍率＝((1−φ)×馬の地形の費用＋φ×鉄道の地形の費用×RailCostFraction)×LandSeaCostRatio（清算の旗 RailByRegion の枝と同じ）。
+    /// 運賃の払い先は清算の陸の運びの記帳（railRecv と freightPool）の形を国の中に写す：両端の鉄道の分（φ×鉄道の費用×LandSeaCostRatio÷両端の倍率の和）は端の州の投資家へ（買い手の州の分は払い手自身＝動かさない）・残りは国の商人へ。
+    /// 陸の道が無い州（座標が無い・道の距離が無限）からは買わない。戻り値＝買えた単位。</summary>
+    internal static double ProcureNational(World w, Coefficients c, Region r, int gi, double deficit, Pop investor, double target, (double Even, double TotalPot) basis)
+    {
+        if (!(deficit > 1e-9) || !(c.LandRouteEnabled > 0)) return 0;
+        var ca = Climate.CityCoord(r.Name);
+        if (ca.Lat == 0 && ca.Lon == 0) return 0;
+        var (kA, railKA) = LandMul(w, c, r, target, basis);
+        Region? src = null; double bestUnit = 0, bestFr = 0, bestK = 0, bestRailK = 0;
+        foreach (var b in w.Regions)
+        {
+            if (ReferenceEquals(b, r) || gi >= b.Markets.Length) continue;
+            var mb = b.Markets[gi];
+            if (mb.Stock <= 1e-9 || mb.Price <= 1e-9) continue;
+            var cb = Climate.CityCoord(b.Name);
+            if (cb.Lat == 0 && cb.Lon == 0) continue;
+            double km = PathGraph.LandDistanceKm(ca.Lat, ca.Lon, cb.Lat, cb.Lon);
+            if (!double.IsFinite(km)) continue;
+            var (kB, railKB) = LandMul(w, c, b, target, basis);
+            double fr = c.FreightRatePer10Mm * (km * 0.5 * (kA + kB)) / Diplomacy.DistanceNormKm;
+            double unit = mb.Price * (1.0 + fr);
+            if (src is null || unit < bestUnit) { src = b; bestUnit = unit; bestFr = fr; bestK = kB; bestRailK = railKB; }
+        }
+        if (src is null) return 0;
+        double take = System.Math.Min(deficit, System.Math.Max(0, investor.Savings.Value) / bestUnit);
+        if (!(take > 1e-9)) return 0;
+        double px = src.Markets[gi].Price;
+        double got = InternationalMarket.Procure(w, src, gi, take, investor);
+        if (!(got > 1e-9)) return 0;
+        double freight = got * px * bestFr;
+        if (!(freight > 0)) return got;
+        double kSum = kA + bestK;
+        double toSrcRail = kSum > 0 ? freight * bestRailK / kSum : 0.0;
+        double toOwnRail = kSum > 0 ? freight * railKA / kSum : 0.0;   // 買い手の州の鉄道の分＝払い手（買い手の州の投資家）自身＝動かさない
+        if (toSrcRail > 0)
+        {
+            var srcInv = src.InvestorPopIndex >= 0 && src.InvestorPopIndex < src.Pops.Count && src.Pops[src.InvestorPopIndex].Size > 1e-9 ? new List<Pop> { src.Pops[src.InvestorPopIndex] } : src.Pops;
+            World.Transfer((w, [investor]), (w, srcInv, null), toSrcRail, income: true);
+        }
+        double rest = freight - toSrcRail - toOwnRail;
+        if (rest > 0)
+        {
+            var carriers = new List<Pop>();
+            foreach (var r2 in w.Regions) if (r2.MerchantPop is { } mp) carriers.Add(mp);
+            if (carriers.Count == 0) foreach (var r2 in w.Regions) carriers.AddRange(r2.Pops);
+            World.Transfer((w, [investor]), (w, carriers, null), rest, income: true);
+        }
+        return got;
+    }
+
+    /// <summary>(1407) 州の陸の倍率（清算の旗 RailByRegion の枝の terrCost×landRatio）と、その鉄道の分（railFrac×倍率＝φ×鉄道の地形の費用×RailCostFraction×LandSeaCostRatio）。</summary>
+    private static (double K, double RailK) LandMul(World w, Coefficients c, Region x, double target, (double Even, double TotalPot) basis)
+    {
+        int ti = (int)x.Terrain;
+        double rcf01 = PoliticalQuantities.Clamp01(c.RailCostFraction);
+        double bh = ti < c.TerrainHorseCost.Length ? c.TerrainHorseCost[ti] : 1.0;
+        double br = (ti < c.TerrainRailCost.Length ? c.TerrainRailCost[ti] : 1.0) * rcf01;
+        if (x.Terrain == Terrain.WaterMajor && c.TerrainWaterMajorCost > 0) { bh = c.TerrainWaterMajorCost; br = bh * rcf01; }
+        else if (x.Terrain == Terrain.WaterMinor && c.TerrainWaterMinorCost > 0) { bh = c.TerrainWaterMinorCost; br = bh * rcf01; }
+        double phi = RailPhi(x.RailTrack, target * RailNeedShare(w, basis, x));
+        double m1 = (1.0 - phi) * bh + phi * br;
+        return (m1 * c.LandSeaCostRatio, phi * br * c.LandSeaCostRatio);
     }
 }

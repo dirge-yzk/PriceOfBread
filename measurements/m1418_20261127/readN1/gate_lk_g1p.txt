@@ -1,0 +1,14 @@
+seed 1 wars=344 blank=34 running=1 longest=158 longestRunning=39 meanMonths=15.48 usable=4356 over=0 moved=3632 firstOver=2 maxAbsD=0.1 decShort=0 end_decisive=173 end_collapse=151 end_mediation=14 end_weary=6 end_running=1
+seed 2 wars=952 blank=90 running=4 longest=145 longestRunning=4 meanMonths=13.5 usable=10588 over=0 moved=8984 firstOver=5 maxAbsD=0.1 decShort=0 end_decisive=328 end_collapse=546 end_mediation=41 end_weary=35 end_running=4
+seed 3 wars=612 blank=65 running=2 longest=139 longestRunning=10 meanMonths=15.48 usable=8011 over=0 moved=6664 firstOver=4 maxAbsD=0.1 decShort=0 end_decisive=277 end_collapse=283 end_mediation=27 end_weary=23 end_running=2
+seed 4 wars=763 blank=97 running=0 longest=83 longestRunning=0 meanMonths=13.38 usable=8327 over=0 moved=6989 firstOver=3 maxAbsD=0.1 decShort=0 end_decisive=289 end_collapse=419 end_mediation=27 end_weary=35 end_running=0
+seed 5 wars=657 blank=55 running=0 longest=104 longestRunning=0 meanMonths=12.96 usable=7290 over=0 moved=6657 firstOver=2 maxAbsD=0.1 decShort=0 end_decisive=261 end_collapse=337 end_mediation=27 end_weary=31 end_running=0
+seed 6 wars=593 blank=54 running=2 longest=107 longestRunning=5 meanMonths=16.8 usable=8583 over=0 moved=7485 firstOver=1 maxAbsD=0.1 decShort=0 end_decisive=359 end_collapse=196 end_mediation=23 end_weary=12 end_running=2
+seed 7 wars=409 blank=36 running=0 longest=175 longestRunning=0 meanMonths=15.01 usable=5151 over=0 moved=4223 firstOver=3 maxAbsD=0.1 decShort=0 end_decisive=197 end_collapse=187 end_mediation=12 end_weary=9 end_running=0
+seed 8 wars=788 blank=71 running=1 longest=137 longestRunning=16 meanMonths=14.24 usable=9308 over=0 moved=7852 firstOver=4 maxAbsD=0.1 decShort=0 end_decisive=350 end_collapse=382 end_mediation=30 end_weary=26 end_running=1
+seed 9 wars=985 blank=94 running=1 longest=225 longestRunning=12 meanMonths=12.33 usable=9876 over=0 moved=8413 firstOver=2 maxAbsD=0.1 decShort=0 end_decisive=374 end_collapse=524 end_mediation=30 end_weary=42 end_running=0
+seed 10 wars=1244 blank=112 running=2 longest=81 longestRunning=13 meanMonths=11.41 usable=11867 over=0 moved=10614 firstOver=0 maxAbsD=0.1 decShort=0 end_decisive=394 end_collapse=757 end_mediation=32 end_weary=56 end_running=2
+TOTAL blank=708 decShort=0 end_collapse=3782 end_decisive=3002 end_mediation=263 end_other=4 end_running=12 end_weary=275 firstOver=26 moved=71513 over=0 running=13 usable=83357 wars=7347
+MAX longest=225 longestRunning=39 runningPerSeedMax=4 maxAbsD=0.1
+MEAN meanMonths=13.617
+GATE G1prime(tol 2e-9) over=0 (accept if 0) firstOver=26 (record)

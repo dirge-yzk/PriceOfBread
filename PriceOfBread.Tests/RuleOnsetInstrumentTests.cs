@@ -184,7 +184,7 @@ public class RuleOnsetInstrumentTests
         double mBar = crowdSize > 1e-9 ? crowdMil / crowdSize : 0, interm = Privileges.IntermediaryDegree(w);
         double orderOld = Math.Clamp(w.PublicOrder, 0, 1);
         var pre = w.Regions.Where(r => r.Rule.Length == 4).ToDictionary(r => r, r => (double[])r.Rule.Clone(), ReferenceEqualityComparer.Instance as IEqualityComparer<Region>);
-        var pred = w.Regions.Where(r => r.Rule.Length == 4).ToDictionary(r => r, r => Instruments.RuleOldStep(pre[r], Instruments.RuleTargetRaw(w, c, r, c.RuleOrderByRegion > 0, orderOld, rawOrder, mBar, interm), c.DominanceSpeed), RefCmp());
+        var pred = w.Regions.Where(r => r.Rule.Length == 4).ToDictionary(r => r, r => Instruments.RuleOldStep(pre[r], Instruments.RuleTargetRaw(w, c, r, c.RuleOrderByRegion > 0, orderOld, rawOrder, mBar, interm), c.RuleRelaxSpeed), RefCmp());
         Politics.CheckSecession(w, c, PoliticalQuantities.EffectiveCoerce(w, c));
         int n = 0; double worst = 0;
         foreach (var r in w.Regions.Where(r => r.Rule.Length == 4)) { n++; for (int k = 0; k < 4; k++) worst = Math.Max(worst, Math.Abs(pred[r][k] - r.Rule[k])); }
@@ -202,7 +202,7 @@ public class RuleOnsetInstrumentTests
         var t = Instruments.RuleOldTarget(0.6, 0.5, 0.3, 0.5, 0.1);
         Assert.Equal(new[] { 0.55, 0.15, 0.1, 0.2 }, t.Select(x => Math.Round(x, 12)).ToArray());
         // 1 歩：[1,0,0,0] から速度 0.025（和は 1 のまま＝割らない）
-        var s = Instruments.RuleOldStep([1, 0, 0, 0], t, 0.025);
+        var s = Instruments.RuleOldStep([1, 0, 0, 0], t, FractionPerQuarter.FromQuarter(0.025));
         Assert.Equal(new[] { 0.98875, 0.00375, 0.0025, 0.005 }, s.Select(x => Math.Round(x, 12)).ToArray());
         // 和が 1 を超える目標は割って取り分にする：state 0・local 0.6・foreign 0.7・ungov 0 → 0.6/1.3・0.7/1.3
         var n = Instruments.RuleNormalize([0, 0.6, 0.7, 0]);

@@ -1,0 +1,7 @@
+突然変異	結果（木 919b08886 の上・各 1 本ずつ当てて戻した）
+μ1 sinkgood の fraction の分母を入れ替える（t/wt）	赤：SinkgoodInstrumentTests.T1_FractionsSumToOnePerLaborPop（失敗 1・合格 2）
+μ2 B13 の型を入れ替える（Diplomacy の風化が RuleRelaxSpeed を読む）	赤：DominanceSpeedSplitTests.条約港の風化は風化の速さだけを読む（失敗 1・合格 1）
+μ3 (b) の敗者の集合を戻す	未確認：押しのある盤面は軌道に依り試験で置けない＝旗 1 の束ね試験は緑のままの穴（報告に名乗る）
+μ4a 補助が範囲の終わりを返す	赤：SeedPickTests（失敗 1・合格 0）。越境の対照 InstrumentsTests は回していない
+μ4b statediff の自己試験の比べから状態の群を全て外す（緑の木で当て直し）	赤：StateDigestToolTests.自己試験（失敗 1・合格 3・1 分 1 秒）
+⑧ 調停の門の旗 1 の枝を旧の式へ戻す＋⑬ 統一戦争の門を旧の式へ戻す	赤 2 本：調停の門は旗1で…・統一戦争の門は旗0で…（失敗 2・合格 14）

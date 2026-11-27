@@ -1107,7 +1107,7 @@ public class RevoltIgnitionTests
         Assert.Equal(wX.TotalPopulation, wY.TotalPopulation, 6);
         var c = wX.Coef;
         foreach (var (w, _) in new[] { (wX, rX), (wY, rY), (wZ, rZ) }) Politics.CheckSecession(w, w.Coef, 0.0);
-        double s = c.DominanceSpeed, h = wX.SecessionHold;   // 標的の州が最悪の州（他の州は闘争度0）＝その州に届く引き留め
+        double s = c.DominanceIntegralSpeed.Value, h = wX.SecessionHold;   // 標的の州が最悪の州（他の州は闘争度0）＝その州に届く引き留め
         double pX = h - (rX.Dominance - 0.5) / s, pY = h - (rY.Dominance - 0.5) / s;
         Assert.True(pX > h, $"前提が崩れた：大衆のいる州が離れる向きでない（圧力 {pX:F4}・引き留め {h:F4}）");
         double nX = Politics.RegionCrowd(rX), nY = Politics.RegionCrowd(rY), n0 = c.ColonyPromotionMinPop;

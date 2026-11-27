@@ -1,0 +1,99 @@
+diff --git a/PriceOfBread.SimCore/Diplomacy.cs b/PriceOfBread.SimCore/Diplomacy.cs
+index 63cb4e52f..6b9f3724b 100644
+--- a/PriceOfBread.SimCore/Diplomacy.cs
++++ b/PriceOfBread.SimCore/Diplomacy.cs
+@@ -1046,10 +1046,10 @@ public sealed class Diplomacy
+     }
+ 
+     /// <summary>明白な覇権国（脅威超過が最大かつ <see cref="Coefficients.HegemonThreatMin"/> 超）。いなければ null＝合従は組まれず通常の同盟のみ（B-1）。</summary>
+-    private Power? Hegemon(Coefficients c)
++    private Power? Hegemon(Coefficients c, [System.Runtime.CompilerServices.CallerLineNumber] int ln = 0)
+     {
+         Power? best = null; double bestT = c.HegemonThreatMin;
+-        Cost[CostLedger.DiploHegemonScans] += (long)Powers.Count * Powers.Count;   // 計算量の台帳（診断）：覇権の判定は国×国（従属の加重を国ごとに数え直す）
++        Cost[CostLedger.DiploHegemonScans] += (long)Powers.Count * Powers.Count; Probe1409.Heg(ln, (long)Powers.Count * Powers.Count);   // 計算量の台帳（診断）：覇権の判定は国×国（従属の加重を国ごとに数え直す）
+         if (!ThreatAverages(c, out double avgG, out double avgC, out double avgM)) return best;   // 同じ値・同じ順序）〔履歴 Diplomacy.cs#134〕
+         foreach (var p in Powers) { if (p.Nation is null) continue; double t = ThreatExcess(p, c, avgG, avgC, avgM); if (t > bestT) { bestT = t; best = p; } }
+         return best;
+@@ -1432,9 +1432,9 @@ public sealed class Diplomacy
+     /// <summary>
+     /// 見込みは JoinAllies の一次条件（同盟・非交戦・緊張≥閾値）のみ ＝国難/勝ち目/プレイヤー要請の判定は含まない（参戦見込みの上限）。〔履歴 Diplomacy.cs#158〕
+     /// </summary>
+-    public double SideMilitary(Power p, Power foe, Coefficients c)
++    public double SideMilitary(Power p, Power foe, Coefficients c, [System.Runtime.CompilerServices.CallerLineNumber] int ln = 0)
+     {
+-        double m = p.Military;
++        double m = p.Military; Probe1409.Sm(ln);
+         // 同盟の無い国（大半）は引かない。〔履歴 Diplomacy.cs#159〕
+         double jt = 0; bool jtKnown = false;
+         foreach (var ally in Powers)
+@@ -1595,8 +1595,8 @@ public sealed class Diplomacy
+     /// <summary>
+     /// 敵が覇権なら下がる（皆で雪崩れ込む）。〔履歴 Diplomacy.cs#174〕
+     /// </summary>
+-    public double AllyJoinThreshold(Power enemy, Coefficients c)
+-        => enemy == Hegemon(c) ? c.AllyJoinTension * c.AntiHegemonJoinFactor : c.AllyJoinTension;
++    public double AllyJoinThreshold(Power enemy, Coefficients c, [System.Runtime.CompilerServices.CallerLineNumber] int ln = 0)
++        => Probe1409.Ajt(ln) && enemy == Hegemon(c) ? c.AllyJoinTension * c.AntiHegemonJoinFactor : c.AllyJoinTension;
+ 
+     /// <summary>
+     /// 暦年条件なし（設計思想①）。〔履歴 Diplomacy.cs#175〕
+@@ -1767,7 +1767,7 @@ public sealed class Diplomacy
+                     }
+                     int cap = c.MaxAlliances + (coalitionFoe == hegemon ? c.AntiHegemonExtraAlliances : 0);
+                     double chance = coalitionFoe == hegemon ? c.AntiHegemonAllianceChance : 0.4;
+-                    if (allyCounts[p] < cap && allyCounts[q] < cap && !HasAlliance(p, q) && (c.RandomOnlyClimateEpidemic > 0 || rng.NextDouble() < chance))   // (1401) 旗 1＝条件だけで結ぶ
++                    if (allyCounts[p] < cap && allyCounts[q] < cap && !HasAlliance(p, q) && (Probe1409.On(1, c) || rng.NextDouble() < chance))   // (1401) 旗 1＝条件だけで結ぶ
+                     {
+                         _alliance.Add(Key(p, q));
+                         allyCounts[p]++; allyCounts[q]++;
+@@ -1781,8 +1781,8 @@ public sealed class Diplomacy
+             {
+                 double selfThreat = ThreatScore(p, c);
+                 double colonizeChance = c.AiColonizeChance * (selfThreat > 0 ? Math.Max(c.HegemonRestraintFloor.Value, 1.0 - selfThreat) : 1.0);   // colonizeChance〔履歴 Diplomacy.cs#189〕
+-                if (p.Nation is not null && Suzerain(p) is null && (c.RandomOnlyClimateEpidemic > 0 || rng.NextDouble() < colonizeChance))   // (1401) 旗 1＝TryAiSubjugate の門だけで決める
+-                    TryAiSubjugate(p, c);
++                if (p.Nation is not null && Suzerain(p) is null && (Probe1409.On(2, c) || rng.NextDouble() < colonizeChance))   // (1401) 旗 1＝TryAiSubjugate の門だけで決める
++                    { Probe1409.Tas(); TryAiSubjugate(p, c); }
+             }
+         }
+     }
+diff --git a/PriceOfBread.SimCore/Factions.cs b/PriceOfBread.SimCore/Factions.cs
+index 3c95b4c4a..a5c654c24 100644
+--- a/PriceOfBread.SimCore/Factions.cs
++++ b/PriceOfBread.SimCore/Factions.cs
+@@ -43,7 +43,7 @@ public static class Factions
+             double consc = consciousnessByBloc[bloc] ??= BlocConsciousness(w, bloc);
+             double growth = c.FactionCohesionGrowth * (0.5 + consc) * (st.Mutated ? 2.0 : 1.0);
+             st.Cohesion = PoliticalQuantities.Clamp01(PoliticalQuantities.Toward(st.Cohesion, 1.0, growth));
+-            if (!st.Mutated && st.Cohesion >= MutationCohesionGate && !(c.RandomOnlyClimateEpidemic > 0))   // (1401) 旗 1＝変異の経路を通らない（乱数は気候と疫病だけ）
++            if (!st.Mutated && st.Cohesion >= MutationCohesionGate && !Probe1409.On(4, c))   // (1401) 旗 1＝変異の経路を通らない（乱数は気候と疫病だけ）
+             {
+                 double crisis = System.Math.Max(1.0 - reg.FoodFill, w.DefeatShock);
+                 if (c.FactionRejectionMutation > 0)
+diff --git a/PriceOfBread.SimCore/SelfPlay.cs b/PriceOfBread.SimCore/SelfPlay.cs
+index 700407318..fa04cb4e9 100644
+--- a/PriceOfBread.SimCore/SelfPlay.cs
++++ b/PriceOfBread.SimCore/SelfPlay.cs
+@@ -382,7 +382,7 @@ public sealed class UtilityAgent : INationAgent
+     internal static bool MonopolyPushDraw(World w, out double p, out double u)
+     {
+         p = double.NaN; u = double.NaN;
+-        if (w.Coef.MonopolyBurdenPushMode <= 0 || w.Coef.RandomOnlyClimateEpidemic > 0 || w.AiRng is not { } rng) return false;   // (1401) 旗 1＝押しの経路を消す（乱数を引かない）
++        if (w.Coef.MonopolyBurdenPushMode <= 0 || Probe1409.On(8, w.Coef) || w.AiRng is not { } rng) return false;   // (1401) 旗 1＝押しの経路を消す（乱数を引かない）
+         p = MonopolyPushProbabilityOf(w);
+         if (!(p > 0)) return false;
+         u = rng.NextDouble();
+diff --git a/PriceOfBread.SimCore/Simulation.cs b/PriceOfBread.SimCore/Simulation.cs
+index 76ab0a8d5..5927d643e 100644
+--- a/PriceOfBread.SimCore/Simulation.cs
++++ b/PriceOfBread.SimCore/Simulation.cs
+@@ -1688,7 +1688,7 @@ public sealed class Simulation
+             // 天候(HarvestFactor)とは独立に作物固有でロール＝両者の悪い目が重なれば栽培州の産出はほぼ0（積算）。合成食料(id 0)は IsDiseaseProneCrop=false で非対象＝較正中立。
+             var cropHealth = World.CropHealth;
+             var hc = World.Coef;
+-            if (!(hc.RandomOnlyClimateEpidemic > 0))   // (1401) 旗 1＝作物の病気は凶作に含めて経路を通らない（HarvestRng を引かず CropHealth は 1.0 のまま）
++            if (!Probe1409.On(16, hc))   // (1401) 旗 1＝作物の病気は凶作に含めて経路を通らない（HarvestRng を引かず CropHealth は 1.0 のまま）
+             for (int g = 0; g < cropHealth.Length; g++)
+             {
+                 if (!Catalog.IsDiseaseProneCrop(g)) continue;

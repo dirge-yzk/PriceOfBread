@@ -170,7 +170,7 @@ public static class Fiscal
             double floorRepay = Math.Min(w.GovDebt.Value * c.BondRepayFracPerMonth.Value, spare);
             double excess = w.Treasury.Value - UtilityAgent.OpulenceLineOf(w);
             if (!(excess > 0)) excess = 0;
-            double repay = Math.Min(w.GovDebt.Value, Math.Min(spare, Math.Max(floorRepay, excess)));
+            double repay = Math.Min(w.GovDebt.Value, c.RepayFloorOnly > 0 ? floorRepay : Math.Min(spare, Math.Max(floorRepay, excess)));   // (1416) 旗 RepayFloorOnly＞0＝床だけ（余りは国庫に残る）
             if (Instruments.On) Instruments.FsxRepay(w, floorRepay, repay, excess);
             double shareNow = PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt);
             double frForeign = repay * shareNow;

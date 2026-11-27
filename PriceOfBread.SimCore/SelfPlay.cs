@@ -370,25 +370,6 @@ public sealed class UtilityAgent : INationAgent
         return excess > 0 ? excess / interest : 0.0;
     }
 
-    internal static double MonopolyPushProbabilityOf(World w)
-    {
-        double b = InterestBurdenStressOf(w);
-        if (!(b > 0)) return 0.0;
-        double buffer = FiscalBufferOf(w), treasury = w.Treasury.Value;
-        double reserve = treasury > 0 ? treasury : 0.0;
-        return b * (buffer / (buffer + reserve));
-    }
-
-    internal static bool MonopolyPushDraw(World w, out double p, out double u)
-    {
-        p = double.NaN; u = double.NaN;
-        if (w.Coef.MonopolyBurdenPushMode <= 0 || w.Coef.RandomOnlyClimateEpidemic > 0 || w.AiRng is not { } rng) return false;   // (1401) 旗 1＝押しの経路を消す（乱数を引かない）
-        p = MonopolyPushProbabilityOf(w);
-        if (!(p > 0)) return false;
-        u = rng.NextDouble();
-        return u < p;
-    }
-
     internal static double SecurityShare(World w, bool army = false)
     {
         double t = army ? w.SecurityThreatArmy : w.SecurityThreat, own = w.SecurityThreatOwnMass;
@@ -1030,11 +1011,8 @@ public sealed class UtilityAgent : INationAgent
         if (!w.WarmupFrozen)
         {
             int curTier = w.StateMonopolyTier;
-            bool push = false; double pushP = double.NaN, pushU = double.NaN;
-            if (!(fiscalStress > 0)) push = MonopolyPushDraw(w, out pushP, out pushU);
-            if (Instruments.On) Instruments.MonopolyPush(w, InterestBurdenStressOf(w), pushP, pushU, push);
+            if (Instruments.On) Instruments.MonopolyPush(w, InterestBurdenStressOf(w), double.NaN, double.NaN, false);   // (1413) 押しの抽選は消した＝p・u は NaN・当たりは 0 の同じ値を書く
             if (fiscalStress > 0) stateMonopTier = Math.Max(stateMonopTier, curTier + 1);
-            else if (push) stateMonopTier = Math.Max(stateMonopTier, curTier + 1);
             else if (w.Treasury.Value > FiscalBufferOf(w)) stateMonopTier = Math.Max(stateMonopTier, curTier - 1);
             else stateMonopTier = Math.Max(stateMonopTier, curTier);
         }

@@ -19,10 +19,7 @@ public sealed class FactionState
 
 public static class Factions
 {
-    private static readonly string[] MutantStems = ["太平", "千年", "救世", "光明", "天命", "新生", "浄化", "黎明", "再臨", "弥勒"];
-    private static readonly string[] MutantSuffixes = ["会", "団", "軍", "同盟"];
 
-    private const double MutationCohesionGate = 0.3;
     private const double ForgetCohesionFloor = 0.05;
 
     public static void Step(World w, Coefficients c)
@@ -43,27 +40,6 @@ public static class Factions
             double consc = consciousnessByBloc[bloc] ??= BlocConsciousness(w, bloc);
             double growth = c.FactionCohesionGrowth * (0.5 + consc) * (st.Mutated ? 2.0 : 1.0);
             st.Cohesion = PoliticalQuantities.Clamp01(PoliticalQuantities.Toward(st.Cohesion, 1.0, growth));
-            if (!st.Mutated && st.Cohesion >= MutationCohesionGate && !(c.RandomOnlyClimateEpidemic > 0))   // (1401) 旗 1＝変異の経路を通らない（乱数は気候と疫病だけ）
-            {
-                double crisis = System.Math.Max(1.0 - reg.FoodFill, w.DefeatShock);
-                if (c.FactionRejectionMutation > 0)
-                    crisis = System.Math.Max(crisis, System.Math.Min(1.0, c.FactionRejectionMutation * st.Rejections));
-                if (crisis > c.FactionMutationCrisisFloor)
-                {
-                    ulong u = w.FactionRng.NextULong();
-                    double roll = (u & 0xFFFF_FFFF) / (double)uint.MaxValue;
-                    if (roll < c.FactionMutationRate * crisis)
-                    {
-                        st.Mutated = true;
-                        int stem = (int)((u >> 32) % (ulong)MutantStems.Length);
-                        int suf = (int)((u >> 48) % (ulong)MutantSuffixes.Length);
-                        st.MutantName = $"{reg.Name}の{MutantStems[stem]}{MutantSuffixes[suf]}";
-                        st.Cohesion = System.Math.Max(st.Cohesion, c.MutantCohesionFloor);
-                        w.FactionMutations++;
-                        w.LogAdd($"{w.Year} {w.SelfPower?.Name}で{st.MutantName}が旗を掲げた");
-                    }
-                }
-            }
         }
         for (int i = w.Factions.Count - 1; i >= 0; i--)
         {

@@ -1,0 +1,12 @@
+m1411M start 2026-11-27 13:10:23 tree=36abd290b Dfree=103.8GB armsfree=6 coef=
+identZ start 2026-11-27 13:10:23 tree=6fa5dd201 Dfree=103.8GB armsfree=6
+m1411M end 2026-11-27 13:52:16 rc=0
+identZ end 2026-11-27 13:57:05 rc=0
+m1411S11 start 2026-11-27 13:59:43 tree=36abd290b Dfree=67.19GB armsfree=6 coef=
+m1411N1 start 2026-11-27 13:59:43 tree=36abd290b Dfree=67.19GB armsfree=6 coef=SupplySlope=0.50000001
+m1411N1 end 2026-11-27 14:26:52 rc=0
+m1411S11 end 2026-11-27 14:27:11 rc=0
+m1411p5 start 2026-11-27 14:30:06 tree=36abd290b Dfree=36.92GB armsfree=6 coef=
+m1411p5 end 2026-11-27 14:36:25 rc=0
+m1411N2 start 2026-11-27 15:41:54 tree=36abd290b Dfree=64.64GB armsfree=6 coef=SupplySlope=0.49999999
+m1411N2 end 2026-11-27 15:57:14 rc=0
