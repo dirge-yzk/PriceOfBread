@@ -1,0 +1,109 @@
+(1428) c153rg 事前登録（挙動の線・3 回の規則の 1 回目・腕の前のコミット）
+================================================================
+形の型：入口（毎月の外交の緊張の組の走査から宗教の 2 つの道が消える）。
+出発：ORDER 上書き 4 の②・00一覧〈次の波〉2 の⑤。
+裁定：作者 2026-11-11（原文）「宗教の例外は、法制定においてのみです。これは移民による文化摩擦を表現するためのものです。それ以上に拡大するつもりは今のところありません。」
+  メモリ pob-rulings-2026-11-11 の〈外交の宗教の緊張（座標の表・異端の加点・同じ宗教の緩和）は消す〉。作者「全て推奨でよい」で答え済み＝新しい問いではない。
+  作者が〈消す〉と裁定した形＝確証あり＝バランスでは止めない・ヌル腕は読まない。
+基線：m1425（c3290bbbd）。生は D:/PoB_work/keep_1425/base_ins（読むだけ）・ヌル腕 keep_1425/n1・n2（読むだけ）。
+
+1. 形
+- PriceOfBread.SimCore/Coefficients.p05_port_insurance.cs:50 ReligionTensionPerMonth 0.03→0・:52 ReligionAffinityRelief 0.06→0 の 2 行だけ。
+  新しい旗・係数・状態は作らない（既存の係数が旗＝lk・ms と同じ形）。
+- 読み手：Diplomacy.cs:1199〜:1210 AffinityTensions の宗教の枝。
+  - 同じ宗教＝AddTensionKeyed(k, −Relief)＝−0.0（:1203）。違う宗教＝PerMonth×dist＝0（:1209）。
+  - AddTensionKeyed（:557）は old+0 を書き戻し、now==old なので内訳（Why）に書かない＝鍵の集合は旧と同じ（緊張の表の鍵の挿入の順も同じ）。
+  - 0.0+(−0.0)＝0.0（IEEE）＝符号つきの 0 は緊張の表に残らない。
+- 残る読み手（触らない）：ReligionHeresyBonus と FamilyCoord を読む ReligionDistance（:1248）→GovCost（:1256）→講和の属国の判定（:2794 GovCostVassalThreshold）。
+  ProtectorGrievance（:1224〜）と保護の緊張（:1211〜:1216・ProtectorTensionPerMonth 0.02）。
+- 枝・欄・fam の配列・TensionReason.Religion・画面の札（Diplomacy.cs:627）の削除は段 2（採った次の恒等の線）。この線では触らない。
+- SimCore の差分は値の 2 行＝旗 0 の器のコミットが無い＝腕 Z（ident）は回さない（lk・ms と同じ）。
+- 入れない物：民族の項（作者に聞く物・author_questions.md 9）・分離の圧の宗教の項・建国の宗教の条件・州の宗教の札・改宗・Diplomacy.cs（nx の持ち物）・App・Display・Runner。
+- 重なり：c153nx は Diplomacy.cs:2410〜:2445 と Coefficients.p04_trade.cs・c153fb は Fiscal.cs と Coefficients.cs・c153tp は scripts/instruments/suite/ と ident＝この線の持ち物（p05 の 2 行・新しい試験・DormantIdentityTests の 1 行）と重ならない。
+  DormantIdentityTests.cs は全ての線が自分の行だけ（この線は ZeroDefaultLedger の末尾に 2 名）。
+
+2. 置き換える旧の規則と、それを固定する試験（grep：PriceOfBread.Tests で ReligionTensionPerMonth・ReligionAffinityRelief・ReligionHeresyBonus・TensionReason.Religion・TensionBreakdown・宗教の隔たり）
+- 旧の規則：異なる宗教の組は毎月 0.03×距離（異端は 0.22・違う系統は座標の差）の緊張を積み、同じ宗教の組は毎月 0.06 冷める。
+- 0.03・0.06 を固定する試験は 0 件。
+- 0 に置く試験（変わらない＝既定と同じ値を置くだけ）：MilitaryTests.cs:901・:1059・ProtectorTests.cs:48・RouteTensionTests.cs:33。
+- 手で積む試験：NationalismUnificationTests.cs:436（AddTension(…, TensionReason.Religion)＝理由の札を使うだけ・係数を読まない＝変わらない）。
+- 内訳を読む試験：TensionPoliticsTests.cs:42〜:94（内訳の和＝緊張）・:221 の Goal（Religion は目標に入らない）・MultiNationTests.cs:478（Threat）・DiplomacyPendingTests.cs:162（Proximity）＝宗教の列を固定しない。
+- 予言：絞った試験で赤 0（軌道に依る試験の赤が出たら ㉜ の改めと ㊴ の区分で読む）。
+
+3. 周辺の点検（緊張を閾値で読む機構・c3290bbbd で grep）
+- 宗教の項は内訳の〈目標〉の集合（Diplomacy.cs:1744 Initial・Revanchism・Secession・Colonial・Opium・Proximity・RouteDependence・Protector・Defection・WarResidue）に入らない
+  ＝AI が押す・開戦を望む判定の〈目標〉は変わらない。効くのは緊張の総量を読む閾値だけ：
+  - 宣戦：WarDeclareTension 140（p04:121）・最後通牒の受け入れ ConcedeTensionTarget 110（:123）。
+  - ライバルと友好：RivalTensionThreshold 40（p04:93・Diplomacy.cs:1722・:1747）・FriendlyTensionMax 20（p04:92・:1752 宥和・:1757 対抗の同盟の条件）。
+  - 同盟の崩れ：AllianceBreakTension 50（p05:64・BreakStrainedAlliances）。
+  - 軍需の輸出の取りやめ：MilitaryExportTensionThreshold 60（p07:72・Diplomacy.cs:690）。
+  - 画面の札：TensionPopupThreshold 70（p04:124）。
+  - 王権と議会の外圧：CrownParliament.cs:85 tension÷TensionMax 200。
+  - 統一の戦争（unifwar_s・Formations.UnificationWarBlock）は標的・交戦・同盟・厭戦で判定＝緊張の宗教の項を直接は読まない（同盟の崩れ・宣戦を経て間接に動く）。
+  - 脅威（ThreatTension）・勢力圏（Proximity）は宗教を読まない＝式は同じ。
+- 閾値の向き：宗教の項の正味は基線で緊張の総和の 1.15%（正の分 1.67%・同じ宗教の緩和 −0.52%）＝閾値の多くは数十＝宗教の分が消えた緊張に閾値は合う〈推〉。
+  同じ宗教の組（カトリック同士・正教同士ほか）は緩和を失う＝わずかに上がる・違う宗教の組はわずかに下がる＝陣営の宗教による色分けが弱まる〈推〉。
+- 保護の項（残る）：AffinityTensions の同じ組の走査で積む＝式は同じ・ProtectorTensionPerMonth 0.02 のまま。
+- 属国の GovCost（残る）：ReligionDistance は HeresyBonus を読んだまま＝講和の属国の判定は同じ式。
+- 表示の読み手（App・Display・Runner）：Diplomacy.cs:627 の札（TensionReasonJa）・PriceOfBread.App/ViewModels/GameViewModel.Diplomacy.cs・GameViewModel.Popups.cs（TensionBreakdown を読む）・PriceOfBread.Runner/PlayFacts.cs
+  ＝宗教の行が出なくなるだけ・この線では触らない＝〈次の波〉5 の束へ名を報告。
+
+4. 門（採否）＝作者 2026-11-16 ①：止める線＋史実の桁＋単体の機構の試験
+4-1 単体の機構の試験（新しい PriceOfBread.Tests/ReligionTensionRemovalTests.cs・盤面は試験の中・期待値は文字で書く＝係数から作らない）
+- T1：同じ宗教（カトリック）の 2 国（スイス・ジェノヴァ）に初期の緊張 5 を置き、他の緊張の道を 0 にして 1 か月：宗教の内訳 0・緊張の増分 0（旧の 0.06 では −0.06＝赤）。
+- T2：違う系統（カトリックとイスラム・差 0.25）と同じ系統の異端（カトリックとプロテスタント・加点 0.22）の組で、宗教の内訳 0・増分 0（旧の 0.03 では +0.0075・+0.0066＝赤）。
+- T3（母集合の外）：ProtectorTests の合成の世界（正教国 A・正教 0.3 のイスラム国 B・イスラム国 C）で、保護の内訳＝0.006（0.02×0.3）・A–B の増分＝0.006・B–C の増分 0（宗教の 2 係数は既定のまま）。旧の値では A–B に宗教の +0.0045 が足されて赤。
+- T4：ReligionDistance（異端 0.22・違う系統 0.25・同じ 0）と GovCost−0.5×民族の距離（0.11・0.125）が今の値のまま（反射で private の関数を呼ぶ）。
+4-2 腕の門の観測量（誰に届いたか）＝台本 scripts/instruments/c153rg/rg_gate.py（生を読むだけ・エンジンと係数を読まない）
+- 母集合：tensionwhy_s の行（四半期の末・列強を含む組・緊張 1 以上）。宗教が空の国は表から見えない＝母集合は表の全ての行（上位の集合）で読む。
+- G1＝Religion 列の絶対値が 1e-6 以下の行の割合が、各の種で 1（10/10 種）・各の種で行が 1 本以上・非有限 0。
+  - 数値の許し 1e-6：印字は R 形式（往復の桁）＝許しは印字の桁より広い。旧の最小の 1 か月の寄与（0.03×座標の差の最小 0.07＝0.0021）より狭い。
+  - 旗 0（基線の盤面）で落ちることの確かめ（紙の台本・measurements/m1428_20261128/paper_base.txt）：
+    基線 keep_1425/base_ins の割合＝0.00066〜0.00116（10/10 種で FAIL・Religion≠0 の行 1329037/1330165）・N1 1309/1329548・N2 1193/1329851 が 0（どれも FAIL）。
+- G2（作る物の大きさの下限＝★(1425)）：母集合の行数が同じ種の基線の 0.5 倍以上（10/10 種）＝組を消していない。紙の台本＝基線 vs 基線で 10/10。
+- 弱さ（名乗る）：係数 0 では Religion の内訳は書かれない＝G1 は〈誰に届いたか〉の確かめで、機構の働き（緊張の増分そのもの）は T1・T2・T3 が示す。
+4-3 突然変異ごとの門の赤と緑（㉚・腕の前の紙の予言）
+| 変異 | T1 | T2 | T3 | T4 | G1（紙） |
+| M1 PerMonth を 0.03 に戻す | 緑 | 赤 | 赤 | 緑 | 赤（基線の正の分 1457755＝違う宗教の組の行が数えられる） |
+| M2 Relief だけ 0.06 に戻す | 赤 | 緑 | 緑か赤（B–C は同じ宗教＝初期の緊張が 0 ならクランプで隠れて緑） | 緑 | 赤（基線の負の分 −450953＝同じ宗教の組の行が数えられる） |
+| M3 ProtectorTensionPerMonth も 0 | 緑 | 緑 | 赤 | 緑 | 緑（Religion 列は 0 のまま＝G1 では捕まらない・T3 が捕まえる） |
+| M4 ReligionHeresyBonus を 0 | 緑 | 緑 | 緑 | 赤 | 緑（緊張の道は係数 0 のまま・GovCost だけが動く＝T4 が捕まえる） |
+- 突然変異は使い捨ての木で回す（scripts/instruments/c153rg/mut.sh・出力は measurements/m1428_20261128/mut_M*.txt）。
+
+5. 止める線（作者 2026-11-16 ①・この回の形をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）。
+  - 進行不能の線（c151lk/lk_gate.py --wars-only と同じ台本・数えた値は measurements/m1428_20261128/wars_*.txt）：
+    基線 M：最後まで続いた戦争 20・種ごとの最大 6・最長の戦争 137 か月・最後まで続いた戦争の最長 17 か月。
+    N1（keep_1425/n1）：35・28・123・52。N2（keep_1425/n2）：11・5・192・21。
+    線＝最後まで続いた戦争の 10 種の和＞70（＝2×max(20,35,11)）か、最長の戦争＞384 か月（＝2×192）か、最後まで続いた戦争の最長＞104 か月（＝2×52）で止める。
+- 1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期は、基準とヌル腕の件数と並べる＝㊳）と
+  1e10 倍以上（stoplines906・stoplines1330・pxjump・plvl を基準 m1425 の readM と同じ台本で読む）。〈それ以外〉の型が出たら止める。
+- 空洞化：ピークの 1/10 未満で、規則 A2 の名簿の外（an_h2.py -v4・既定 -ex rule）。その線が原因と読めた件だけで止める
+  ＝基線 keep_1425/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない（記録の先頭へ）。
+- 推定の計算量 ＞248.5 秒（.cost）。割り当て＝+0〈推〉（係数の値だけ・組の走査は同じ・AddTensionKeyed は同じ回数）。
+- 史実の桁の線（10 倍）。
+- 機構のテストの赤（ソースを走査する番人を含む）。
+- 記録だけ：ヌル腕の幅（nullgate.py）・NG（ng.sh・基準 ng1425_20261128）・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・英の国債の不履行の種の数（ukdef975.py）・〈壊す〉①（home_break.py）。
+
+6. 予言（記録・門にしない）
+- 緊張の総量の減り：基線の Σ Religion÷Σ tension＝0.01154（正の分 0.01670・負の分 −0.00517・N1 0.00991・N2 0.01033）
+  ＝同じ盤面なら総和は約 1.2% 減る〈推〉。軌道が変わる＝新÷旧は 0.97〜1.01 の辺り〈推〉（記録）。
+- 閾値以上の行（20・40・50・60・70・110・140）の新÷旧：宗教の分が数十の閾値に対し小さい＝ほぼ 1〈推〉（記録）。
+- Protector の和の新÷旧：式は同じ＝軌道の差だけ（記録）。基線 76819（総和の 0.088%）。
+- 戦争の数（wars_s の内戦の旗 0：基線 6657）・同盟の数・統一の戦争（unifwar_s）・最後まで続いた戦争・列強の順位：符号は読めない（同じ宗教の組がやや上がり違う組がやや下がる）＝記録。
+- 旗 1 の出力が旗 0 と違う行の数（成績表 M と比べる）は記録。
+
+7. ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 差分は値の 2 行＝工業化度の読み手の許可表・new MoneyStock( の件数・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表・ValueCountRatchet・DerivedValueRatchet の件数は変わらない（予言 0）。
+- DormantIdentityTests〈既定ゼロの係数は休眠表か台帳のどちらかに載っている〉（:445）：既定 0 になる 2 係数を反射走査が拾う＝ZeroDefaultLedger に 2 名を足す（予言 +2・lk の WarLuck と同じ扱い・段 2 で欄ごと消すときに外す）。
+  〈読み手のない係数〉（:427）：2 係数とも Diplomacy.cs と試験に読み手がある＝変わらない。
+- WriterRatchetTests の計算量の宣言の表（★(749)）：軌道の件数で赤が出たら ★(749) の区分で表を取り直す（新しい計数の処理は無い）。
+- ㉜：旗 1 の木で旧の規則（0.03・0.06）を固定する番人は grep で 0 件。
+
+8. 順と腕
+- 1 事前登録（このコミット）→ 2 値の 2 行と新しい試験と台帳の 2 名のコミット → 3 絞った試験（scripts/instruments/c153rg/narrow.sh：
+  ReligionTensionRemovalTests・MilitaryTests・ProtectorTests・RouteTensionTests・NationalismUnificationTests・DiplomacyPendingTests・TensionPoliticsTests・MultiNationTests・DormantIdentityTests・㉘ の束・ValueCountRatchet・DerivedValueRatchet＋savetest・leakhunt・trx）
+  → 4 突然変異（mut.sh）→ 5 腕 B（INS=1・計器つき 10 種・種 1〜10・scripts/instruments/c153rg/arm.sh・
+  表＝tensionwhy_s,wars_s,unifwar_s,nation_s,region_s,scalars_s,fiscal_s,casualty_s,migration_s,pxmonth_s,stock_s〔ng.sh と home_break が stock_s を読む＝指示の表に stock_s を足した〕・約 2.4GB〈推〉・起こす直前に D: の空き 38GB 以上を測る）
+  → 6 読む（read_rg.sh）→ 7 フルスイート 1 回（suite_rg.sh・--logger trx・腕 B の後）→ 8 印 D:/PoB_work/c153rg_work/rg.mark。
+- 形の変え直しは 1 回だけ。結果を見た後に門と線を変えない。
