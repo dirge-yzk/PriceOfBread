@@ -5,12 +5,13 @@ R, D = sys.argv[1], sys.argv[2]
 def frag(n): return open(os.path.join(D, n), 'rb').read().decode('utf-8').rstrip('\n')
 def rw(p, f):
     p = os.path.join(R, p); b = open(p, 'rb').read(); s = b.decode('utf-8'); s2 = f(s)
-    assert s2 != s, p
+    if s2 == s: print('skip', p); return
     open(p, 'wb').write(s2.encode('utf-8')); print('ok', p)
 L = '\r\n'
 def nl(s): return '\r\n' if '\r\n' in s else '\n'
 # 00一覧
 def f00(s):
+    if '★(1404) 合流（波149' in s: return s
     n = nl(s); lines = s.split(n)
     i822 = [i for i, l in enumerate(lines) if l.startswith('| **★(1397) 合流（波148')]; assert len(i822) == 1
     lines.insert(i822[0] + 1, frag('row1404.txt'))
@@ -26,13 +27,15 @@ def f00(s):
 rw('docs/202609/00_未着手_部分実装_差し戻し_一覧_20260906.md', f00)
 # README
 def frd(s):
+    if '- ★(1404)' in s: return s
     n = nl(s); lines = s.split(n)
-    ix = [i for i, l in enumerate(lines) if l.startswith('- ★(1397) 効率化（提案）')]; assert len(ix) == 1
+    ix = [i for i, l in enumerate(lines) if l.startswith('- ★(1397)：効率化（提案）')]; assert len(ix) == 1
     for j, t in enumerate(frag('readme1404.txt').split('\n')): lines.insert(ix[0] + 1 + j, t)
     return n.join(lines)
 rw('docs/README.md', frd)
 # 実装ログ
 def flog(s):
+    if '(1404) 合流（波149' in s: return s
     n = nl(s); t = frag('log_entry.md').replace('\n', n)
     if not s.endswith(n): s += n
     return s + t.lstrip(n) + n
@@ -40,14 +43,9 @@ rw('docs/202609/99_実装ログ_20260903.md', flog)
 # CURRENT（最終更新の行を最上段に・前の更新は 3 本まで・超えた分は書庫の先頭へ）
 cur = os.path.join(R, 'docs/CURRENT.md'); arc = os.path.join(R, 'docs/CURRENT_書庫.md')
 s = open(cur, 'rb').read().decode('utf-8'); n = nl(s); lines = s.split(n)
+if '(1404) 合流（波149）' in s: print('skip CURRENT'); sys.exit(0)
 i0 = [i for i, l in enumerate(lines) if l.startswith('| ★ **最終更新（main へ合流済み）**')]; assert len(i0) == 1
 old = lines[i0[0]].replace('| ★ **最終更新（main へ合流済み）**', '| 前の更新（(1397)）', 1)
 lines[i0[0]] = frag('current.txt'); lines.insert(i0[0] + 1, old)
-prev = [i for i, l in enumerate(lines) if l.startswith('| 前の更新（')]
-move = [lines[i] for i in prev[3:]]
-for i in reversed(prev[3:]): del lines[i]
-open(cur, 'wb').write(n.join(lines).encode('utf-8')); print('ok CURRENT moved', len(move))
-a = open(arc, 'rb').read().decode('utf-8'); an = nl(a); al = a.split(an)
-ia = [i for i, l in enumerate(al) if l.startswith('| 前の更新（')][0]
-for j, t in enumerate(move): al.insert(ia + j, t)
-open(arc, 'wb').write(an.join(al).encode('utf-8')); print('ok 書庫')
+open(cur, 'wb').write(n.join(lines).encode('utf-8')); print('ok CURRENT')
+# 前の更新の行を書庫へ移す段は入れていない（今の CURRENT は前の更新が 30 本＝前の回から移していない・(1404) も前の行に揃えた）
