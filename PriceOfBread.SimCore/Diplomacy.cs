@@ -500,7 +500,7 @@ public sealed class Diplomacy
             {
                 if (p.Nation is not { } w) continue;
                 double ratio = shareScore[p.Id] / topC;
-                double fade = PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio.Value) * c.DominanceSpeed;
+                double fade = c.TreatyPortFadeSpeed.Close(PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio.Value));
                 if (!(fade > 0)) continue;
                 foreach (var r in w.Regions)
                     for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) r.ForeignShares[k] = System.Math.Max(0, r.ForeignShares[k] * (1.0 - fade));

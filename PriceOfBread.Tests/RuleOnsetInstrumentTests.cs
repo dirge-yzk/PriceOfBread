@@ -184,7 +184,7 @@ public class RuleOnsetInstrumentTests
         double mBar = crowdSize > 1e-9 ? crowdMil / crowdSize : 0, interm = Privileges.IntermediaryDegree(w);
         double orderOld = Math.Clamp(w.PublicOrder, 0, 1);
         var pre = w.Regions.Where(r => r.Rule.Length == 4).ToDictionary(r => r, r => (double[])r.Rule.Clone(), ReferenceEqualityComparer.Instance as IEqualityComparer<Region>);
-        var pred = w.Regions.Where(r => r.Rule.Length == 4).ToDictionary(r => r, r => Instruments.RuleOldStep(pre[r], Instruments.RuleTargetRaw(w, c, r, c.RuleOrderByRegion > 0, orderOld, rawOrder, mBar, interm), c.DominanceSpeed), RefCmp());
+        var pred = w.Regions.Where(r => r.Rule.Length == 4).ToDictionary(r => r, r => Instruments.RuleOldStep(pre[r], Instruments.RuleTargetRaw(w, c, r, c.RuleOrderByRegion > 0, orderOld, rawOrder, mBar, interm), c.RuleRelaxSpeed.Value), RefCmp());
         Politics.CheckSecession(w, c, PoliticalQuantities.EffectiveCoerce(w, c));
         int n = 0; double worst = 0;
         foreach (var r in w.Regions.Where(r => r.Rule.Length == 4)) { n++; for (int k = 0; k < 4; k++) worst = Math.Max(worst, Math.Abs(pred[r][k] - r.Rule[k])); }

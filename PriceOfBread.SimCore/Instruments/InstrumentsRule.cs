@@ -193,7 +193,7 @@ public static partial class Instruments
         double resid = double.NaN;
         if (RuleRegPrevs.TryGetValue(r, out var pv) && pv.Has)
         {
-            var pred = RuleOldStep(pv.Prev, t, c.DominanceSpeed);
+            var pred = RuleOldStep(pv.Prev, t, c.RuleRelaxSpeed.Value);
             resid = 0; for (int k = 0; k < 4; k++) resid = System.Math.Max(resid, System.Math.Abs(pred[k] - r.Rule[k]));
         }
         return string.Join('\t', F(sh[0]), F(sh[1]), F(sh[2]), F(sh[3]), F(RuleDeliveryOf(r.Rule, r.AdminFill, disc)), F(RuleDeliveryOf(sh, r.AdminFill, disc)),
