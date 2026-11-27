@@ -31,6 +31,7 @@ public class DormantIdentityTests
         "CessionUnified",              // ★(723) 線 ces2：講和の割譲の 4 経路を 1 本の判定（陸の隣接か港の州で上陸の門）と講和 1 回に 1 本の予算へ（設計 20261031_割譲の候補と費用_設計.md 段2）＝0 で今の 4 経路・1 ビットも変わらない。旗 1 の腕は波51 以後（番人 CessionUnifiedTests）
         // ★RailByRegion（(1097) c105rr 支配の力の段 R・州の線路）は 2026-11-13 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は RailByRegionTests の旗 0 の 2 本）。
         // ★RailNeedByOutput（(1137) c111rb 段 R の need の基底・鉄道の need の取り分を州の産出の比へ）は 2026-11-14 に 1 で**点火**＝この表から外した（旗 0 の経路の番人は RailByRegionTests の G3 と RailNeedByOutputTests の旗 0 の側）。
+        "RailProcureNational",         // (1407) c150rp 線路と機関車の調達で州の在庫が足りない分を同じ国の他の州の在庫から陸の運賃つきで買う旗（0＝州の在庫だけ・番人 RailProcureNationalTests）
         // ★CedeRuleToLocal（(902) c77ce 割譲の支配度 C1＋H-a）は (915) c79ce が 2026-11-07 に 1 で**点火**＝この表から外した。
         // ★SubsistenceStage2（(849) c69ss 自給の段 2）は (870) c72ss が 2026-11-06 に 1 で**点火**＝この表から外した。
         "UrbanFlowReal",               // ★(706) 線 urb3：州の中の移動を〈移る値打ち〉の対称の相対差に比例させる案B（設計 20261031_都市化の目標の式_設計.md 段2 の器）＝0 で今のシグモイドの式・1 ビットも変わらない。旗 1 の腕は波49（番人 UrbanFlowRealTests）
