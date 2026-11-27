@@ -33,3 +33,6 @@
 
 [4] 素の 5 種・計器つき 10 種が m1418 と全行一致（宣言を除く）。ident は --tests-delta で試験の数の増分を渡す。
 [5]〈判定: 恒等〉（宣言の無い違い 0）かつ savetest OK かつ検算の食い違い 0 かつ突然変異が予言どおり赤なら採る。一致しなければ、その項を外して報告に回す。
+
+[追記・ident の前（結果は未見）] テストの数の増分を数え直した（git diff 526586684..HEAD -- PriceOfBread.Tests の追加の [Fact] 行＝13・[Theory] の追加 0）。[1] の〈+10〉は〈+13〉に直す（WarExitFromCapacityTests +7〔枝の 6＝敗者の束ね順・調停の応諾・徴兵の深さ・生まれた国の厭戦・宗主の防衛・旧の決定的は書き換えの後で数える〕＋同点の月の押し 1）・DominanceSpeedSplitTests +1・SinkgoodInstrumentTests +3・TrRailNationalPhiTests +2）。ident は --tests-delta 13。ValueCountRatchetTests の Instruments 418 は merge の後の木で ㉘ の束が緑（一致）。
+ident の宣言：--grown-ok trrail_s --rewritten-tables wexit_s@scripts/instruments/c152wr/wexit_check3.py,sinkgood_s@scripts/instruments/c152wr/sinkgood_check.py --tests-delta 13 --saveleak。
