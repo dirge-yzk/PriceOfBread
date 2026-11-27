@@ -25,4 +25,5 @@ python -X utf8 -I "$S/brk693/home_break.py" arm=$INS base=$BASE n1=$K/n1 --test 
 bash "$S/ng.sh" "$INS" "$TAG" "$OUT/ng" rd:$R/measurements/ng1411_20261127:m1411 > "$OUT/ng.txt" 2>&1; echo "ng rc=$?"
 python -X utf8 -I "$S/c151fl/fl_gate.py" "$INS" 1-10 "$OUT/gate_arm.tsv" > "$OUT/gate_arm.txt" 2>&1; echo "gate rc=$?"
 for x in base:$BASE n1:$K/n1 n2:$K/n2; do n=${x%%:*}; d=${x#*:}; python -X utf8 -I "$S/c151fl/fl_gate.py" "$d" 1-10 "$OUT/gate_$n.tsv" > "$OUT/gate_$n.txt" 2>&1; done
+python -X utf8 -I "$S/c151fl/newold_fl.py" "$INS" "$BASE" 1-10 > "$OUT/newold.txt" 2>&1; echo "newold rc=$?"
 echo READDONE
