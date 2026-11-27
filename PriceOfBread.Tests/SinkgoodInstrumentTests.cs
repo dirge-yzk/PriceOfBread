@@ -76,7 +76,7 @@ public class SinkgoodInstrumentTests
         int checkedGroups = 0;
         foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
         {
-            var dorm = r.Producers.FirstOrDefault(p => !Catalog.IsLaborGood(p.GoodId) && !(Discovery.Gate(r, p) > 0));
+            var dorm = r.Producers.FirstOrDefault(p => !Catalog.IsLaborGood(p.GoodId) && p.GoodId >= 0 && p.GoodId < Catalog.Goods.Length && Catalog.Goods[p.GoodId].Tier != GoodTier.Service && p.SiteRow < 0 && !(Discovery.Gate(r, p) > 0));
             if (dorm is null) continue;
             dorm.Scale = 0; dorm.Output = 0; dorm.Bankrupt = false; dorm.BuiltScale = 0; dorm.ConstructionLeft = 0; dorm.SiteRow = -1; dorm.LaborWeight = 7.0;
             Assert.True(Instruments.SinkgoodDormant(r, dorm), "前提が崩れた：眠りの判定が立たない");

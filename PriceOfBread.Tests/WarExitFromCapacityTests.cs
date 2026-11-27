@@ -335,6 +335,7 @@ public class WarExitFromCapacityTests
         var sim = Make(flag, "イギリス", "フランス");
         var parent = sim.Nations[0]; var pw = parent.World;
         Assert.True(pw.Regions.Count >= 3, "前提が崩れた：親の州が 3 つ未満");
+        pw.Coef.WarExitFromCapacity = flag;   // 生まれる国の厭戦の継承は親の World.Coef の旗を読む
         pw.SelfPower!.WarExhaustion = 0.8;
         var regs = new System.Collections.Generic.List<Region> { pw.Regions[0] };
         int n0 = sim.Nations.Count;

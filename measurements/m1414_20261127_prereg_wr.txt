@@ -37,3 +37,5 @@
 
 [4] 素の 5 種・計器つき 10 種が m1411 と全行一致（宣言を除く）。浮動小数の順序が変わる箇所は無い（Transport.cs:207 は buy += f(...) を double natGot = f(...); buy += natGot; に書き直す＝同じ式の同じ順）。
 [5]〈判定: 恒等〉なら採る。一致しなければ、その項を外して報告に回す。
+
+[追記・腕の前（ident の前・結果は未見）] .Value の数：予言の誤りを直す。項 8 の InstrumentsTransport.cs が罠の州の投資家の貯蓄を読む 1 か所（investor.Savings.Value）で Instruments の数が 417→418（SimCore の本体の .Value は増えない＝Transport.cs の呼びは .Value を使わない）。ValueCountRatchetTests.cs:50 の表を 418 へ（★(764)・予言と一致する 1 行だけ）。
