@@ -1,0 +1,12 @@
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+M1 rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  成功 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の最大の動きは白紙の線を跨がない_WarPushSpeed足すWarLuckはWhitePeaceScore未満 
+  失敗 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0 
+  失敗 PriceOfBread.Tests.WarLuckZeroTests.T1_押しが等しい月は戦勝点が動かない 
+  失敗 PriceOfBread.Tests.WarLuckZeroTests.T2_片側だけが押す戦争は毎月0_10ずつ進む 
+  失敗 PriceOfBread.Tests.WarLuckZeroTests.T1b_毎月の戦勝点の動きは押しの割合の式だけ 
+テストの合計数: 5
+     成功: 1
+     失敗: 4
+合計時間: 4.6683 秒
