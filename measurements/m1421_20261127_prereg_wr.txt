@@ -1,0 +1,35 @@
+(1421) 線 c152wr 恒等の事前登録（枝 origin/c151wr b475d2a2b に main 526586684 を merge＝b5d9dd4e3・衝突なし）。基線 m1418。署名：Claude Sonnet 5.5
+注：この事前登録は、直す 3 コミット（737188bab・09fa748a6・45e72315c）の後・ident の前に書く（直しは計器と試験とスクリプトだけで、結果は未見）。m1414 の予言・突然変異の表（measurements/m1414_20261127_prereg_wr.txt・_mutations_wr.tsv）を写して直す。
+
+[0] 前提
+- tq2.done は線の始まり（23:15 ごろ）に無かった。重い仕事（build・test・ident）は tq2.done が出るまで起こさない。60 分たっても出なければ報告に書いて進む。
+
+[1] 恒等の線・予言 0
+- 計器だけ（wexit_s・sinkgood_s・trrail_s）と試験と注。エンジンは Transport.cs の計器の呼び 1 行（読むだけ）。
+- 素の 5 種と計器つき 10 種は m1418（b5_20261127_m1418・b10_20261127_m1418_ins）と名乗り行を除いて全行一致。計器の表の差は宣言だけ：
+  ・trrail_s＝--grown-ok（末尾 12 列が増えただけ）
+  ・wexit_s＝--rewritten-tables wexit_s（oldDecisiveFlag の値〔崩壊の行だけ〕と末尾 2 列 powerIdA・powerIdB）。検算＝scripts/instruments/c152wr/wexit_check3.py <旧の表> <腕の表> <旧の wars_s>（0＝OK）
+  ・sinkgood_s＝--rewritten-tables sinkgood_s（行の絞りと割合の式）。検算＝scripts/instruments/c152wr/sinkgood_check.py <旧の表> <腕の表>（0＝OK）
+- savetest OK（最終行が〈savetest OK〉で始まり値の違い 0）。.cost は +0（計器は Instruments.On の時だけ・切れている時に計算量の件数が増えない）。
+- .Value の数：SimCore の本体は増えない。Instruments は main の木で数え直す（merge の後・ValueCountRatchetTests.cs:50 の 418 と一致するはず＝一致しなければ追記）。今回の直しは .Value を足さない（InstrumentsWexit.cs・SinkgoodInstrumentTests・WarExitFromCapacityTests のどれも .Value 行なし）。
+- テストの数の増分（c151wr の分＋今回）：WarExitFromCapacityTests +6（枝の 5＋同点の月の押し 1）・DominanceSpeedSplitTests +1・SinkgoodInstrumentTests +3（枝の 2＋T6）。合計 +10（Tests 3095 → 3105 の見込み・数え直して追記）。
+
+[2] 消す物と残す物（消す物は無い）
+- 今回の直し：
+  項 1 InstrumentsWexit.cs：WxPrevPush（ConditionalWeakTable<War,double[]>＝計器の側の辞書・エンジンの欄は足さない）。月の押し＝今の累計−前の累計。同点の決め手 aLoses の else 側を monthA<monthB（旧の規則 aPush<bPush と同じ向き）に。
+  項 2 scripts/instruments/c152wr/wexit_check3.py（c151wr の wexit_check2.py を移して (e) を足す）：終戦の記録（wars_s の verdictCode）との突き合わせ。TOL＝1e-9（印字の有効 10 桁より広い）で丸めの境を数える。
+  項 3 SinkgoodInstrumentTests.T6：眠りの除外。
+  項 4 scripts/instruments/c152wr/sinkgood_check.py。
+- 浮動小数の順序が変わる箇所：月の押し＝war.PushA−前の累計 は、エンジンの aPush（累計へ足した値）と下位ビットで違い得る（累計が大きい時）。旧の規則と同じ同点（A の押し＜B の押し）の判定にだけ使い、同点は稀（厭戦が完全に同じ）。計器は読むだけでエンジンに戻らない＝恒等には影響しない。紙の台本：同じ盤面で 〈月の押しの差〉と〈累計の差〉が食い違う行の数を WarExitFromCapacityTests の新しい試験の盤面（(1e12,0)→(1e12,2e11)）で 1 行と数える（食い違いは意図＝旧の規則との一致のため）。
+- 他の線との重なり：Instruments.cs の名簿は sd が別の行を足す（合流で解く）。InstrumentsTests.cs は ht・sd の持ち物で触らない。
+- 読み手の grep：WxPrevPush は InstrumentsWexit.cs 内だけ。SinkgoodFractions・SinkgoodRegionRows は Tests/SinkgoodInstrumentTests.cs だけ。wexit_check2.py の読み手は m1414 の事前登録だけ（c152wr へ移した）。
+
+[3] 足す試験と突然変異（どの門で赤になるか）
+- μ1〜μ11：m1414 の表のまま（μ9 は a・b・c の 3 本＝μ9〜μ11）。木が新しいので merge の後の木で 1 回回し直し、measurements/m1421_20261127_mutations_wr.tsv に残す。
+- μ12：同点の決め手を外す（InstrumentsWexit.cs の monthA<monthB を war.PushA<war.PushB へ戻す）→ WarExitFromCapacityTests.計器wexitの同点は月の押しで敗者を決める が赤。
+- μ13：眠りの除外を外す（SinkgoodFractions の SinkgoodDormant の continue を消す）→ SinkgoodInstrumentTests.T6 が赤。
+- μ14：検算の台本に違う値を混ぜる（腕の表の 1 行の oldDecisiveFlag／fraction／laborWeightScaled を書き換えた表）→ wexit_check3.py (e) と sinkgood_check.py が 0 以外。
+- ソースを走査する番人（㉘）＝WriterRatchetTests・DormantIdentityTests・UnitTypeTests・IndustrializationReaderTests・InstrumentsTests・InstrumentHookClosureTests・ValueCountRatchetTests・DerivedValueRatchetTests を ident の前に回す。書き換える件数の予言（㉑）＝WriterRatchetTests・ValueCountRatchetTests の件数は変わらない（.Value 行も係数も足さない）。
+
+[4] 素の 5 種・計器つき 10 種が m1418 と全行一致（宣言を除く）。ident は --tests-delta で試験の数の増分を渡す。
+[5]〈判定: 恒等〉（宣言の無い違い 0）かつ savetest OK かつ検算の食い違い 0 かつ突然変異が予言どおり赤なら採る。一致しなければ、その項を外して報告に回す。
