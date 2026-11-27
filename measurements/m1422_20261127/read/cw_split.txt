@@ -1,0 +1,2 @@
+ins=D:/PoB_work/c152sd_work/out_c152sdB_10/ins 種=1..10 内戦の始まり 22：勢力の蜂起 1・route3 20・その他 1
+ins=D:/PoB_work/keep_1418/base_ins 種=1..10 内戦の始まり 56：勢力の蜂起 10・route3 35・その他 11
