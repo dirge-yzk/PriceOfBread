@@ -1,0 +1,16 @@
+保存 44.8MB（579ms）／300四半期＋0日の点
+savetest 保存の点 0日・印前（眠り 1381・失敗 20610・覚え 3586）
+保存 44.9MB（264ms）／300四半期＋45日の点
+savetest 保存の点 45日・印前（眠り 696・失敗 20993・覚え 3329）
+保存 44.9MB（206ms）／300四半期＋75日の点
+savetest 保存の点 75日・印前（眠り 1399・失敗 20625・覚え 3329）
+savetest 状態 0日の点 値の違い 0・順だけ 2・比べた対象 5933566（読込 407ms）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Diplomacy>k__BackingField.Diplomacy._tensionRamp：順だけ（Dictionary`2）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Diplomacy>k__BackingField.Diplomacy._embargo：順だけ（HashSet`1）
+savetest 状態 45日の点 値の違い 0・順だけ 2・比べた対象 5933566（読込 206ms）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Diplomacy>k__BackingField.Diplomacy._tensionRamp：順だけ（Dictionary`2）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Diplomacy>k__BackingField.Diplomacy._embargo：順だけ（HashSet`1）
+savetest 状態 75日の点 値の違い 0・順だけ 2・比べた対象 5933566（読込 311ms）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Diplomacy>k__BackingField.Diplomacy._tensionRamp：順だけ（Dictionary`2）
+    sim.MultiNationSim.<Nations>k__BackingField[0].Simulation.<World>k__BackingField.World.<Diplomacy>k__BackingField.Diplomacy._embargo：順だけ（HashSet`1）
+savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）

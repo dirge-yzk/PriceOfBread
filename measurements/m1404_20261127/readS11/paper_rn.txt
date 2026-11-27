@@ -1,0 +1,11 @@
+seed	invade	submitted	warsInterstate	warsCivil	subjCalls	subjEvals	subjOk	mutatedMax	pushHits	alliancePairsMaxQ	alliancePairsMeanQ	cropDiseasedRowsQ
+11	103	57	841	3	0	0	0	0	0	NA	NA	NA
+12	56	36	761	3	0	0	0	0	0	NA	NA	NA
+13	105	69	972	6	0	0	0	0	0	NA	NA	NA
+14	93	67	474	5	0	0	0	0	0	NA	NA	NA
+15	112	65	960	4	0	0	0	0	0	NA	NA	NA
+16	65	37	786	2	0	0	0	0	0	NA	NA	NA
+17	103	69	911	10	0	0	0	0	0	NA	NA	NA
+18	92	67	868	6	0	0	0	0	0	NA	NA	NA
+19	66	35	821	5	0	0	0	0	0	NA	NA	NA
+20	104	63	488	0	0	0	0	0	0	NA	NA	NA
