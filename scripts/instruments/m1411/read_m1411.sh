@@ -5,7 +5,7 @@
 export PYTHONUTF8=1 PYTHONIOENCODING=utf-8
 D0="$(cd "$(dirname "$0")" && pwd)"; R="$(cd "$D0/../../.." && pwd -W)"; S=$R/scripts/instruments
 INS=${1:?ins}; CARD=${2:?成績表}; BCARD=${3:?基準の成績表}; BASE=${4:?基準の生}; TAG=${5:?タグ}; OUT=${6:?出力}; SB=${7:?種の起点}
-K=${K:-D:/PoB_work/keep_1404}   # popjump と home_break の N1・N2
+K=${K:-D:/PoB_work/keep_1411}   # popjump と home_break の N1・N2（(1411) の M・S11・N1 は旧の keep_1404 で読んだ＝keep_1404/n1・n2・a11 は E:/PoB_archive/keep_1404/ へ移した）
 NGB=${NGB:-ng1404_20261127:m1404}
 N1C=${N1C:-b10_20261127_m1404_n1_ins}; N2C=${N2C:-b10_20261127_m1404_n2_ins}
 mkdir -p "$OUT"

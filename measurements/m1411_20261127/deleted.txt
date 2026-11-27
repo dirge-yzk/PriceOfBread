@@ -3,3 +3,6 @@
 2026-11-27 移した：c150sd_work/out_c150sdB_10 → keep_1411_rej/c150sdB（採らなかった腕の生・2.0GB）
 2026-11-27 消した：ident_m1411z（腕 Z の ident の生・判定: 恒等の後・要約 keepsum_ident_m1411z_ins.tsv・rsum_ident_m1411z.tsv）
 2026-11-27 消した：c150rp_work/out_c150rpB_10（線 rp の腕 B の生 4.2GB・線と反証役 v・v2 が読み終えた・合流の M の共通の 150 表と全てバイト一致を確かめた後・要約 keepsum_c150rpB.tsv）
+2026-11-27 15:42:00 消そうとした：keep_1404/base_ins（30GB）・keep_1390_rej（1.6GB）＝自動の許可の判定で止められた（消していない・作者のセッションへ）
+2026-11-27 15:42:00 移した：keep_1404/n1・n2・a11 → E:/PoB_archive/keep_1404/（指示〈それでも足りなければ keep_1404 の n1・n2・a11 を E:/PoB_archive/keep_1404/ へ移す〉・N2 を起こす D: の空きのため・新しい KEEPNULL は keep_1411）
+2026-11-27 消した：m1411_work の nar・suite（ビルドの成果物）・src_*・out_*（生は keep_1411 へ移した後の残り）・tmp・kitsrc（rmraw.sh）
