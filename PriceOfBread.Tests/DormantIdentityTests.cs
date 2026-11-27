@@ -264,6 +264,8 @@ public class DormantIdentityTests
         "ResearcherFrac",
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
+        // (1415) c151lk：戦争の運を 0 にした（乱数は気候と疫病だけ・作者 2026-11-26）＝0 が正しい値。運の式と欄は段 2（恒等の線）で消し、その時にここからも外す
+        "WarLuck",
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。

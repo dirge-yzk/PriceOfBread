@@ -117,7 +117,7 @@ public sealed partial class Coefficients
     public double ArmsWarWearScale = 1.0;         // 戦闘消耗＝摩耗に (warMult−1)×これ を上乗せ（1.0＝9倍戦時は摩耗9倍）
     public double TrenchDefenseWeight = 0.5;   // 塹壕の防御の重み（装備が戦場に残る ArmsStock と対で意味を持つ）
     public FractionPerMonth WarPushSpeed = new(0.10);            // 戦争スコアの押し合い速度（月・押しの割合1あたり・(1408) 項 4 で型を付けた＝読み手は Close(押しの割合)）
-    public double WarLuck = 0.12;                 // 戦況の運（決定的会戦・補給・士気）＝毎月の戦勝点に±これの乱数を加算
+    public double WarLuck = 0.0;                  // 戦況の運（決定的会戦・補給・士気）＝毎月の戦勝点に±これの乱数を加算
     public double SeaInvasionControlMin = 0.65;   // ＋精密化「厳密には、海戦で閾値に勝たない限り上陸はできない＝陸戦は起きるが、その被害は民間には出ない」
     public double WarDeclareTension = 140.0;      // 屈服経路（AISubmitMilRatio=3.0）の開通で一方的な組合せは戦わずに折れる＝旧140へ戻し互角の対立だけが戦争へ（160は屈服なし時代の戦争過多対策だった）
     public Share MobilizationConscriptFrac = new(0.22);   // 既存のDrawFromPoolで非兵士POPを兵士へ変換＝代償は自然（労働喪失で経済悪化・兵増で戦死増・国民意識ゲートで低NC国は届かない）
