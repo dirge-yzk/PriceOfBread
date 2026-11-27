@@ -28,7 +28,7 @@ public class TreatyPortLapseTests
         diplo.TreatyPortLapse(c0, 48);
         Assert.Equal(0.5, port.ForeignShares[0], 12);
 
-        // 点火（Ratio=0.5）：四半期の月に DominanceSpeed(0.025) の 1 回分・四半期でない月は不変
+        // 点火（Ratio=0.5）：四半期の月に TreatyPortFadeSpeed(0.025) の 1 回分・四半期でない月は不変
         c0.TreatyPortLapseRatio = new Share(0.5);
         diplo.ComputeRanks(c0);   // 列強ランクを確定（最強列強の物差し）
         diplo.TreatyPortLapse(c0, 47);

@@ -1,0 +1,41 @@
+(1414) 線 c151wr 恒等の事前登録（木 e5db75f49 から・基線 m1411）。署名：Claude Sonnet 5.5
+
+[0] 注（先に書く）
+- 腕の前に dotnet build を 1 回起こした（tq.done の前・tq の始まりと重なった）。規則違反＝報告の先頭に書く。以後は tq.done が出るまで build・test・腕・ident を起こさない。
+- 下の予言と突然変異は、項 1〜8 の実装（コミット前の木）を読んだ上で、腕の前に固定する。
+
+[1] 恒等の線・予言 0
+- 計器だけ（wexit_s・sinkgood_s・trrail_s）と試験と注。エンジンは Transport.cs の計器の呼び 1 行（ProcureNational の前後・読むだけ）だけ。
+- 素の 5 種と計器つき 10 種は m1411（b5_20261127_m1411・b10_20261127_m1411_ins）と名乗り行を除いて全行一致。
+  計器の表の差は宣言だけ＝--rewritten-tables wexit_s,trrail_s,sinkgood_s（新しい列を宣言する）。
+  wexit_s：oldDecisiveFlag の値（崩壊の行だけ）と末尾 2 列 powerIdA・powerIdB。trrail_s：末尾 12 列（国の中の買いの受け手の前の年の φ 別）。sinkgood_s：行の絞りと割合の式。
+- savetest OK（最終行が〈savetest OK〉で始まり値の違い 0）。.cost は +0（計器は Instruments.On の時だけ）。.Value の数は増えない。
+- テストの数の増分＝WarExitFromCapacityTests +5（敗者の束ね順・調停の応諾・徴兵の深さ・生まれた国の厭戦・宗主の防衛）＋DominanceSpeedSplitTests +1＋SinkgoodInstrumentTests +2（確定は ident の前に書き足す）。
+
+[2] 消す物と残す物（消す物は無い）
+- 項 1：InstrumentsWexit.cs（oldDecisiveFlag を書き換えた後の戦勝点 sOld で数える・同点の決め手は累計の押し）・scripts/instruments/c151wr/wexit_check2.py（newEndsFlag の再計算つき）。
+- 項 2・3・5：テストだけ（WarExitFromCapacityTests.cs・DominanceSpeedSplitTests.cs）。
+- 項 4：InstrumentsSinkgood.cs（眠りの生産者を割合の外・倒産した装置の重み 0・分母 0 は 1/件数・倒産は絞りの充足の条件から外す）。Coefficients を引数で渡す（既定 null＝試験の呼びは変えない）。
+- 項 6：古い名の注（RuleSharesFormTests.cs:23・:107・:172・SecessionLaborLawInstrumentTests.cs:9・:80・TreatyPortLapseTests.cs:31）。App の GameViewModel.MapFill.cs:21 は 5 の束へ（触らない）。
+- 項 7：InstrumentsWexit.cs の列 powerIdA・powerIdB（war.A.Id・war.B.Id を読むだけ）。
+- 項 8：InstrumentsTransport.cs（RailAcc・RailMonth.NatPre・NatPost・trrail の 12 列）＋Transport.cs:207 の呼び（rm?.NatPre・NatPost の 1 行・値は同じ＝buy += を natGot 経由に書き直しただけ）。InstrumentColumnTests.cs:152 の列の宣言の写しを同じコミットで直す（★(743)）。
+- 他の線との重なり：rb（Instruments の別のファイル）・lk・fl とは別のファイル。Transport.cs は計器の呼び 1 行（rb は触らない）。
+- 読み手の grep：SinkgoodRegionRows・SinkgoodFractions は Tests/SinkgoodInstrumentTests.cs だけ（新しい引数は既定 null）。WexitHeaderText は InstrumentsWexit.cs 内だけ。trrail の列は InstrumentColumnTests.cs と scripts/instruments の台本。
+
+[3] 足す試験と突然変異（どの門で赤になるか）
+- μ1：oldDecisiveFlag を書き換える前の戦勝点 s に戻す → scripts/instruments/c151wr/wexit_check2.py が 0 以外（崩壊の行の食い違いの数が基準と同じになり、基準との差 0 が宣言の差の数と合わない）。
+- μ2：項 2 の盤面で、歩の本体が前走査の敗者の集合を読まない形に戻す（Diplomacy.cs の wexLosers の行を外す）→ 旗 1 は同じ敗者の 2 戦争を前走査の取り分の順で終える、が赤。
+- μ3：②（調停の応諾）の旗 1 の枝を外す → 調停の応諾は旗 1 で持ちこたえる力を読み厭戦を読まない、が赤。
+- μ4：⑬′（徴兵の深さ）の旗 1 の枝を外す → 戦時の徴兵の深さは旗 1 で厭戦を読まない、が赤。
+- μ5：MultiNationSim.cs:414 の旗 1 の枝を外す → 首都の蜂起で生まれた国は旗 1 で親の厭戦を継がない、が赤。
+- μ6：DefendDependent の旗 1 の枝を外す → 宗主の防衛参戦の試験が赤。
+- μ7：φ の分けの境（0.05・0.2）を入れ替える → 計器の試験（trrail の国の中の買い・足す）が赤。
+- μ8：Politics.cs:947 の RuleRelaxSpeed を DominanceIntegralSpeed に取り違える → 支配度の積分と区分の寄りは別の速さを読む、が赤。
+- μ9：sinkgood の倒産した装置の重みを 0 にしない → SinkgoodInstrumentTests の新しい試験が赤。
+- 突然変異の結果は measurements/m1414_20261127_mutations_wr.tsv に残す。
+- ソースを走査する番人（㉘）＝WriterRatchetTests・DormantIdentityTests・UnitTypeTests・IndustrializationReaderTests・InstrumentsTests・InstrumentHookClosureTests を器のコミットの後に回す。書き換える件数の予言（㉑）＝WriterRatchetTests・ValueCountRatchetTests の件数は変わらない（.Value 行を足さない・係数を足さない）。
+
+[4] 素の 5 種・計器つき 10 種が m1411 と全行一致（宣言を除く）。浮動小数の順序が変わる箇所は無い（Transport.cs:207 は buy += f(...) を double natGot = f(...); buy += natGot; に書き直す＝同じ式の同じ順）。
+[5]〈判定: 恒等〉なら採る。一致しなければ、その項を外して報告に回す。
+
+[追記・腕の前（ident の前・結果は未見）] .Value の数：予言の誤りを直す。項 8 の InstrumentsTransport.cs が罠の州の投資家の貯蓄を読む 1 か所（investor.Savings.Value）で Instruments の数が 417→418（SimCore の本体の .Value は増えない＝Transport.cs の呼びは .Value を使わない）。ValueCountRatchetTests.cs:50 の表を 418 へ（★(764)・予言と一致する 1 行だけ）。

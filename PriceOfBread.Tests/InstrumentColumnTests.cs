@@ -149,7 +149,8 @@ public class InstrumentColumnTests
                     return h[^n..];
                 }
                 Assert.Equal(new[] { "transportCapEnd", "tradeThrottleEnd", "regionShareEnd", "workerSinkShareEnd", "stapleImportPerMonth", "stapleProducedPerMonth", "gdpOutputShareEnd" }, Tail("region", 7, out int r1, out int b1));
-                Assert.Equal(new[] { "procureWantUnitsPerYear", "procureStockZeroGoodMonths", "procureSavingsBindGoodMonths", "procureGotUnitsPerYear", "tPreEnd" }, Tail("trrail", 5, out int r2, out int b2));
+                Assert.Equal(new[] { "procureWantUnitsPerYear", "procureStockZeroGoodMonths", "procureSavingsBindGoodMonths", "procureGotUnitsPerYear", "tPreEnd",
+                    "natCallsPhiLow", "natCallsPhiMid", "natCallsPhiHigh", "natWantPhiLow", "natWantPhiMid", "natWantPhiHigh", "natGotPhiLow", "natGotPhiMid", "natGotPhiHigh", "natNoSellerStockGoodMonths", "natInvestorSavingsSumPhiLow", "natInvestorSavingsZeroCallsPhiLow" }, Tail("trrail", 17, out int r2, out int b2));   // (1414) 末尾に国の中の買いの 12 列を足した
                 Assert.Equal(new[] { "price", "inputPricePerUnit" }, Tail("sellr", 2, out int r3, out int b3));
                 Assert.True(r1 > 100 && r2 > 10 && r3 > 100, $"対照：行が少ない（{r1}・{r2}・{r3}）");
                 Assert.Equal(0, b1); Assert.Equal(0, b2); Assert.Equal(0, b3);

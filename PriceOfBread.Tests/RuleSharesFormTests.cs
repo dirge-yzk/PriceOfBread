@@ -20,7 +20,7 @@ public class RuleSharesFormTests
 
     private static void Settle(World w, int quarters)
     {
-        for (int i = 0; i < quarters; i++) Politics.CheckSecession(w, w.Coef, 0.0);   // 区分は DominanceSpeed(0.025/四半期) で目標へ寄る＝300 回で残差 5e-4 倍
+        for (int i = 0; i < quarters; i++) Politics.CheckSecession(w, w.Coef, 0.0);   // 区分は RuleRelaxSpeed(0.025/四半期) で目標へ寄る＝300 回で残差 5e-4 倍
     }
 
     // ===== D1 ① 在地の目標は農奴解放の法に依らず、仲介者の権利の残高（官僚制度法と土地改革の max）で決まる =====
@@ -104,7 +104,7 @@ public class RuleSharesFormTests
     [Fact]
     public void D2_1四半期だけ踏むと無統治の区分は到達の目標へ寄り支配度の低さでは増えない()
     {
-        // 1 四半期だけ踏む＝区分は目標へ DominanceSpeed(0.025) だけ寄る。マルセイユ（到達 0.93813）の無統治の目標 0.5×(1−0.93813)＝0.030935 → 0.025×0.030935＝約 0.00077。
+        // 1 四半期だけ踏む＝区分は目標へ RuleRelaxSpeed(0.025) だけ寄る。マルセイユ（到達 0.93813）の無統治の目標 0.5×(1−0.93813)＝0.030935 → 0.025×0.030935＝約 0.00077。
         // 旧の目標（支配度 0.2 を読む形）なら 0.5×(1−0.2)＝0.4 → 約 0.0098 だった（突然変異「無統治を支配度へ戻す」で赤）。
         var sim = France(c => c.RuleOrderByRegion = 0);   // ★(856) 旗 0 の経路の番人（★(832) ① の (a)・旗 1 の同じ主張は RuleOrderP1Tests の P1_7）
         var w = sim.World;
@@ -169,7 +169,7 @@ public class RuleSharesFormTests
         diplo.TreatyPortLapse(c, 2);
         Assert.Equal(0.5, port.ForeignShares[0], 12);
         diplo.TreatyPortLapse(c, 3);
-        Assert.Equal(0.5 * (1.0 - 0.025), port.ForeignShares[0], 9);   // 最強の列強＝国力比が線以上＝DominanceSpeed 0.025 の 1 回分
+        Assert.Equal(0.5 * (1.0 - 0.025), port.ForeignShares[0], 9);   // 最強の列強＝国力比が線以上＝TreatyPortFadeSpeed 0.025 の 1 回分
         diplo.TreatyPortLapse(c, 4);
         Assert.Equal(0.5 * (1.0 - 0.025), port.ForeignShares[0], 9);   // 次の月は動かない
     }
