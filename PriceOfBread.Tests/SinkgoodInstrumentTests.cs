@@ -121,4 +121,32 @@ public class SinkgoodInstrumentTests
         (_, fr) = Instruments.SinkgoodFractions(r, c);
         foreach (int k in members) Assert.True(Math.Abs(fr[k] - 1.0 / members.Count) < 1e-12, $"fr={fr[k]} 件数={members.Count}");
     }
+
+    /// <summary>(1421) 眠りの除外の番人（μ13＝SinkgoodFractions の眠りの除外を外すと赤）：群の重みが全て 0 の時、割合は眠りを除いた件数の逆数（エンジンの 1÷laborCount は眠りの continue の後）。
+    /// 眠りの生産者を同じ群へ置く＝除外が無ければ件数が 1 つ増えて 1/(件数+1) になる。期待は群の中の非眠りの数（SinkgoodDormant の述語で数える）から作る。</summary>
+    [Fact]
+    public void T6_眠りの生産者は分母0の群の件数に入らない()
+    {
+        var sim = Board();
+        int checkedGroups = 0;
+        foreach (var n in sim.Nations) foreach (var r in n.World.Regions)
+        {
+            var live0 = r.Producers.FirstOrDefault(p => !Catalog.IsLaborGood(p.GoodId) && p.Scale > 1e-9 && p.GoodId >= 0 && Catalog.Goods[p.GoodId].Tier != GoodTier.Service);
+            var dorm = r.Producers.FirstOrDefault(p => !ReferenceEquals(p, live0) && !Catalog.IsLaborGood(p.GoodId) && p.GoodId >= 0 && p.GoodId < Catalog.Goods.Length && Catalog.Goods[p.GoodId].Tier != GoodTier.Service && p.SiteRow < 0 && !(Discovery.Gate(r, p) > 0));
+            if (live0 is null || dorm is null) continue;
+            dorm.Scale = 0; dorm.Output = 0; dorm.Bankrupt = false; dorm.BuiltScale = 0; dorm.ConstructionLeft = 0; dorm.SiteRow = -1;
+            dorm.LaborPopIndex = live0.LaborPopIndex;
+            Assert.True(Instruments.SinkgoodDormant(r, dorm), "前提が崩れた：眠りの判定が立たない");
+            int grp = live0.LaborPopIndex;
+            foreach (var p in r.Producers) if (!Catalog.IsLaborGood(p.GoodId) && p.LaborPopIndex == grp) p.LaborWeight = 0;   // 群の重みは全て 0（分母 0）
+            int all = 0, live = 0;
+            foreach (var p in r.Producers) { if (Catalog.IsLaborGood(p.GoodId) || p.LaborPopIndex != grp) continue; all++; if (!Instruments.SinkgoodDormant(r, p)) live++; }
+            Assert.True(live >= 1 && live < all, $"前提が崩れた：眠りが群に入っていない all={all} live={live}");
+            var (_, fr) = Instruments.SinkgoodFractions(r, n.World.Coef);
+            Assert.Equal(0.0, fr[r.Producers.IndexOf(dorm)]);
+            Assert.True(Math.Abs(fr[r.Producers.IndexOf(live0)] - 1.0 / live) < 1e-12, $"fr={fr[r.Producers.IndexOf(live0)]} 非眠りの件数={live} 全件数={all}");
+            checkedGroups++;
+        }
+        Assert.True(checkedGroups >= 1, "調べた群の数: " + checkedGroups);
+    }
 }
