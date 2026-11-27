@@ -1,0 +1,20 @@
+(1409) c150rr 読む：rn の副作用（侵略の偏り・HegemonRestraintFloor・DiploHegemonScans の倍増・越境の移民）
+木：main 871430d15（読むだけ・worktree と枝は作らない・コミットも push もしない）
+作業の場所：D:/PoB_work/r1409_work/（台本は scripts/・出力は out/・合流が scripts/instruments/r1409/ と measurements/m1409_*/ へ写す）
+腕：0 本（使い捨ての worktree で InstrumentsTests の越境の対照 1 本だけ旗の既定を変えて回す＝問い 4・重い仕事ではない・後で消す）
+
+読む生（全て読むだけ）
+- 旗 1：D:/PoB_work/keep_1404/base_ins（M・種 1〜10）・keep_1404/n1・n2（ヌル腕）・keep_1404/a11（種 11〜20）
+  表：warentry_s（TryAiSubjugate の呼び calls・CanInvade の理由 r_*・willNow）・invade_s（成った侵略・submitted）・wars_s（entryCode subjugate）・rnd_s（alliancesCount）・nation_s（realGdpPerYear）・xmig_s・migration_s
+- 旗 0：D:/PoB_work/keep_1390_rej/c147vsB_10/ins（vs の腕 B＝rn 旗 0・ただし SoldierPayBillPrevMonth 1＝交絡あり）
+  表：wars_s・nation_s・migration_s（invade_s・warentry_s・xmig_s・rnd_s は無い）
+- 記録：measurements/m1404_20261127/readM/rn_extra*.txt（旗 0 の国ごとの侵略の数＝rn_extra_base）・measurements/m1401_20261127/result_rn.txt・m1401_20261127_prereg_rn.txt
+- 成績表：measurements/b10_20261126_m1383_ins ほか（旗 0 の基準）
+
+ソース（871430d15）
+- Diplomacy.cs:877 DiplomacyAI は四半期ごと・:1783〜:1785 colonizeChance と旗・:1791 TryAiSubjugate・:1022 ThreatScore・:966 ThreatAverages・:1049 Hegemon（:1052 が DiploHegemonScans を国×国で数える）
+- Hegemon の呼び手：:699 ApplyHegemonContainment（毎月）・:1713 DiplomacyAI（四半期）・:1599 AllyJoinThreshold ← :1443 SideMilitary（同盟があるときだけ）・:1609 JoinAllies
+- SideMilitary の呼び手：:1299 StepDependency（属国の離反）・:1404 TriggerWars・:1617 JoinAllies・:2092・:2161（介入）
+- World.cs:1794 CanInvade の門の順
+
+問い（指示の 1〜5）→ 出力 out/q1_*.txt … out/q4_*.txt

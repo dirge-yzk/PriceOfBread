@@ -1,0 +1,72 @@
+using PriceOfBread.SimCore;
+using Xunit;
+
+namespace PriceOfBread.Tests;
+
+// (1409) 使い捨ての木だけの読み（コミットしない）。Probe1409.Mask で旗 RandomOnlyClimateEpidemic の 5 つの経路を別々に切り替える。
+[Collection("Instruments")]
+public class Probe1409Tests
+{
+    static readonly int[] Masks = [0, 31, 1, 2, 4, 8, 16, 31 - 1, 31 - 2, 31 - 4, 31 - 8, 31 - 16];
+    const string Out = "D:/PoB_work/r1409_work/out/";
+
+    [Fact]
+    public void P1_覇権の判定の呼び手()
+    {
+        var lines = new System.Collections.Generic.List<string> { "mask\tDiploHegemonScans\tTryAiSubjugateCalls\tkey\tscans\tcalls" };
+        foreach (int m in Masks)
+        {
+            Probe1409.Mask = m; Probe1409.Reset();
+            var r = SelfPlayMatch.Run(1, 40, null, lean: true);
+            long tot = r.Cost is { } cc ? cc[CostLedger.DiploHegemonScans] : -1;
+            foreach (var kv in Probe1409.H)
+                if (!kv.Key.StartsWith("calls:")) lines.Add($"{m}\t{tot}\t{Probe1409.TasCalls}\t{kv.Key}\t{kv.Value}\t{Probe1409.H.GetValueOrDefault("calls:" + kv.Key)}");
+            System.IO.File.WriteAllLines(Out + "probe_heg.tsv", lines);
+        }
+        Probe1409.Mask = -1;
+    }
+
+    [Fact]
+    public void P2_越境の対照() => Xb(Masks, [30], "probe_xb.tsv");
+    [Fact]
+    public void P3_越境の対照_pm() => Xb([0, 16, 31], [15], "probe_xb_pm15.tsv");
+
+    static void Xb(int[] masks, int[] days, string file)
+    {
+        var lines = new System.Collections.Generic.List<string> { "mask	days	seed	crossBorderOutK	migrationOutK	nations40" };
+        foreach (int d in days)
+        foreach (int m in masks)
+            for (ulong seed = 1789; seed <= 1796; seed++)
+            {
+                Probe1409.Mask = m;
+                string dir = System.IO.Path.Combine("D:/PoB_work/r1409_work/tmp", "p1409_" + System.Guid.NewGuid().ToString("N"));
+                System.IO.Directory.CreateDirectory(dir);
+                double xo = 0, mo = 0; int nat = 0;
+                try
+                {
+                    var uk = NationConfig.Britain().ShallowClone(); uk.OpeningStateMonopolyTier = 0;
+                    var sim = new MultiNationSim([NationConfig.France(), NationConfig.Prussia(), uk, NationConfig.Austria()], seed, _ => new UtilityAgent()); foreach (var nw in sim.Nations) nw.World.Coef.PriceOnlyStepDays = d;
+                    Instruments.Configure(dir, null);
+                    try
+                    {
+                        Instruments.Phase(sim, 1789UL, "open"); sim.StartWarmup(); Instruments.Phase(sim, 1789UL, "warm");
+                        for (int q = 0; q < 40; q++) { sim.StepQuarter(); Instruments.Quarter(sim, 1789UL, q); }
+                        nat = sim.Nations.Count;
+                    }
+                    finally { Instruments.Close(sim); Instruments.Configure(null, null); }
+                    var all = System.IO.File.ReadAllLines(System.IO.Path.Combine(dir, "region_s1789.tsv"));
+                    var h = all[0].Split('\t'); int ix = System.Array.IndexOf(h, "crossBorderOutKPerQuarter"), im = System.Array.IndexOf(h, "migrationOutKPerQuarter");
+                    for (int i = 1; i < all.Length; i++)
+                    {
+                        var f = all[i].Split('\t');
+                        if (double.TryParse(f[ix], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var v) && v == v) xo += v;
+                        if (double.TryParse(f[im], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var w) && w == w) mo += w;
+                    }
+                }
+                finally { try { System.IO.Directory.Delete(dir, true); } catch { } }
+                lines.Add($"{m}\t{seed}\t{xo:R}\t{mo:R}\t{nat}");
+                System.IO.File.WriteAllLines(Out + file, lines);
+            }
+        Probe1409.Mask = -1;
+    }
+}

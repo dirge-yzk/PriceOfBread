@@ -1,0 +1,9 @@
+start 2026-11-27 10:49:34 dll=D:/PoB_work/t1405_work/build/bin/PriceOfBread.Runner/release/PriceOfBread.Runner.dll (4 parallel)
+10:49:39 p begin cpu=44% dotnet=7
+10:51:25 p mid cpu=75% dotnet=9
+pA combo=A coef=[] rc=1 wall=286.4 cpu=345 parallel
+pB combo=B coef=[PriceOnlyStepDays=15] rc=1 wall=282.9 cpu=344.1 parallel
+pC combo=C coef=[RandomOnlyClimateEpidemic=0] rc=1 wall=277.9 cpu=334 parallel
+pD combo=D coef=[PriceOnlyStepDays=15;RandomOnlyClimateEpidemic=0] rc=1 wall=267.3 cpu=328.1 parallel
+10:54:31 p end cpu=49.8% dotnet=3
+done 2026-11-27 10:54:31 runs=4

@@ -1,0 +1,13 @@
+(1405) c150tm 測る：pm と rn の速さの帰属（読むだけ・コードを書かない・コミットしない）
+作業の場所：
+  worktree D:/PoB_work/wt_c150tm（枝 c150tm・871430d15）＝ビルド元（終わりに外す）
+  ビルド D:/PoB_work/t1405_work/build（隔離・Release）
+  走行の出力 D:/PoB_work/t1405_work/runs/（r<k><組>.txt・.err・.txt.cost・load.txt）
+  台本 D:/PoB_work/wt_c150tm/scripts/instruments/t1405/（time2x2.ps1・read2x2.py）＝写しを D:/PoB_work/r1405_work/ に置く
+  表 D:/PoB_work/r1405_work/stages_2x2.tsv
+読む生：
+  measurements/m1404_20261127/time/（b1.txt・b1.txt.cost・stages.tsv・stages_cmp.tsv・load.txt）＝(1404) の素の 1 種
+  自分の 8 本の stderr（POB_TIME段）と .cost（覇権の判定の国×国 ほか台帳）
+組：A 既定（30・1）／B PriceOnlyStepDays=15／C RandomOnlyClimateEpidemic=0／D 両方（POB_COEF）
+  両係数とも実行時に読む（Simulation.cs:1428 StepDayDaily・Diplomacy.cs:1770,1784・Factions.cs:46・SelfPlay.cs:385・Simulation.cs:1691）＝構築時ではない＝別の木は不要
+順：A B C D A B C D・種 1・selfplay-batch 1・POB_TIME=1
