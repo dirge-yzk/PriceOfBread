@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # (1426) c153tp：フルスイートの Category!=FullLength を重い組 H と残り R の 2 本の dotnet test に分けて同時に流す（suite_m1425.sh と同じ順・同じ口）。
 #   bash scripts/instruments/suite/split_suite.sh <作業フォルダ（D:/…）>        結果は <作業フォルダ>/suite.txt・trx は <作業フォルダ>/trx（tests_H.trx・tests_R.trx・ui.trx）
-#   口：SKIPINS=1（㊴ の束を飛ばす）・SKIPSCAN=0（走査の束を先に回す）・SKIPFULL=1（FullLength と savetest・leakhunt を飛ばす）・ART=<既にビルドした artifacts>（無ければ <作業フォルダ>/art）
+#   口：SKIPINS=1（㊴ の束を飛ばす）・SKIPSCAN=0（走査の束を先に回す）・SKIPFULL=1（FullLength と savetest・leakhunt を飛ばす）・FILTERS_SH=<filters.sh の代わり>・ART=<既にビルドした artifacts>（無ければ <作業フォルダ>/art）
 # H と R は --no-build で artifacts を共有し、TEMP・TMP と --results-directory を分ける（Instruments の静的な状態はプロセスごと）。
 WK=${1:?作業フォルダ}; mkdir -p $WK/tmpH $WK/tmpR $WK/tmp $WK/trx
 export AVALONIA_TELEMETRY_OPTOUT=1 TEMP=$WK/tmp TMP=$WK/tmp
 cd "$(dirname "$0")/../../.."; R=$(pwd); A=${ART:-$WK/art}; O=$WK/suite.txt
-. "$R/scripts/instruments/suite/filters.sh"
+. "${FILTERS_SH:-$R/scripts/instruments/suite/filters.sh}"   # FILTERS_SH＝突然変異の台本が差し替える口
 echo "# (1426) split suite 木=$R HEAD=$(git rev-parse --short HEAD) $(date '+%F %T')" > $O
 dotnet build PriceOfBread.Tests -c Release --artifacts-path $A -v q -nologo > $WK/build_t.txt 2>&1 || { echo "BUILDFAIL Tests" >> $O; exit 1; }
 dotnet build PriceOfBread.Tests.Ui -c Release --artifacts-path $A -v q -nologo > $WK/build_u.txt 2>&1 || { echo "BUILDFAIL Tests.Ui" >> $O; exit 1; }
