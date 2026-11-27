@@ -145,8 +145,7 @@ public static class EconomyStep
     /// </summary>
     private static double StapleHarvestFactor(Region region, int gi, double regionLandFactor)
     {
-        double crop = region.CropHealth is { } ch && gi < ch.Length ? ch[gi] : 1.0;   // 主食id(=gi)の作物健全度（病虫害）
-        return region.HarvestFactor * region.WeatherBandFactor * crop * regionLandFactor;   // 市場向けと同じ収穫係数
+        return region.HarvestFactor * region.WeatherBandFactor * regionLandFactor;   // 市場向けと同じ収穫係数
     }
 
     /// <summary>
@@ -894,8 +893,6 @@ public static class EconomyStep
             double harvestSev = isStaple[s.GoodId] ? 1.0 : Catalog.WeatherExposure(s.GoodId);
             double effHarvest = region.HarvestFactor * region.WeatherBandFactor;   // 国の局地天候×緯度帯（気候帯）の天候＝積算（欧州一帯の凶作が国の不作に重なる）。単一国は帯=1.0で中立
             double harvestMul = fieldLike && harvestSev > 0 ? 1.0 + (effHarvest - 1.0) * harvestSev : 1.0;
-            // 作物固有の病虫害（胴枯れ）：その作物の健全度を産出に乗じる。天候(harvestMul)とは独立にロールされ**積算**＝両者の悪い目が重なれば栽培州の産出はほぼ0（アイルランド大飢饉型）。
-            if (region.CropHealth is { } ch && s.GoodId < ch.Length) harvestMul *= ch[s.GoodId];
             double mineralMul = Catalog.IsMineral(s.GoodId) ? region.MineralGradeFactor : 1.0;   // mineralMul〔履歴 EconomyStep.cs#119〕
             // 役務（教育・医療・行政・高度労働力）＝労働集約のまま＝倍率に乗らない（ボーモルのコスト病）。〔履歴 EconomyStep.cs#120〕
             bool isLabor = s.GoodId is Catalog.LaborId or Catalog.FarmLaborId;   // 人力（工場労働・農業労働）＝工業化(indMult)でのみ伸びる

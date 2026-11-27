@@ -117,7 +117,6 @@ public sealed partial class Coefficients
     public int StartWarmupQuarters = 20;        // 助走の長さ（四半期）
     public int StartWarmupTechIterations = 8;  // 技術の助走の反復回数（旧 GameViewModel のハードコード8）
 
-    public int MonopolyBurdenPushMode = 1;   // MonopolyBurdenPushMode＝AI が専売の段を広げる判定に、払えていて r＝1 のままでも利払いが重い間（借入の門が閉じ国庫を食う間）の動きを足す
 
 
     public double ClearingIdleSearchQuarters = 4;   // ClearingIdleSearchQuarters（②・N）：前の月に輸入が無く、不足も無いか主食でない財の不足だけの買い手行（州×財）は N 四半期に 1 回だけ、四半期の最初の清算で売り手を探す（行ごとに位相が散る）

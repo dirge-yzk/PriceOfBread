@@ -52,7 +52,6 @@ public sealed class Simulation
     public World World { get; }
     public DeterministicRng Rng { get; }
     public DeterministicRng EpidemicRng { get; }   // 疫病専用の独立系列（B-4）。主RNGを乱さない＝豊凶/鉱山/pop意思決定の消費順を保ち較正/Stage3を保護
-    public DeterministicRng HarvestRng { get; }    // 作物病虫害の独立系列。主RNGも疫病系列も乱さない＝較正中立（合成食料は非対象）
     public List<TurnSnapshot> Telemetry { get; } = [];
     public bool TelemetryEnabled = true;   // false＝Snapshot()を止める（selfplay/バッチの割当削減。インスタンス単位＝並列テストと不干渉）
 
@@ -65,7 +64,6 @@ public sealed class Simulation
         _shockMagnitude = scenario.ShockMagnitude;
         Rng = new DeterministicRng(scenario.Seed);
         EpidemicRng = new DeterministicRng(scenario.Seed ^ 0xC0FFEE_D15EA5EUL);   // 疫病専用系列（主RNGと分離）
-        HarvestRng = new DeterministicRng(scenario.Seed ^ 0xBADC0FFEE_0DDF00DUL);   // 作物病虫害の専用系列（主RNG・疫病系列と分離）
 
         var regions = scenario.PrebuiltRegions ?? scenario.Kind switch
         {
@@ -120,7 +118,7 @@ public sealed class Simulation
         // ⇒ 距離の基準を**経済中心地＝1番目の州**（エンジンが首都として扱い、分離もさせない州）へ移す。〔履歴 Simulation.cs#7〕
         if (World.Regions.Count > 0) World.SetCapital(World.Regions[0]);
         World.SetTreasuryRaw(scenario.InitialTreasury);   // 初期国庫＝フローでない（台帳に載せない）
-        if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL); if (scenario.NationConfig is not null) World.AiRng = new DeterministicRng(scenario.Seed ^ 0xA1C0_FFEE_5EED_0337UL);   // xA1C0_FFEE_5EED_0337UL〔履歴 Simulation.cs#8〕
+        if (scenario.NationConfig is not null) World.FactionRng = new DeterministicRng(scenario.Seed ^ 0xFAC7_1035_EED5UL);   // xA1C0_FFEE_5EED_0337UL〔履歴 Simulation.cs#8〕
         World.FoundingActiveProvinces += regions.Count;   // Count〔履歴 Simulation.cs#9〕
         if (scenario.PrebuiltRegions is null) foreach (var r1 in regions) { r1.AnchorPopulation = r1.SumPopulation(); if (Catalog.AdminId < r1.Markets.Length) r1.AdminFill = 0.0; } World.FoundingPopulation = World.TotalPopulation;   // 建国の子の州〔PrebuiltRegions〕は親の値のまま・植民地の州昇格は 0）。〔履歴 Simulation.cs#10〕
         // 倍率排除⑧：各popの中核民族割合を国の初期統一度で初期化（以後 移民[core=0で希釈]/同化/征服で per-pop に変動＝EthnicUnity が加重平均から創発）。〔履歴 Simulation.cs#11〕
@@ -1684,21 +1682,7 @@ public sealed class Simulation
             _prevHarvestFactor = World.HarvestFactor;
             if (World.HarvestFactor < 0.80)   // 顕著な凶作のみ年表に出す（収穫が平年の8割未満）
                 World.LogAdd($"{World.Year} {World.SelfPower?.Name}が凶作に見舞われた（収穫{World.HarvestFactor:P0}）");
-            // 作物病虫害（年次・専用RNG＝主系列を乱さず較正中立）：病害に弱い作物に稀に胴枯れ。数年で回復。栽培州で局地飢饉（ジャガイモ胴枯病/葡萄フィロキセラ）。
-            // 天候(HarvestFactor)とは独立に作物固有でロール＝両者の悪い目が重なれば栽培州の産出はほぼ0（積算）。合成食料(id 0)は IsDiseaseProneCrop=false で非対象＝較正中立。
-            var cropHealth = World.CropHealth;
-            var hc = World.Coef;
-            if (!(hc.RandomOnlyClimateEpidemic > 0))   // (1401) 旗 1＝作物の病気は凶作に含めて経路を通らない（HarvestRng を引かず CropHealth は 1.0 のまま）
-            for (int g = 0; g < cropHealth.Length; g++)
-            {
-                if (!Catalog.IsDiseaseProneCrop(g)) continue;
-                cropHealth[g] = PoliticalQuantities.Toward(cropHealth[g], 1.0, hc.CropDiseaseRecovery);   // 前年までの病害が数年かけて癒える（→1.0）
-                if (cropHealth[g] > 0.9 && HarvestRng.NextDouble() < hc.CropDiseaseChance)
-                {
-                    cropHealth[g] = hc.CropDiseaseSeverity * (0.5 + HarvestRng.NextDouble());   // 新規の胴枯れ＝0.15〜0.45へ激減（重さに揺らぎ）
-                    World.LogAdd($"{World.Year} {World.SelfPower?.Name}で{Catalog.Goods[g].Name}が病虫害に見舞われた（収穫{cropHealth[g]:P0}）");
-                }
-            }
+            // (1413) 作物の病虫害の抽選は消した（乱数は気候と疫病だけ＝凶作は HarvestFactor に含む）。
             // 年に4つ引いていた主系列の乱数（枯渇2・発見2）も消えた＝以後の乱数の列がずれる（挙動の変更＝10種で測った）。〔履歴 Simulation.cs#193〕
             if (World.EpidemicActiveYears > 0) World.EpidemicActiveYears--;   // 感染窓の年次減衰
             double epiRoll = EpidemicRng.NextDouble(); double epiPick = EpidemicRng.NextDouble();   // epiRoll〔履歴 Simulation.cs#194〕
@@ -1816,7 +1800,6 @@ public sealed class Simulation
                 r.ChildLaborLegal = World.ChildLaborLegal;                // 児童労働の合法度（連続）。子供の労働/就学の時間配分を律する
                 r.FemaleParticipation = World.Coef.FemalePartBase;   // 構造的参加率（need=0 の代表値・診断/UI用）＝基礎の 1 本。法の段（賃金保持）の項は (1379) で焼き込み済みで無い（困窮の項は LaborSupply が賃金保持を読む）
                 r.HarvestFactor = World.HarvestFactor;                   // 今年の豊作/不作（主食RGO産出と自給に乗算）
-                r.CropHealth = World.CropHealth;                         // 作物別の健全度（病虫害）。栽培州の産出に乗る＝作物固有の不作（天候と積算）
                 r.WeatherBandFactor = World.WeatherBandFactor;           // 緯度帯（気候帯）の天候。HarvestFactorと積算＝同じ気候帯の国が一緒に不作（欧州一帯の凶作）
                 r.Discovered = World.Discovered;                         // ★発見の表の解禁（段2A）＝国の配列への参照（写しではない＝判定の四半期から同じ値を読む）
                 // 役務（サービス財）の月次設定：教育の担い手と生産性を教育法で切替＋義務教育の財源率＋行政・兵力の予算。〔履歴 Simulation.cs#220〕

@@ -95,7 +95,6 @@ public sealed partial class Coefficients
     public double AllyJoinTension = 40;           // 同盟国が参戦する敵への緊張（参加義務なし＝利害一致時のみ）
     public int MaxAlliances = 2;                  // 1国の同盟数の上限（全員同盟を防ぐ）
     public double HegemonThreatMin = 0.3;         // 覇権と見なす最低脅威超過（GDP×0.6＋植民地×0.4 の平均超過分）
-    public double AntiHegemonAllianceChance = 0.7;// 覇権が共通の敵のときの同盟成立確率（通常0.4より高い＝合従が組まれやすい）
     public int AntiHegemonExtraAlliances = 1;     // 覇権に対抗する時だけ同盟上限を+これ（三国協商＝三極以上の合従を許す）
     public double AntiHegemonJoinFactor = 0.6;    // 敵が覇権のとき同盟国の参戦閾値をこの倍率に下げる（皆で覇権に雪崩れ込む）
     public double HegemonContainmentTrade = 0.40; // 封じ込めで覇権国が失う交易アクセス＝これ×脅威超過（0で無効）

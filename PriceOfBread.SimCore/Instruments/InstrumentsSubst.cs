@@ -283,8 +283,7 @@ public static partial class Instruments
         foreach (var gd in Catalog.Goods)
         {
             if (gd.Tier != GoodTier.Staple || gd.Id >= r.Markets.Length) continue;
-            double crop = r.CropHealth is { } ch && gd.Id < ch.Length ? ch[gd.Id] : 1.0;
-            double f = r.HarvestFactor * r.WeatherBandFactor * crop * landF;
+            double f = r.HarvestFactor * r.WeatherBandFactor * landF;
             var (rg, qty) = S3SellGood(gd.Id);
             double share = 0, price = 0;
             if (rg < r.Markets.Length)

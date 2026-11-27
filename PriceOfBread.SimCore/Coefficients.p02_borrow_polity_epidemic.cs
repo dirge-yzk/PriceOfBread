@@ -69,9 +69,6 @@ public sealed partial class Coefficients
     public double FamineDeathFillFloor = 0.8;          // 旧・連続(1−ff)重みは平均をわずかに下回るだけの州に恒常的な偽陽性の超過死亡を配っていた
     public double FamineMigrationFillGate = 0.8;       // 飢えの超過死亡の門 FamineDeathFillFloor と値は同じ 0.8 だが別の係数＝片方を較正し直してももう片方は動かない（旧は1本が2つの意味を持っていた）
     public double FamineGateReturnsRural = 1;          // (1283) 2026-11-22 に 1（腕 B の木）。0＝飢えの門は流れを 0 にするだけ／1＝門が掛かった月に移る値打ちの g が負なら Mobility×g×都市の規模で都市→農村へ
-    public double CropDiseaseChance = 0.02;        // 病害に弱い作物1つあたりの年次の胴枯れ発生確率（健全時のみ）
-    public double CropDiseaseSeverity = 0.3;       // 胴枯れ時の作物産出倍率の基準（×0.5〜1.5の揺らぎ＝0.15〜0.45へ激減）
-    public double CropDiseaseRecovery = 0.4;       // 病害からの年次回復速度（CropHealth→1.0へ。0.4で胴枯れは約4年で癒える＝多年飢饉）
     public double WeatherBandVariation = 0.12;     // 緯度帯天候の振幅（±12%＝帯全体の豊凶）
     public double WeatherBandSize = 15.0;          // 15度ごとに同じ気候帯＝近い緯度の国が一緒に不作
     public double EpidemicChance = 0.18;         // 疫病の年次発生確率の基礎（×脆弱度）

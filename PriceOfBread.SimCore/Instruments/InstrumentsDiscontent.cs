@@ -78,7 +78,6 @@ public static partial class Instruments
         double coerce = PoliticalQuantities.EffectiveCoerce(w, c);
         foreach (var f in w.Factions)
         {
-            if (f.Mutated) fMut++;
             if (f.Cohesion > fMaxCoh) fMaxCoh = f.Cohesion;
             if (f.Cohesion >= DcontMutGate) fMutGate++;
             if (f.Cohesion < c.FactionCohesionFightThreshold) continue;

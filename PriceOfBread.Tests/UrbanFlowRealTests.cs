@@ -24,7 +24,7 @@ public class UrbanFlowRealTests
     {
         var w = new Simulation(NationConfig.Britain().ToScenario(41), new NullAgent()).World;
         var r = w.Region;
-        r.ArableLand = 1e9; r.HarvestFactor = harvest; r.WeatherBandFactor = 1.0; r.CropHealth = null;
+        r.ArableLand = 1e9; r.HarvestFactor = harvest; r.WeatherBandFactor = 1.0;
         foreach (var p in r.Pops) p.SetSavings(1e12);
         for (int i = 0; i < Staples.Length; i++)
         {
