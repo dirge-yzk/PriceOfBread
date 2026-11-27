@@ -398,7 +398,7 @@ public static class Formations
         var b = !targets.Contains(t) ? UnificationBlock.NotTarget
               : d.IsAtWar(p, t) ? UnificationBlock.AtWar
               : d.HasAlliance(p, t) ? UnificationBlock.Allied
-              : c.UnificationWarWeary > 0 && p.WarExhaustion > c.WarWearyThreshold ? UnificationBlock.Weary
+              : c.UnificationWarWeary > 0 && (c.WarExitFromCapacity > 0 ? p.Nation is { } pcw && pcw.InCivilWar : p.WarExhaustion > c.WarWearyThreshold) ? UnificationBlock.Weary
               : UnificationBlock.None;
         if (Instruments.On) Instruments.UnifWarEval(d, c, p, t, targets, (int)b);   // 計器（読むだけ）
         return b;

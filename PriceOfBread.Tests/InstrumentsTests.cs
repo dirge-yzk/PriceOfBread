@@ -457,7 +457,8 @@ public class InstrumentsTests
         // ★(1277) c131pf 試験だけの直し（㊴・区分＝軌道に依る前提）：越境の口の対照（totalCross＞0）は〈4 国 40 四半期で越境が起きる〉という軌道の前提に依る＝旗 CapSkipSellerPotential 1 の木で種 1789 は越境 0 になった。
         //   規則の検査（①〜④と対照の Assert の文と閾値）は変えず、越境が起きる種を前から順に選ぶ（試した種の全てで①〜④を確かめる）。口の写しが漏れればどの種でも 0＝赤のまま。
         double totalCross = 0; int tried = 0;
-        foreach (ulong seed in new ulong[] { 1789UL, 1790UL, 1791UL, 1792UL })
+        // ★(1404) 合流（pm・rn の旗 1 を重ねた木）：1789〜1792 の全てで越境 0（軌道に依る前提・(1277) と同じ型）＝試す種を 1800 まで延ばした（規則の検査・対照の Assert の文と閾値は変えない）。
+        foreach (ulong seed in new ulong[] { 1789UL, 1790UL, 1791UL, 1792UL, 1793UL, 1794UL, 1795UL, 1796UL, 1797UL, 1798UL, 1799UL, 1800UL })
         {
             tried++;
             totalCross = RegionAndMigrationTables(seed);

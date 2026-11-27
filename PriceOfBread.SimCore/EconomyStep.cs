@@ -1029,7 +1029,7 @@ public static class EconomyStep
             if (coef.PrivateAbsorptionBlend > 0 && world is not null)
             {
                 double pabs = coef.CapitalCreditFloor + (1.0 - coef.CapitalCreditFloor) * TechEducation.AbsorptionOf(world, coef);
-                privateAbsorb = 1.0 + (pabs - 1.0) * coef.PrivateAbsorptionBlend;
+                privateAbsorb = 1.0 + (pabs - 1.0);
                 desiredGrowth *= privateAbsorb;
             }
             privateIndPerConstruction = PrivateIndPerConstruction(region, coef);   // privateIndPerConstruction〔履歴 EconomyStep.cs#151〕

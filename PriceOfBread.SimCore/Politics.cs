@@ -1116,6 +1116,14 @@ public static class Politics
     public static double RevolutionPressure(World w)
         => PoliticalQuantities.ChallengeRatio(w.ReformistPower + w.RadicalPower, PoliticalQuantities.EffectiveCoerce(w, w.Coef));
 
+    /// <summary>戦争を続ける力（保存しない純関数）＝強制力÷(強制力＋挑戦)。挑戦も強制も無い国は 1（国内で崩れる物が無い）・NaN も 1。旗 WarExitFromCapacity が 1 の枝だけが読む。</summary>
+    public static double WarCapacity(World w)
+    {
+        double cc = PoliticalQuantities.EffectiveCoerce(w, w.Coef), xx = w.ReformistPower + w.RadicalPower;
+        double den = cc + xx;
+        return !(den > 0) ? 1.0 : cc / den;
+    }
+
     public static double GiniIndex(World w)
     {
         var wpcList = new List<(double pc, double size)>();

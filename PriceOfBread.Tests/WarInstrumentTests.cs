@@ -356,13 +356,34 @@ public class WarInstrumentTests
         return h.Select((k, i) => (k, v: row[i])).ToDictionary(x => x.k, x => x.v);
     }
 
+    /// <summary>(1401) c149rn 試験が置いた評価の分だけ：同じ盤面で body を空にした対照（エンジン自身がその四半期に積んだ評価）の行を引いた差（整数の列）と和の列（sumNewNeed）。
+    /// 対照の行が無ければ 0。旧の形は最初の四半期にエンジンが評価を積まない軌道を前提にしていた（事前登録 m1401 [10]＝試験のバグ〈軌道に依る前提〉）。</summary>
+    private static Dictionary<string, string> EvalRowOwn(string tag, int nation, Action<MultiNationSim, Diplomacy, Coefficients, World> body)
+    {
+        var arm = EvalRow(tag, nation, body);
+        Dictionary<string, string>? ctl;
+        try { ctl = EvalRow(tag + "c", nation, (_, _, _, _) => { }); } catch (InvalidOperationException) { ctl = null; }   // 対照の四半期にこの国の行が無い＝0
+        Assert.True(arm.Count >= 8, $"対照：評価の行の列を {arm.Count} 本しか読めていない");
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        var outd = new Dictionary<string, string>(arm);
+        foreach (var k in arm.Keys)
+        {
+            if (ctl is null || !ctl.TryGetValue(k, out var cv)) continue;
+            if (long.TryParse(arm[k], System.Globalization.NumberStyles.Integer, inv, out long a) && long.TryParse(cv, System.Globalization.NumberStyles.Integer, inv, out long b))
+                outd[k] = (a - b).ToString(inv);
+            else if (k == "sumNewNeed" && double.TryParse(arm[k], System.Globalization.NumberStyles.Float, inv, out double da) && double.TryParse(cv, System.Globalization.NumberStyles.Float, inv, out double db))
+                outd[k] = (da - db).ToString("R", inv);
+        }
+        return outd;
+    }
+
     /// <summary>(1028) T11：WarEval を通して newOnly＞0 になる。緊張 100（τ²＝(100÷declare)²）・戦争なし（前線の割合 0）の盤面で、今の要求は陸の力を 1 超え（足りない）・新しい要求 need×(1−τ²) は陸の力以下（足りる）。
     /// 期待は盤面の値から手で置く（計器の関数を呼ばない）。元の N3（newOk に oldOk の条件）・τ を 0 に固定する変異で newOnly が 0 になり赤。</summary>
     [Fact]
     public void 評価を通すと新しいだけで足りる件数が正になる()
     {
         double need = 0, land = 0, tau2 = 0;
-        var r = EvalRow("t11", 0, (sim, d, c, gw) =>
+        var r = EvalRowOwn("t11", 0, (sim, d, c, gw) =>
         {
             var self = gw.SelfPower!;
             var t = d.Powers.First(p => p != self);
@@ -388,7 +409,7 @@ public class WarInstrumentTests
     [Fact]
     public void 交差の列は弱小国の標的かつ意欲が足りない評価だけを数える()
     {
-        var r = EvalRow("t12", 0, (sim, d, c, gw) =>
+        var r = EvalRowOwn("t12", 0, (sim, d, c, gw) =>
         {
             var self = gw.SelfPower!;
             var t = d.Powers.First(p => p != self && gw.InvadeWillCost(p) > 1e-9);

@@ -38,6 +38,7 @@ public class DormantIdentityTests
         // ★RuleOrderByRegion（(850) c69po・(862) c71po 州ごとの治安 P1-1）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は RuleOrderP1Tests の P1_0・P1_2・P1_5 と RuleSharesFormTests の D2 の 2 本（旗 0 を明示）。
         // ★CollapsePeaceOneShare（(791) c10cp 崩壊の講和の取り分を 1 回分に）は 1 で**点火**＝この表から外した。旗 0 の経路の番人は CollapsePeaceTests（旗を明示）。
         "ForcedPeaceBlankOverCollapse",   // (821) c65md 列強の調停の戦争は崩壊の上書きを通らず白紙で終える旗（0＝今の形・1 ビットも変わらない・番人 ForcedPeaceBlankTests）。点火時にこの表から外す
+        "WarExitFromCapacity",          // (1399) c149wx 戦争の出口・調停・動員の深さ・開戦の門を厭戦でなく持ちこたえる力と国難＝内戦だけで読む旗（0＝今の規則・番人 WarExitFromCapacityTests）。点火は次の波
         "SilverParityDemandWeighted",   // (807) c12sv 銀の平価の注入の対数平均を州の金鉱の需要で重みづける旗（0＝州ごとに等しい 1 票＝今の形・番人 SilverParityDemandWeightedTests）
         // ★CapitalClaimCancelFromLedger（(828) c66dw 消えた請求権の額を外資の負債の台帳の差で書く）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は CapitalCouponWriteDownTests の Theory（旗を明示）。
         "CapitalDividendFromHostRent",   // (801) c11fl 外資の利札を受け皿の投資家の工業レントの持ち分に結ぶ旗（0＝今の形・1 ビットも変わらない・番人 CapitalDividendHostRentTests）。点火時にこの表から外す
@@ -167,6 +168,7 @@ public class DormantIdentityTests
         // ★NextCapitalCoreFirst（(1332) c139nc 首都の付け替えの候補を最も高い格の州だけに）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は NextCapitalHomeFirstTests の T8・T11）。
         // ★SecessionTreasuryByMoney（(1318) c137ak 分離の国庫の分与を民間の貨幣の比へ）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は SecessionTreasuryShareTests の T1・T2・T8）。
         // ★StateProcureAsSold（(1336) c140sp 国家の購入〔buyer null〕を LastExport でなく LastSold に積む）は 2026-11-25（(1357) c143sp）に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は StateProcureLedgerTests の T1〜T5）。
+        // ★RandomOnlyClimateEpidemic（(1401) c149rn 乱数を気候と疫病だけにする旗）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は RandomOnlyClimateEpidemicTests＝旗を明示・MonopolyPushTests の 2 件も旗を明示）。
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
         // ★ColonyLabelsFromData（(1278) c131cr 植民地の州の文化と宗教の札を places.json から・国の主流の札は植民地格を数えない）は 2026-11-21 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は ColonyLabelsFromDataTests.T1c＝旗を明示）
         // ★LaborWeightsByPower（(1037) c98lw 労働力の重み）は 2026-11-11 に 1 で**点火**＝この表から外した（番人 LaborWeightTests）。

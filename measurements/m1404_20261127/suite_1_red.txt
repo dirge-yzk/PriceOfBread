@@ -1,0 +1,5 @@
+# (1404) suite 木=/d/PoB_work/wt_m1404 HEAD=a4a087b40 2026-11-27 08:07:40
+list-tests Tests(Category!=FullLength)=3085 Tests.Ui=232 和=3317 FullLength=3
+㊴ 計器の束 rc=1 失敗!   -失敗:     1、合格:   799、スキップ:     1、合計:   801、期間: 15 m 42 s - PriceOfBread.Tests.dll (net10.0)
+  失敗 PriceOfBread.Tests.InstrumentsTests.州の人口と移動の表が揃い流れの出と入が合う [18 s]
+STOP 計器の束が赤

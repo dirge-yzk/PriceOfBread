@@ -1,0 +1,7 @@
+枝	腕 goodsCount	基線 goodsCount	新÷旧	腕 dailyRuns	基線 dailyRuns	新÷旧
+goodsClosed	0	542146291	0.000	0	0	nan
+goodsDaily	0	17787225	0.000	0	533424366	0.000
+labor	0	19515183	0.000	0	159740758	0.000
+pinnedClosed	0	24490684	0.000	0	0	nan
+svcClosed	0	25541570	0.000	0	0	nan
+svcDaily	0	13534152	0.000	0	406024560	0.000

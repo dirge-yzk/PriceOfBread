@@ -1,0 +1,11 @@
+arm	seed	sinkQ>0.2	firstQ>0.2	firstYr>0.2	maxSinkQ	maxSinkYr	maxSink	impShMax1830_45	impShMaxYr	firstQhalf	firstYrHalf	popPeakYr	minOverPeak	sellrYrs>0.2	sellrYrs>0.2(sum)
+S11	11	0					nan	nan				1796	0.492	6	3
+S11	12	0					nan	nan				1802	0.516	8	8
+S11	13	0					nan	nan				1790	0.458	10	9
+S11	14	0					nan	nan				1805	0.305	2	2
+S11	15	0					nan	nan				1796	0.518	2	1
+S11	16	0					nan	nan				1892	0.603	1	1
+S11	17	0					nan	nan				1791	0.374	7	6
+S11	18	0					nan	nan				1790	0.411	3	2
+S11	19	0					nan	nan				1786	0.360	0	0
+S11	20	0					nan	nan				1784	0.557	2	1

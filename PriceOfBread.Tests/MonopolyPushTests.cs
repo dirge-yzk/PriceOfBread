@@ -108,14 +108,22 @@ public class MonopolyPushTests
     }
 
     [Fact]
-    public void 係数1で確率1の盤面なら必ず1段広がる()
+    public void 係数1で確率1の盤面なら旗0は必ず1段広がり旗1は押しの経路を通らない()
     {
         // 歳入 0・利払いあり＝重さ 1（手計算）・国庫を空＝因子 1＝p＝1 ＝ u∈[0,1) は必ず u＜p
+        // (1401) c149rn：旗 RandomOnlyClimateEpidemic 1 は押しの経路を消す（乱数は気候と疫病だけ）＝旗 0 の経路の性質は旗を明示して残す（焼くときに消す）。
         var w = Board(300.0, 0.0);
+        w.Coef.RandomOnlyClimateEpidemic = 0.0;
         w.SetStateMonopolyTier(2);
         Step(w, 1, 300.0, 0.0, 1.0, 0.0);
         Assert.Equal(3, w.StateMonopolyTier);
         Assert.NotEqual(FreshNext(), NextOf(w));              // 1 回引いた（次の値がずれる）
+        var w1 = Board(300.0, 0.0);
+        w1.Coef.RandomOnlyClimateEpidemic = 1.0;
+        w1.SetStateMonopolyTier(2);
+        Step(w1, 1, 300.0, 0.0, 1.0, 0.0);
+        Assert.Equal(2, w1.StateMonopolyTier);                // 押さない→旧の保つ（払えない請求なし・国庫は安全水準の下）
+        Assert.Equal(FreshNext(), NextOf(w1));                // 引いていない
     }
 
     [Fact]
@@ -136,10 +144,17 @@ public class MonopolyPushTests
         double u0 = probe.World.AiRng!.NextDouble();
         Assert.True(u0 > 1e-6, "前提が崩れた：この種の最初の抽選の目が小さすぎる");
         var w = Board(300.0, 300.0);
+        w.Coef.RandomOnlyClimateEpidemic = 0.0;               // (1401) c149rn 旗 0 の経路（抽選がある）を明示
         w.SetStateMonopolyTier(3);
         Step(w, 1, 300.0, 300.0, 1.0, 1.0e12);
         Assert.Equal(2, w.StateMonopolyTier);                 // 外れ→旧の枝（国庫が安全水準を超える→狭める）
         Assert.Equal(probe.World.AiRng!.NextULong(), NextOf(w));   // 抽選は 1 回だけ（probe も 1 回引いて同じ位置）
+        var w1 = Board(300.0, 300.0);
+        w1.Coef.RandomOnlyClimateEpidemic = 1.0;              // (1401) 旗 1＝抽選なしで同じ旧の枝へ
+        w1.SetStateMonopolyTier(3);
+        Step(w1, 1, 300.0, 300.0, 1.0, 1.0e12);
+        Assert.Equal(2, w1.StateMonopolyTier);
+        Assert.Equal(FreshNext(), NextOf(w1));
     }
 
     [Fact]

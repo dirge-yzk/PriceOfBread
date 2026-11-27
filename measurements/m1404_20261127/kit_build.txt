@@ -1,0 +1,6 @@
+
+経過時間 00:00:33.64
+D:/PoB_play/kit/build/bin/PriceOfBread.Runner/release/PriceOfBread.Display.dll
+DISPLAYDLL
+KITDONE
+木 d42b52d17（(1404) の基線の push の木・SimCore・Runner・Display は最後の main と同じ）で dotnet build -c Release --artifacts-path D:/PoB_play/kit/build（D:/PoB_play の他の物には書いていない）

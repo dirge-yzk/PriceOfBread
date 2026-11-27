@@ -2,7 +2,9 @@ import sys
 def load(p):
     d = {}
     for l in open(p, encoding='utf-8'):
-        q, g, h = l.rstrip('\n').split('\t'); d.setdefault(int(q), {})[g] = h
+        q, g, h = l.rstrip('\n').split('\t')
+        if '<Coef>k__BackingField' in g or '_coef' in g: continue   # (1399) 係数の欄は状態ではない＝比べから外す（係数を足した・既定を替えた木でも状態のずれだけを見る）
+        d.setdefault(int(q), {})[g] = h
     return d
 a, b = load(sys.argv[1]), load(sys.argv[2])
 for q in sorted(a):

@@ -1,0 +1,16 @@
+# keepsum (728)	D:/PoB_work/ident_c149wx	ファイル 14 本・合計 777207 バイト
+name	sha256	bytes	newlines	header
+b5_ia_5.txt	d32f5efb38290bbb9fd8c535d47a98a9d1e1b15764bf6e0ea5e9971b513b8930	21233	178	=== バッチ自己対戦 seeds 1..5（各668四半期）===
+b5_ia_5.txt.cost	5fc75f885b0ec870b5a171c013f36e568f958f9961766c53f2a43e986455497d	6839	61	# 計算量の測り（selfplay-batch）＝帯の報告とは別のファイル（件数と CPU 秒は揺れる・報告の全行バイト一致の検証を壊さないためここだけに書く）
+b5_ia_5.txt.manifest	324952505b289173db0d8a7b9f9014444d0a0dc69044e02d7430376e687ec7a5	83902	755	SOURCE-HASH: d3f56e90bb73acd0
+fid_ia_5.tsv	d3444f4f8cb652bdb5e122e77ff0abaffd83ad5696ee8832fec34357a05ac968	392	11	#条件	seeds=1..5・四半期=668・上書き=なし	SOURCE-HASH=d3f56e90bb73acd0
+ident_run.sh	82285722237bab45ad2e134663bbcc9aceedadb0c931f67082547b190230ef83	13747	116	#!/usr/bin/env bash
+leakhunt.txt	9e21eb099a43704e24b7b8a766968fc0d93426d03772219d6368f7897d3be612	62626	450	[非有限診断] SeaGraph.SeaDistanceKm 孤立成分＝大圏2倍で退避 バクー沖→イギリス海峡東（同じ組は以後省略）
+leakhunt.txt.manifest	8ad4bbd898730637028fa9d41ea8726156a3bbc17aee7e8bb3791b260723c3ef	83884	755	SOURCE-HASH: d3f56e90bb73acd0
+ms_ia_5.log	491c06bd520222b4f67bd9e36ffccfe76f1e246671d112330a04b36f58e2d0f7	1052	14	START 04:20:07 selfplay-batch N=5 SRC=D:/PoB_work/ident_c149wx/src_ia
+saveleak.log	2348e90ae6de5372117d9757c51f6350534591d885855456d3ec0f6fb51ef9bb	1067	19	[1/4] ソースを隔離ディレクトリへ複製（bin/obj/docs/dist/measurements/uishot を除く）
+savetest.txt	b535ed783e72c3ba902671aa0577f496845689c09b7033fbc6b5d2aa8fe3f203	2327	19	保存 47.3MB（708ms）／300四半期＋0日の点
+savetest.txt.manifest	e5e00cb8bca3ebab7ca3fbfd81b9f1cd9d6f0d7173f59796c3ba0acbc8f1ac8a	83901	755	SOURCE-HASH: d3f56e90bb73acd0
+tests_build.txt	cec1b3c7c0dae31ef838392584cabdbc238e272beca632c9bb87e5b42e2b6165	12679	69	  復元対象のプロジェクトを決定しています...
+tests_list_full.txt	953685399659c307e7491030b6d671f446fb6a0448a244f4d8cd26eb4d794da3	869	8	D:\PoB_work\ident_c149wx\art_it\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+tests_list_nonfull.txt	e989eddfba51a18dfc38feeb3ff5d10e6bcd3d044c1bb92eab90e5db2e87cca7	402689	3313	D:\PoB_work\ident_c149wx\art_it\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行

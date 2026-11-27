@@ -1,0 +1,1 @@
+crownpc effectiveCoerceIndex（M・人口 5,000 千人以上） {'war': (25891, 58168.0215), 'peace': (141310, 51900.5084)}

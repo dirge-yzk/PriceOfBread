@@ -117,7 +117,7 @@ public static class Military
                 if (foe is null) continue;
                 fronts++; enemyLand += foe.LandPower;
             }
-            double exh = self.WarExhaustion;
+            double exh = c.WarExitFromCapacity > 0 ? 0 : self.WarExhaustion;
             double frontDepth = Math.Min(1.0, Math.Max(0, fronts - 1) * c.ConscriptionFrontStep);
             double ratioDepth = self.LandPower > 1e-9 ? PoliticalQuantities.Clamp01(enemyLand / self.LandPower - 1.0) : 0;
             double depth = PoliticalQuantities.Clamp01(c.ConscriptionExhaustionWeight * exh + frontDepth + c.ConscriptionEnemyRatioWeight * ratioDepth);
@@ -220,7 +220,7 @@ public static class Military
         var r = w.Region;
         double gauge = w.SelfPower?.FleetGauge ?? 0;
         double steamGate = Discovery.GoodGate(r, c.ShipTier2GoodId);
-        double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep.Value) * steamGate * c.EraFactor(w.WorldTechLevel, c.EraNavalFuel);
+        double coalWant = c.NavalFuelPerGauge * gauge * PoliticalQuantities.Clamp01(w.NavyUpkeep.Value) * steamGate;
         double fill = 1.0;
         if (coalWant > 1e-9 && Catalog.CoalId < r.Markets.Length)
         {

@@ -1373,7 +1373,7 @@ public sealed class Diplomacy
     /// </summary>
     internal bool WarGateOpen(Power a, Power b, Coefficients c, HashSet<long>? atWar = null)
     {
-        bool weary = a.WarExhaustion > c.WarWearyThreshold || b.WarExhaustion > c.WarWearyThreshold;
+        bool weary = !(c.WarExitFromCapacity > 0) && (a.WarExhaustion > c.WarWearyThreshold || b.WarExhaustion > c.WarWearyThreshold);   // 旗 1 の門は厭戦も国難も読まない
         return Tension(a, b) >= c.WarDeclareTension && !(atWar is null ? AtWar(a, b) : atWar.Contains(Key(a, b))) && !weary && !InDependency(a, b) && WorthFighting(a, b, c);   // ★(spdip) atWar＝呼び手が作った交戦中の組（WarKeySet）・null は旧の探索
     }
 
@@ -1551,7 +1551,7 @@ public sealed class Diplomacy
         var suz = Suzerain(dependent);
         if (suz is null || suz == enemy || suz.Nation is null || AtWar(suz, enemy) || InDependency(suz, enemy)) return;
         // 届かない/疲弊した宗主は属国を見殺しにする（A1の離反へ繋がる）。〔履歴 Diplomacy.cs#168〕
-        if (suz.WarExhaustion > c.WarWearyThreshold || Projection(suz, enemy, c) < c.DefendProjectionMin) return;
+        if ((c.WarExitFromCapacity > 0 ? suz.Nation is { } swc && swc.InCivilWar : suz.WarExhaustion > c.WarWearyThreshold) || Projection(suz, enemy, c) < c.DefendProjectionMin) return;
         Log.Add($"{_year} {suz.Name}が宗主として参戦→{enemy.Name}（{dependent.Name}を防衛）");
         if (Instruments.On) Instruments.WarTag(this, suz, enemy, 5); AddBelligerent(new War { A = suz, B = enemy }, c, depth: 1, visited: []);   // AddBelligerent〔履歴 Diplomacy.cs#169〕
     }
@@ -1612,10 +1612,11 @@ public sealed class Diplomacy
             if (ally == belligerent || ally == enemy || !HasAlliance(belligerent, ally)
                 || AtWar(ally, enemy)) continue;
             // 機能5-④-3：2段目以降は到達可能性ゲート（投射が届かない・疲弊した国は連鎖しない＝DefendDependent と同じ述語。depth=0では不適用＝現行恒等）
-            if (depth > 0 && (Projection(ally, enemy, c) < c.DefendProjectionMin || ally.WarExhaustion > c.WarWearyThreshold)) continue;
+            if (depth > 0 && (Projection(ally, enemy, c) < c.DefendProjectionMin || (c.WarExitFromCapacity > 0 ? ally.Nation is { } dwc && dwc.InCivilWar : ally.WarExhaustion > c.WarWearyThreshold))) continue;
             // 明らかに格上で勝ち目のない戦争や、国難時には参戦を控える＝プレイヤーが参戦拒否した際と同じ挙動」）。〔履歴 Diplomacy.cs#177〕
             bool hopeless = SideMilitary(enemy, ally, c) > SideMilitary(ally, enemy, c) * c.AppeaseMilitaryRatio;   // 陣営で見る（同盟込み）
-            bool crisis = ally.WarExhaustion > c.WarWearyThreshold      // 前の戦争で疲れ切っている
+            bool crisis = c.WarExitFromCapacity > 0 ? ally.Nation is { } fcw && fcw.InCivilWar   // 旗 1：国難は内戦だけ（食・支払い率・正統性は長い因果の道で内戦に届く）
+                       : ally.WarExhaustion > c.WarWearyThreshold      // 前の戦争で疲れ切っている
                        || (ally.Nation is { } aw && (aw.InCivilWar                        // 内戦の只中
                                                   || !(aw.FoodFill >= c.AllyJoinFoodMin)         // 飢饉（⚠否定形＝NaNは国難側へ倒す）
                                                   || !(aw.FiscalFundingRatio >= c.AllyJoinFundingMin)    // 財政が回らない
@@ -1766,7 +1767,7 @@ public sealed class Diplomacy
                     }
                     int cap = c.MaxAlliances + (coalitionFoe == hegemon ? c.AntiHegemonExtraAlliances : 0);
                     double chance = coalitionFoe == hegemon ? c.AntiHegemonAllianceChance : 0.4;
-                    if (allyCounts[p] < cap && allyCounts[q] < cap && !HasAlliance(p, q) && rng.NextDouble() < chance)
+                    if (allyCounts[p] < cap && allyCounts[q] < cap && !HasAlliance(p, q) && (c.RandomOnlyClimateEpidemic > 0 || rng.NextDouble() < chance))   // (1401) 旗 1＝条件だけで結ぶ
                     {
                         _alliance.Add(Key(p, q));
                         allyCounts[p]++; allyCounts[q]++;
@@ -1780,7 +1781,7 @@ public sealed class Diplomacy
             {
                 double selfThreat = ThreatScore(p, c);
                 double colonizeChance = c.AiColonizeChance * (selfThreat > 0 ? Math.Max(c.HegemonRestraintFloor.Value, 1.0 - selfThreat) : 1.0);   // colonizeChance〔履歴 Diplomacy.cs#189〕
-                if (p.Nation is not null && Suzerain(p) is null && rng.NextDouble() < colonizeChance)
+                if (p.Nation is not null && Suzerain(p) is null && (c.RandomOnlyClimateEpidemic > 0 || rng.NextDouble() < colonizeChance))   // (1401) 旗 1＝TryAiSubjugate の門だけで決める
                     TryAiSubjugate(p, c);
             }
         }
@@ -2090,7 +2091,7 @@ public sealed class Diplomacy
         {
             double mine = SideMilitary(side, greatPower, c), his = SideMilitary(greatPower, side, c);
             double lean = his / Math.Max(1e-9, mine + his);   // 調停者が敵側に回ったときの重み（0..1・対等なら0.5）
-            double weary = PoliticalQuantities.Clamp01(side.WarExhaustion / Math.Max(1e-9, c.WarPeaceExhaustion));
+            double weary = c.WarExitFromCapacity > 0 ? 1.0 - KOf(side) : PoliticalQuantities.Clamp01(side.WarExhaustion / Math.Max(1e-9, c.WarPeaceExhaustion));
             double winning = Math.Max(0, side == war.A ? war.Score : -war.Score);   // いま勝っている分（手放したくない）
             return lean + weary > winning + c.InterventionSubmitBar;
         }
@@ -2141,7 +2142,7 @@ public sealed class Diplomacy
         if (war.CivilWarParent is not null && !war.CivilWarSecession) { reason = "内戦"; return false; }
         if (RankOf(g) != PowerRank.Great) { reason = "列強でない"; return false; }   // ⚠植民地化(Colonize)と揃えて Great に限る＝中堅まで許すと発火頻度が桁で変わる
         if (AtWar(g, war.A) || AtWar(g, war.B)) { reason = "交戦中"; return false; }
-        if (g.WarExhaustion > c.WarWearyThreshold) { reason = "厭戦"; return false; }
+        if (c.WarExitFromCapacity > 0 ? g.Nation is { } gcw && gcw.InCivilWar : g.WarExhaustion > c.WarWearyThreshold) { reason = c.WarExitFromCapacity > 0 ? "国難" : "厭戦"; return false; }
         if (Projection(g, war.A, c) < c.DefendProjectionMin || Projection(g, war.B, c) < c.DefendProjectionMin) { reason = "投射が届かない"; return false; }
         if (war.Months < (int)c.InterventionWarMinMonths) { reason = "戦争が始まったばかり"; return false; }
         if (g.Nation is { } gw && gw.ExpansionWill < InterventionWillCost(g, war, c)) { reason = "膨張度が不足"; return false; }
@@ -2334,6 +2335,7 @@ public sealed class Diplomacy
         double RevCut(Power q) => 1.0 - (q.Nation is { } qn ? c.RevolutionSurrenderWeight * Politics.RevolutionPressure(qn) : 0);
         // 0（既定）は下の準備を 1 行も通らない＝旧のまま。〔履歴 Diplomacy.cs#248〕
         bool cpOn = c.CollapsePeaceOneShare > 0;
+        bool wexOn = c.WarExitFromCapacity > 0;   // 段 2 の器（既定 0＝下の旧の経路だけ通る）
         bool fpBlank = c.ForcedPeaceBlankOverCollapse > 0;   // fpBlank〔履歴 Diplomacy.cs#249〕
         Dictionary<Power, int>? cpCount = null; Dictionary<int, List<Power>>? cpFlushAt = null; Dictionary<Power, List<War>>? cpPending = null;
         if (cpOn)
@@ -2348,7 +2350,7 @@ public sealed class Diplomacy
                 bool ac = cw.A.WarExhaustion >= 1.0 * RevCut(cw.A), bc = cw.B.WarExhaustion >= 1.0 * RevCut(cw.B);
                 // 両者が崩壊の線にいる戦争は、歩の本体と同じ規則で敗者を決める（厭戦が高い方・同値なら塹壕の後の押しが小さい A 側が負ける）。厭戦は 1.0 で頭打ちなので、長い戦争では両者が 1.0 で並ぶことが多い。
                 double tA = pushA[wi], tB = pushB[wi]; if (ac && bc) TrenchAdjust(c, cw, ref tA, ref tB);   // 同値の厭戦の敗者決めは塹壕の後の押し（歩の本体と同じ関数）
-                Power? pl = ac && bc ? (cw.A.WarExhaustion != cw.B.WarExhaustion ? (cw.A.WarExhaustion > cw.B.WarExhaustion ? cw.A : cw.B) : (tA < tB ? cw.A : cw.B)) : ac ? cw.A : bc ? cw.B : null;
+                Power? pl = wexOn ? (WarEnds(cw) ? (cw.Score > 0 ? cw.B : cw.Score < 0 ? cw.A : null) : null) : ac && bc ? (cw.A.WarExhaustion != cw.B.WarExhaustion ? (cw.A.WarExhaustion > cw.B.WarExhaustion ? cw.A : cw.B) : (tA < tB ? cw.A : cw.B)) : ac ? cw.A : bc ? cw.B : null;
                 if (pl is null) continue;
                 cpCount[pl] = cpCount.GetValueOrDefault(pl) + 1;
                 if (cpSeen.Add(pl)) { if (!cpFlushAt.TryGetValue(wi, out var fl)) cpFlushAt[wi] = fl = []; fl.Add(pl); }
@@ -2399,7 +2401,7 @@ public sealed class Diplomacy
             // RevolutionSurrenderWeight=0で旧恒等。〔履歴 Diplomacy.cs#256〕
             double aCut = RevCut(war.A), bCut = RevCut(war.B);
             // 厭戦100%（革命圧力で前倒し）＝無条件敗北（厭戦は上で Power単位に更新済み）。戦勝点を決定的敗北に上書き。
-            bool aCollapse = war.A.WarExhaustion >= 1.0 * aCut, bCollapse = war.B.WarExhaustion >= 1.0 * bCut;
+            bool aCollapse = !wexOn && war.A.WarExhaustion >= 1.0 * aCut, bCollapse = !wexOn && war.B.WarExhaustion >= 1.0 * bCut;
             Power? cpLoser = null;   // cpLoser〔履歴 Diplomacy.cs#257〕
             if (Instruments.On) Instruments.CpIter(war, aCollapse || bCollapse);   // Instruments〔履歴 Diplomacy.cs#258〕
             // ForcedPeace〔履歴 Diplomacy.cs#259〕
@@ -2415,10 +2417,12 @@ public sealed class Diplomacy
                 double impose = CollapseScore * (1.0 - (1.0 - reach));
                 war.Score = aLoses ? -impose : impose;
             }
+            if (wexOn && cpOn && !(fpBlank && war.ForcedPeace) && WarEnds(war)) cpLoser = war.Score > 0 ? war.B : war.Score < 0 ? war.A : null;   // 旗 1：負け手は戦勝点の符号（ResolvePeace と同じ読み）
+            Instruments.WexitRow(this, c, war);   // 計器（読むだけ・旗 0 でも同じ行を書く・On の判定は計器の中）
             bool decisive = Math.Abs(war.Score) >= 1.0;
             // 早期講和（革命圧力で前倒し）。〔履歴 Diplomacy.cs#261〕
             bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * aCut) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * bCut);
-            if (decisive || weary || war.ForcedPeace)   // ForcedPeace＝列強の調停（Score は0に置かれている）
+            if (wexOn ? (WarEnds(war) || war.ForcedPeace) : (decisive || weary || war.ForcedPeace))   // ForcedPeace＝列強の調停（Score は0に置かれている）
             {
                 // それ以外は旧の経路。〔履歴 Diplomacy.cs#262〕
                 if (cpLoser is not null && war.CivilWarParent is null && cpCount!.GetValueOrDefault(cpLoser) >= 2
@@ -2436,6 +2440,11 @@ public sealed class Diplomacy
             foreach (var p in new List<Power>(cpPending.Keys)) FlushCollapseGroup(c, p, cpPending);
         _crownAtPeaceHead = null;   // _crownAtPeaceHead〔履歴 Diplomacy.cs#263〕
     }
+
+    /// <summary>旗 WarExitFromCapacity の枝だけが読む：その側が戦争を続ける力（国のない側は 1）。</summary>
+    private static double KOf(Power p) => p.Nation is { } n ? Politics.WarCapacity(n) : 1.0;
+    /// <summary>旗 WarExitFromCapacity の枝だけが読む：戦勝点（A 側が正）がどちらかの側の持ちこたえる力に届いたら戦争は終わる。</summary>
+    private static bool WarEnds(War war) => war.Score >= KOf(war.B) || -war.Score >= KOf(war.A);
 
     /// <summary>講和の 1 本＝ResolvePeace → EndWar → 復讐心の積み（月の走査の本体と FlushCollapseGroup が同じ 1 本を通る）。cg が null なら旧の単独の講和。</summary>
     private void ConcludeWar(Coefficients c, War war, int i, CollapseGroup? cg, double cgShare)
