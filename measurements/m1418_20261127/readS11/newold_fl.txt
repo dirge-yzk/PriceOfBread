@@ -1,0 +1,12 @@
+seed	repayDone新÷旧	世界の国債1850新÷旧	1900	1949	英の国債1900新÷旧	1949	英の利払い÷歳入の中央(1850〜)旧	新
+Traceback (most recent call last):
+  File "D:\PoB_work\wt_m1418\scripts\instruments\c151fl\newold_fl.py", line 26, in <module>
+    dA, fA, gA, uA = fsx(A, s); dB, fB, gB, uB = fsx(B, s)
+                                                 ^^^^^^^^^
+  File "D:\PoB_work\wt_m1418\scripts\instruments\c151fl\newold_fl.py", line 13, in fsx
+    for ix, r in tab(f'{D}/fsx_s{s}.tsv', lambda ix, r: r[ix['time']].startswith('q')):
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\PoB_work\wt_m1418\scripts\instruments\c151fl\newold_fl.py", line 7, in tab
+    f = open(p, encoding='utf-8'); h = f.readline().rstrip('\n').split('\t'); ix = {k: i for i, k in enumerate(h)}
+        ^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'D:/PoB_work/keep_1411/a11/fsx_s11.tsv'
