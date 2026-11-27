@@ -1,0 +1,21 @@
+seed 1 rows=6012 finite=6012 nonfinite=0 off1=0 above1=0
+seed 2 rows=6012 finite=6012 nonfinite=0 off1=0 above1=0
+seed 3 rows=6012 finite=6012 nonfinite=0 off1=0 above1=0
+seed 4 rows=6012 finite=6012 nonfinite=0 off1=0 above1=0
+seed 5 rows=6012 finite=6012 nonfinite=0 off1=0 above1=0
+seed 6 rows=6012 finite=6012 nonfinite=0 off1=0 above1=0
+seed 7 rows=6012 finite=6012 nonfinite=0 off1=0 above1=0
+seed 8 rows=6012 finite=6012 nonfinite=0 off1=0 above1=0
+seed 9 rows=6012 finite=6012 nonfinite=0 off1=0 above1=0
+seed 10 rows=6012 finite=6012 nonfinite=0 off1=0 above1=0
+TOTAL above=0 finite=60120 nonfinite=0 off=0 seedsWithRows=10 maxMul=1 minBonusAbove=0
+LATE1880 フランス meanMul=1.0000 maxMul=1.0000 militaryDropIfRemoved=0.0000 n=2810
+LATE1880 日本 meanMul=1.0000 maxMul=1.0000 militaryDropIfRemoved=0.0000 n=2810
+LATE1880 イギリス meanMul=1.0000 maxMul=1.0000 militaryDropIfRemoved=0.0000 n=2810
+LATE1880 アメリカ meanMul=1.0000 maxMul=1.0000 militaryDropIfRemoved=0.0000 n=2810
+LATE1880 ロシア meanMul=1.0000 maxMul=1.0000 militaryDropIfRemoved=0.0000 n=2810
+LATE1880 プロイセン meanMul=1.0000 maxMul=1.0000 militaryDropIfRemoved=0.0000 n=2810
+LATE1880 オスマン meanMul=1.0000 maxMul=1.0000 militaryDropIfRemoved=0.0000 n=2810
+LATE1880 オーストリア meanMul=1.0000 maxMul=1.0000 militaryDropIfRemoved=0.0000 n=2810
+LATE1880 清 meanMul=1.0000 maxMul=1.0000 militaryDropIfRemoved=0.0000 n=2810
+GATE G1 off1=0 nonfinite=0 seedsWithRows=10/10 -> PASS (accept if off1=0 and every seed has rows)
