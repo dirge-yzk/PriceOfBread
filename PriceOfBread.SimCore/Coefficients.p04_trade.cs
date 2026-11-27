@@ -78,7 +78,7 @@ public sealed partial class Coefficients
     public double RailByRegion = 1.0;   // 2026-11-13 に 1 で点火（腕 B の木・旗 0 の経路の番人は RailByRegionTests の旗 0 の 2 本）
     public double RailLayTerrain = 1.0;   // RailByRegion＝0 では読まない
     public double RailNeedByOutput = 1.0;   // 鉄道の need の取り分を州の産出の比へ（0＝潜在量の比）。RailByRegion＝0 では読まない。(1137) 2026-11-14 点火
-    public double RailProcureNational = 0.0;   // (1407) c150rp 線路と機関車の調達で州の在庫が足りない分を、同じ国の他の州のうち陸の運賃つきの値段が一番安い州の在庫から買う（0＝州の在庫だけ）。RailByRegion＝0 では読まない
+    public double RailProcureNational = 1.0;   // (1407) c150rp 線路と機関車の調達で州の在庫が足りない分を、同じ国の他の州のうち陸の運賃つきの値段が一番安い州の在庫から買う（0＝州の在庫だけ）。RailByRegion＝0 では読まない。2026-11-27 に 1（腕 B の木）
     public int[] ShipGoodIds = [Catalog.SailingShipId, Catalog.SteamshipId];            // 帆船(tier1)・汽船(tier2)
     public int ShipTier2GoodId = Catalog.SteamshipId;                // 汽船＝tier2輸送船（蒸気船）
     public double ShipTier2CapMult = 2.5;           // tier2輸送船は1単位あたり容量が大（蒸気船は帆船より高速・大容量＝海運の革命）
