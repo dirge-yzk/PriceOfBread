@@ -20,7 +20,16 @@ rows = []
 allok = {'G1': True, 'G2': True, 'G3': True}
 for s in SEEDS:
     p = f'{D}/fsx_s{s}.tsv'
-    if not os.path.exists(p): print('欠け', p); allok = {k: False for k in allok}; continue
+    if not os.path.exists(p):
+        # (1427) c153fb：旗を焼いた後の木は fsx_s が無くても読む＝台帳 treasledger の DebtRepay（返済の額・符号は出る側が負）だけで数える（G1〜G3 は fsx_s が要る＝飛ばす）
+        tp = f'{D}/treasledger_s{s}.tsv'
+        if not os.path.exists(tp): print('欠け', p, tp); allok = {k: False for k in allok}; continue
+        qs = set(); tot = 0.0
+        for ix, r in tab(tp, lambda ix, r: r[ix['item']] == 'DebtRepay'):
+            v = float(r[ix['value']])
+            if v != 0: qs.add((r[ix['quarter']], r[ix['nation']])); tot += -v
+        print('台帳のみ 種', s, '返済のある国×四半期', len(qs), '返済額の合計', f'{tot:.6f}')
+        continue
     n1 = k1 = n2 = k2 = n3 = k3 = 0; over2 = lineq = above = 0
     for ix, r in tab(p, lambda ix, r: r[ix['time']].startswith('q')):
         lineE = float(r[ix['lineEnd']]); treE = float(r[ix['treasuryEnd']])
