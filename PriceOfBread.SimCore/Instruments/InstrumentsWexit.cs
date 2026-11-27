@@ -5,7 +5,7 @@ namespace PriceOfBread.SimCore;
 // 計器は自分で式を書く（エンジンの WarCapacity・WarEnds・RevolutionPressure・InCivilWar を呼ばない）。
 public static partial class Instruments
 {
-    internal const string WexitHeaderText = "seq\tmonth\tyear\tsideA\tsideB\tcivilFlag\tforcedFlag\tscoreIndex\tpushSumPositiveFlag\tkA\tkB\toldCollapseAFlag\toldCollapseBFlag\toldDecisiveFlag\toldWearyFlag\tnewEndsFlag\tcivilWarAFlag\tcivilWarBFlag\toldCrisisAFlag\toldCrisisBFlag";
+    internal const string WexitHeaderText = "seq\tmonth\tyear\tsideA\tsideB\tcivilFlag\tforcedFlag\tscoreIndex\tpushSumPositiveFlag\tkA\tkB\toldCollapseAFlag\toldCollapseBFlag\toldDecisiveFlag\toldWearyFlag\tnewEndsFlag\tcivilWarAFlag\tcivilWarBFlag\toldCrisisAFlag\toldCrisisBFlag\tpowerIdA\tpowerIdB";
 
     sealed class WxState { public int Seq; public readonly System.Collections.Generic.List<string> Rows = new(); }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, WxState> WxStates = new();
@@ -44,14 +44,24 @@ public static partial class Instruments
         if (!On || !Tg.Cede || !Wants("wexit_s")) return;
         var st = WxStates.GetValue(d, _ => new WxState()); var cps = CpOf(d);
         string I(int v) => v.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        double kA = WxK(war.A, c), kB = WxK(war.B, c), s = scoreBeforeCollapse;   // 旧の崩壊が war.Score を書き換える前の値
+        double kA = WxK(war.A, c), kB = WxK(war.B, c), s = scoreBeforeCollapse;   // 旧の崩壊が war.Score を書き換える前の値（oldDecisiveFlag だけは書き換えた後の値 sOld で数える）
         double cutA = WxCut(war.A, c), cutB = WxCut(war.B, c);
         bool colA = war.A.WarExhaustion >= 1.0 * cutA, colB = war.B.WarExhaustion >= 1.0 * cutB;
         bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * cutA) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * cutB);
         bool ends = s >= kB || -s >= kA;
+        // 旧の崩壊が書き換えた後の戦勝点（計器の自前の式）：崩壊の側がある（かつ列強の調停の空白でない）なら ±1.5×取り分、無ければ s。
+        double sOld = s;
+        if ((colA || colB) && !(c.ForcedPeaceBlankOverCollapse > 0 && war.ForcedPeace))
+        {
+            bool aLoses = colA && colB ? (war.A.WarExhaustion != war.B.WarExhaustion ? war.A.WarExhaustion > war.B.WarExhaustion : war.PushA < war.PushB) : colA;   // 同点の決め手は累計の押し（月の押しは計器に無い・同点は稀）
+            double winPush = aLoses ? war.PushB : war.PushA, losePush = aLoses ? war.PushA : war.PushB;
+            double reach = System.Math.Max(0.0, System.Math.Min(1.0, 2.0 * winPush / (winPush + losePush + 1e-12)));
+            double impose = Diplomacy.CollapseScore * reach;
+            sOld = aLoses ? -impose : impose;
+        }
         st.Rows.Add(string.Join('\t', I(++st.Seq), I(cps.Month), I(cps.Year), NameOf(war.A), NameOf(war.B), I(war.CivilWarParent is not null ? 1 : 0), I(war.ForcedPeace ? 1 : 0), F(s),
-            I(war.PushA + war.PushB > 0 ? 1 : 0), F(kA), F(kB), I(colA ? 1 : 0), I(colB ? 1 : 0), I(System.Math.Abs(s) >= 1.0 ? 1 : 0), I(weary ? 1 : 0), I(ends ? 1 : 0),
-            I(WxInCivil(d, war.A) ? 1 : 0), I(WxInCivil(d, war.B) ? 1 : 0), I(WxOldCrisis(d, war.A, c) ? 1 : 0), I(WxOldCrisis(d, war.B, c) ? 1 : 0)));
+            I(war.PushA + war.PushB > 0 ? 1 : 0), F(kA), F(kB), I(colA ? 1 : 0), I(colB ? 1 : 0), I(System.Math.Abs(sOld) >= 1.0 ? 1 : 0), I(weary ? 1 : 0), I(ends ? 1 : 0),
+            I(WxInCivil(d, war.A) ? 1 : 0), I(WxInCivil(d, war.B) ? 1 : 0), I(WxOldCrisis(d, war.A, c) ? 1 : 0), I(WxOldCrisis(d, war.B, c) ? 1 : 0), I(war.A.Id), I(war.B.Id)));   // 末尾の 2 列＝戦争の両側の Power.Id（読むだけ）
     }
 
     static void WexitTable(Sink sk, Diplomacy d)
