@@ -1,0 +1,46 @@
+D:\PoB_work\c151lk_work\art_mut\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.46]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:01.04]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:01.08]   Starting:    PriceOfBread.Tests
+  成功 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の最大の動きは白紙の線を跨がない_WarPushSpeed足すWarLuckはWhitePeaceScore未満 [42 ms]
+  成功 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0 [4 ms]
+  成功 PriceOfBread.Tests.WarLuckZeroTests.T1_押しが等しい月は戦勝点が動かない [2 s]
+[xUnit.net 00:00:03.75]     PriceOfBread.Tests.WarLuckZeroTests.T2_片側だけが押す戦争は毎月0_10ずつ進む [FAIL]
+[xUnit.net 00:00:03.75]       9 か月の後の戦勝点 0 が 0.10×9＝0.90000000000000002 でない
+[xUnit.net 00:00:03.75]       Stack Trace:
+[xUnit.net 00:00:03.75]         D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs(76,0): at PriceOfBread.Tests.WarLuckZeroTests.T2_片側だけが押す戦争は毎月0_10ずつ進む()
+[xUnit.net 00:00:03.75]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:03.75]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:03.75]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:03.76]     PriceOfBread.Tests.WarLuckZeroTests.T1b_毎月の戦勝点の動きは押しの割合の式だけ [FAIL]
+[xUnit.net 00:00:03.76]       月 0：戦勝点の動き 0 が 0.10×(押しA−押しB)÷(押しA＋押しB)＝-0.046120345818032857 でない（差 0.0461203）
+[xUnit.net 00:00:03.76]       Stack Trace:
+[xUnit.net 00:00:03.76]         D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs(61,0): at PriceOfBread.Tests.WarLuckZeroTests.T1b_毎月の戦勝点の動きは押しの割合の式だけ()
+[xUnit.net 00:00:03.76]            at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+[xUnit.net 00:00:03.76]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:03.76]            at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:00:03.77]   Finished:    PriceOfBread.Tests
+  失敗 PriceOfBread.Tests.WarLuckZeroTests.T2_片側だけが押す戦争は毎月0_10ずつ進む [101 ms]
+  エラー メッセージ:
+   9 か月の後の戦勝点 0 が 0.10×9＝0.90000000000000002 でない
+  スタック トレース:
+     at PriceOfBread.Tests.WarLuckZeroTests.T2_片側だけが押す戦争は毎月0_10ずつ進む() in D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs:line 76
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+  失敗 PriceOfBread.Tests.WarLuckZeroTests.T1b_毎月の戦勝点の動きは押しの割合の式だけ [18 ms]
+  エラー メッセージ:
+   月 0：戦勝点の動き 0 が 0.10×(押しA−押しB)÷(押しA＋押しB)＝-0.046120345818032857 でない（差 0.0461203）
+  スタック トレース:
+     at PriceOfBread.Tests.WarLuckZeroTests.T1b_毎月の戦勝点の動きは押しの割合の式だけ() in D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs:line 61
+   at System.RuntimeMethodHandle.InvokeMethod(ObjectHandleOnStack target, Void** arguments, ObjectHandleOnStack sig, BOOL isConstructor, ObjectHandleOnStack result)
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.RuntimeMethodInfo.Invoke(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+
+テストの実行に失敗しました。
+テストの合計数: 5
+     成功: 3
+     失敗: 2
+合計時間: 4.5480 秒

@@ -1,0 +1,72 @@
+D:\PoB_work\c151lk_work\art_mut\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:00:00.00] xUnit.net VSTest Adapter v3.1.4+50e68bbb8b (64-bit .NET 10.0.5)
+[xUnit.net 00:00:00.32]   Discovering: PriceOfBread.Tests
+[xUnit.net 00:00:00.69]   Discovered:  PriceOfBread.Tests
+[xUnit.net 00:00:00.72]   Starting:    PriceOfBread.Tests
+[xUnit.net 00:00:00.79]     PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0 [FAIL]
+[xUnit.net 00:00:00.79]       Assert.Equal() Failure: Values differ
+[xUnit.net 00:00:00.79]       Expected: 0
+[xUnit.net 00:00:00.79]       Actual:   0.059999999999999998
+[xUnit.net 00:00:00.79]       Stack Trace:
+[xUnit.net 00:00:00.79]         D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\CoefficientRelationTests.cs(30,0): at PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0()
+[xUnit.net 00:00:00.79]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:00.79]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  成功 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の最大の動きは白紙の線を跨がない_WarPushSpeed足すWarLuckはWhitePeaceScore未満 [12 ms]
+  失敗 PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0 [5 ms]
+  エラー メッセージ:
+   Assert.Equal() Failure: Values differ
+Expected: 0
+Actual:   0.059999999999999998
+  スタック トレース:
+     at PriceOfBread.Tests.CoefficientRelationTests.戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0() in D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\CoefficientRelationTests.cs:line 30
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:02.62]     PriceOfBread.Tests.WarLuckZeroTests.T1_押しが等しい月は戦勝点が動かない [FAIL]
+[xUnit.net 00:00:02.62]       押しが等しい月に戦勝点が -0.010950991430154312 動いた＝押しの他の項（運）が残っている
+[xUnit.net 00:00:02.62]       Stack Trace:
+[xUnit.net 00:00:02.62]         D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs(49,0): at PriceOfBread.Tests.WarLuckZeroTests.T1_押しが等しい月は戦勝点が動かない()
+[xUnit.net 00:00:02.62]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:02.62]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.WarLuckZeroTests.T1_押しが等しい月は戦勝点が動かない [1 s]
+  エラー メッセージ:
+   押しが等しい月に戦勝点が -0.010950991430154312 動いた＝押しの他の項（運）が残っている
+  スタック トレース:
+     at PriceOfBread.Tests.WarLuckZeroTests.T1_押しが等しい月は戦勝点が動かない() in D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs:line 49
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:03.07]     PriceOfBread.Tests.WarLuckZeroTests.T2_片側だけが押す戦争は毎月0_10ずつ進む [FAIL]
+[xUnit.net 00:00:03.07]       前提が崩れた：月 69 で戦争が終わった（戦勝点 1.09853）
+[xUnit.net 00:00:03.07]       Stack Trace:
+[xUnit.net 00:00:03.07]         D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs(34,0): at PriceOfBread.Tests.WarLuckZeroTests.Month(MultiNationSim sim, War war, Int32 month)
+[xUnit.net 00:00:03.07]         D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs(73,0): at PriceOfBread.Tests.WarLuckZeroTests.T2_片側だけが押す戦争は毎月0_10ずつ進む()
+[xUnit.net 00:00:03.07]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:03.07]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:03.10]     PriceOfBread.Tests.WarLuckZeroTests.T1b_毎月の戦勝点の動きは押しの割合の式だけ [FAIL]
+[xUnit.net 00:00:03.10]       月 0：戦勝点の動き -0.057071337248187165 が 0.10×(押しA−押しB)÷(押しA＋押しB)＝-0.046120345818032857 でない（差 -0.010951）
+[xUnit.net 00:00:03.10]       Stack Trace:
+[xUnit.net 00:00:03.10]         D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs(61,0): at PriceOfBread.Tests.WarLuckZeroTests.T1b_毎月の戦勝点の動きは押しの割合の式だけ()
+[xUnit.net 00:00:03.10]            at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+[xUnit.net 00:00:03.10]            at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:03.10]   Finished:    PriceOfBread.Tests
+  失敗 PriceOfBread.Tests.WarLuckZeroTests.T2_片側だけが押す戦争は毎月0_10ずつ進む [451 ms]
+  エラー メッセージ:
+   前提が崩れた：月 69 で戦争が終わった（戦勝点 1.09853）
+  スタック トレース:
+     at PriceOfBread.Tests.WarLuckZeroTests.Month(MultiNationSim sim, War war, Int32 month) in D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs:line 34
+   at PriceOfBread.Tests.WarLuckZeroTests.T2_片側だけが押す戦争は毎月0_10ずつ進む() in D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs:line 73
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+  失敗 PriceOfBread.Tests.WarLuckZeroTests.T1b_毎月の戦勝点の動きは押しの割合の式だけ [26 ms]
+  エラー メッセージ:
+   月 0：戦勝点の動き -0.057071337248187165 が 0.10×(押しA−押しB)÷(押しA＋押しB)＝-0.046120345818032857 でない（差 -0.010951）
+  スタック トレース:
+     at PriceOfBread.Tests.WarLuckZeroTests.T1b_毎月の戦勝点の動きは押しの割合の式だけ() in D:\PoB_work\wt_c151lk_mut\PriceOfBread.Tests\WarLuckZeroTests.cs:line 61
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+
+テストの実行に失敗しました。
+テストの合計数: 5
+     成功: 1
+     失敗: 4
+合計時間: 3.9141 秒
