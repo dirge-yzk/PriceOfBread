@@ -1,0 +1,20 @@
+wexit_s 検算2 OK 違う行 229（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 229・newEnds の丸めの境 22・不一致 0
+wexit_s 値の検算 (e) OK 照合 237・記録なし 3・最後の行でない決定的の崩壊 3・食い違い 0
+wexit_s 検算2 OK 違う行 225（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 223・newEnds の丸めの境 20・不一致 0
+wexit_s 値の検算 (e) OK 照合 237・記録なし 0・最後の行でない決定的の崩壊 0・食い違い 0
+wexit_s 検算2 OK 違う行 182（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 182・newEnds の丸めの境 24・不一致 0
+wexit_s 値の検算 (e) OK 照合 188・記録なし 0・最後の行でない決定的の崩壊 0・食い違い 0
+wexit_s 検算2 OK 違う行 384（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 383・newEnds の丸めの境 54・不一致 0
+wexit_s 値の検算 (e) OK 照合 383・記録なし 6・最後の行でない決定的の崩壊 7・食い違い 0
+wexit_s 検算2 OK 違う行 152（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 152・newEnds の丸めの境 19・不一致 0
+wexit_s 値の検算 (e) OK 照合 162・記録なし 0・最後の行でない決定的の崩壊 0・食い違い 0
+wexit_s 検算2 OK 違う行 267（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 267・newEnds の丸めの境 18・不一致 0
+wexit_s 値の検算 (e) OK 照合 276・記録なし 0・最後の行でない決定的の崩壊 0・食い違い 0
+wexit_s 検算2 OK 違う行 180（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 180・newEnds の丸めの境 41・不一致 0
+wexit_s 値の検算 (e) OK 照合 188・記録なし 0・最後の行でない決定的の崩壊 0・食い違い 0
+wexit_s 検算2 OK 違う行 191（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 187・newEnds の丸めの境 51・不一致 0
+wexit_s 値の検算 (e) OK 照合 207・記録なし 0・最後の行でない決定的の崩壊 0・食い違い 0
+wexit_s 検算2 OK 違う行 327（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 327・newEnds の丸めの境 24・不一致 0
+wexit_s 値の検算 (e) OK 照合 335・記録なし 0・最後の行でない決定的の崩壊 2・食い違い 0
+wexit_s 検算2 OK 違う行 420（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 420・newEnds の丸めの境 13・不一致 0
+wexit_s 値の検算 (e) OK 照合 439・記録なし 0・最後の行でない決定的の崩壊 3・食い違い 0

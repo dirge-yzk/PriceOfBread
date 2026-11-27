@@ -1,0 +1,43 @@
+ident start：段=2（基準 f3a9c151c との差 175 本・段 2 の条件に当たった 3 本・ident.cfg は基準の鍵と注だけの差＝数えない）
+ident start：ラベル=c152wr 木=/d/PoB_work/wt_c152wr 作業=D:/PoB_work/ident_c152wr 腕=[a b t s] 開始=2026-11-28 00:48:10
+ident start：腕は全て終わった（5 印）
+=== 恒等の判定（測った種で一致） c152wr（2026-11-28 01:37:28）===
+測った木：D:/PoB_work/wt_c152wr（HEAD bb23444cd・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c152wr/scripts/instruments/ident/ident.cfg
+宣言：grown=['trrail_s'] rewritten=['wexit_s@scripts/instruments/c152wr/wexit_check3.py', 'sinkgood_s@scripts/instruments/c152wr/sinkgood_check.py'] tests_delta=13
+腕 a：rc=0 end=2026-11-28 01:15:27
+腕 b：rc=0 end=2026-11-28 01:37:28
+腕 t：rc=0 end=2026-11-28 00:54:51
+腕 s：rc=0 end=2026-11-28 01:15:52
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：b4615a71997dcf3a
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: b4615a71997dcf3a
+[素の 5 種] b5_ia_5.txt 対 b5_20261127_m1418
+  ○ 全行バイト一致（179 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261127_m1418.cost
+  ○ 件数の行 45 本・推定 227.2 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: b4615a71997dcf3a
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261127_m1418_ins
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261127_m1418_ins.cost
+  ○ 件数の行 45 本・推定 226.1 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_c152wr/out_ib_10/ins  対  基準 D:/PoB_work/keep_1418/base_ins
+  基準 1825 本・腕 1825 本・バイト一致 1775 本
+  列が増えた表（--grown-ok の宣言）10 本：trrail_s1.tsv+12列・trrail_s10.tsv+12列・trrail_s2.tsv+12列・trrail_s3.tsv+12列・trrail_s4.tsv+12列・trrail_s5.tsv+12列
+  表の中身が宣言どおり変わった表（--rewritten-tables・検算の台本が 0）20 本：sinkgood_s1.tsv［sinkgood_s 検算 OK 腕の行 1383501・重み同じ 1383501・重み 0 へ 0・旧から落ちた行 71920・不一致 0］・sinkgood_s10.tsv［sinkgood_s 検算 OK 腕の行 1395112・重み同じ 1395112・重み 0 へ 0・旧から落ちた行 82605・不一致 0］・sinkgood_s2.tsv［sinkgood_s 検算 OK 腕の行 1411286・重み同じ 1411286・重み 0 へ 0・旧から落ちた行 87221・不一致 0］
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1775・既知の揺れ 20・宣言された増減 10）・検算の台本で通った表 20
+  内訳：共通の表 1825 本＝バイト一致 1775＋既知の揺れ 20＋列が増えた 10＋行が増えた 0＋列が消えた 0＋検算の台本で通った表 20＋宣言の無い違い 0＋その他 0（和 1825）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ→検算の台本〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261127_m1418.txt（タグの行を除く）
+  ○ タグの行以外が一致（4788 行）
+[テストの数] --list-tests
+  ○ Category!=FullLength 3340（基準 3327+13 を宣言）・FullLength 3（基準 3）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 恒等
+刈り込み：判定=判定: 恒等・表 1825 本・消した 1685 本（22.21GB）・残した 140 本
+刈り込みの結果：rc=0・刈り込み：判定=判定: 恒等・表 1825 本・消した 1685 本（22.21GB）・残した 140 本
