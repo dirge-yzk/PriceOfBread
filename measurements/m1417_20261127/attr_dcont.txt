@@ -1,0 +1,21 @@
+== flag0_M rows 147011
+ factionsCount mean 3.279  facCohMut(>=0.3) mean 1.326  facCohGate(>=0.8) mean 0.491  rows gate>0 56066
+ rows strong>0 142  sum strong 142
+ ratioMax | gate>0 : n 56066 p50 0.005485 p90 0.06142 p99 0.5711 max 6.759  P(strong|gate) 0.003
+ D mean 0.0443 p50 0.0246   mil mean 0.0744 p50 0.0547   dGtM p50 0.220
+ sum partDen 5.711e+09  partNew(max(D,mil)) 5.633e+08  partMil 4.409e+08  partD(mass) 2.066e+08
+ share of pop: partNew 0.0986 partMil 0.0772 partD 0.0362  partD/partNew 0.3667
+ rows where whole-nation partD < 1% floor: 0.356   rows partNew<floor 0.035
+ clusterCountNew(max rule, floor) mean 2.263  clusterCountMil mean 1.737
+ rS=D/mil (row) p50 0.4249 p90 3.4368 mean 1.9112
+flag0_S11 no rows
+== flag1_sdB rows 146990
+ factionsCount mean 1.230  facCohMut(>=0.3) mean 0.372  facCohGate(>=0.8) mean 0.093  rows gate>0 12531
+ rows strong>0 4  sum strong 4
+ ratioMax | gate>0 : n 12531 p50 0.003781 p90 0.03484 p99 0.2117 max 1.385  P(strong|gate) 0.000
+ D mean 0.0353 p50 0.0162   mil mean 0.0771 p50 0.0566   dGtM p50 0.109
+ sum partDen 5.719e+09  partNew(max(D,mil)) 5.677e+08  partMil 4.66e+08  partD(mass) 1.757e+08
+ share of pop: partNew 0.0993 partMil 0.0815 partD 0.0307  partD/partNew 0.3096
+ rows where whole-nation partD < 1% floor: 0.452   rows partNew<floor 0.037
+ clusterCountNew(max rule, floor) mean 2.175  clusterCountMil mean 1.770
+ rS=D/mil (row) p50 0.2529 p90 2.8776 mean 1.6736
