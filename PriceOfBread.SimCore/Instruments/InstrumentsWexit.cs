@@ -5,7 +5,7 @@ namespace PriceOfBread.SimCore;
 // 計器は自分で式を書く（エンジンの WarCapacity・WarEnds・RevolutionPressure・InCivilWar を呼ばない）。
 public static partial class Instruments
 {
-    internal const string WexitHeaderText = "seq\tmonth\tyear\tsideA\tsideB\tcivilFlag\tforcedFlag\tscoreIndex\tpushSumPositiveFlag\tkA\tkB\toldCollapseAFlag\toldCollapseBFlag\toldDecisiveFlag\toldWearyFlag\tnewEndsFlag\tcivilWarAFlag\tcivilWarBFlag\toldCrisisAFlag\toldCrisisBFlag\tpowerIdA\tpowerIdB";
+    internal const string WexitHeaderText = "seq\tmonth\tyear\tsideA\tsideB\tcivilFlag\tforcedFlag\tscoreIndex\tpushSumPositiveFlag\tkA\tkB\toldCollapseAFlag\toldCollapseBFlag\toldDecisiveFlag\toldWearyFlag\tnewEndsFlag\tcivilWarAFlag\tcivilWarBFlag\toldCrisisAFlag\toldCrisisBFlag\tpowerIdA\tpowerIdB\texhA\texhB\tcutA\tcutB\tcumPushA\tcumPushB\timposeScore";
 
     sealed class WxState { public int Seq; public readonly System.Collections.Generic.List<string> Rows = new(); }
     static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Diplomacy, WxState> WxStates = new();
@@ -66,7 +66,8 @@ public static partial class Instruments
         }
         st.Rows.Add(string.Join('\t', I(++st.Seq), I(cps.Month), I(cps.Year), NameOf(war.A), NameOf(war.B), I(war.CivilWarParent is not null ? 1 : 0), I(war.ForcedPeace ? 1 : 0), F(s),
             I(war.PushA + war.PushB > 0 ? 1 : 0), F(kA), F(kB), I(colA ? 1 : 0), I(colB ? 1 : 0), I(System.Math.Abs(sOld) >= 1.0 ? 1 : 0), I(weary ? 1 : 0), I(ends ? 1 : 0),
-            I(WxInCivil(d, war.A) ? 1 : 0), I(WxInCivil(d, war.B) ? 1 : 0), I(WxOldCrisis(d, war.A, c) ? 1 : 0), I(WxOldCrisis(d, war.B, c) ? 1 : 0), I(war.A.Id), I(war.B.Id)));   // 末尾の 2 列＝戦争の両側の Power.Id（読むだけ）
+            I(WxInCivil(d, war.A) ? 1 : 0), I(WxInCivil(d, war.B) ? 1 : 0), I(WxOldCrisis(d, war.A, c) ? 1 : 0), I(WxOldCrisis(d, war.B, c) ? 1 : 0), I(war.A.Id), I(war.B.Id),   // 2 列＝戦争の両側の Power.Id（読むだけ）
+            F(war.A.WarExhaustion), F(war.B.WarExhaustion), F(cutA), F(cutB), F(war.PushA), F(war.PushB), F(war.Score)));   // (1429) 末尾の 7 列＝厭戦・計器の切り目・累計の押し・崩壊の書き換えの後の戦勝点（読むだけ）
     }
 
     static void WexitTable(Sink sk, Diplomacy d)

@@ -2438,7 +2438,10 @@ public sealed class Diplomacy
             bool decisive = Math.Abs(war.Score) >= 1.0;
             // 早期講和（革命圧力で前倒し）。〔履歴 Diplomacy.cs#261〕
             bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * aCut) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * bCut);
-            if (wexOn ? (WarEnds(war) || war.ForcedPeace) : (decisive || weary || war.ForcedPeace))   // ForcedPeace＝列強の調停（Score は0に置かれている）
+            // (1429) 接触の無い戦争の出口：崩壊の側がいて累計の押しが両側 0＝上の書き換えは Score 0 を書くだけ＝その月に白紙で講和（矯正講和に数えない）。
+            bool noContactBlank = c.NoContactCollapseBlank > 0 && (aCollapse || bCollapse) && war.PushA + war.PushB <= 1e-12;
+            if (noContactBlank) cpLoser = null;
+            if (wexOn ? (WarEnds(war) || war.ForcedPeace) : (decisive || weary || war.ForcedPeace || noContactBlank))   // ForcedPeace＝列強の調停（Score は0に置かれている）
             {
                 // それ以外は旧の経路。〔履歴 Diplomacy.cs#262〕
                 if (cpLoser is not null && war.CivilWarParent is null && cpCount!.GetValueOrDefault(cpLoser) >= 2
