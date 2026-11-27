@@ -1,5 +1,5 @@
 # (1414) c151wr 項 1：wexit_s の oldDecisiveFlag が、旧の崩壊の書き換えの後の戦勝点で数え直されたことと、newEndsFlag の値の検算。
-# 呼び方：python wexit_check2.py <基準の表(m1411)> <腕の表> [<旧の生の wars_s>]。0＝宣言どおり。
+# 呼び方：python wexit_check3.py <基準の表(m1418)> <腕の表> [<旧の生の wars_s＝省けば基準の表の隣の wars_s>]。0＝宣言どおり。
 # (1421) 3 つ目の引数を渡すと (e) を足す：終戦の記録（wars_s の verdictCode＝EndedWars の Verdict の写し）との値の検算。
 # 検算：(a) newEndsFlag が列 scoreIndex・kA・kB だけから再計算した値（s>=kB または -s>=kA）と一致する（表の桁の丸めの境は数える）。
 #       (b) 崩壊の旗が無い行は oldDecisiveFlag が |scoreIndex|>=1 と一致する。
@@ -34,8 +34,10 @@ for x, y in zip(a[1:], b[1:]):
         if d: bad += 1; print('宣言の外の列が違う', d)
 print(f'wexit_s 検算2 {"OK" if bad==0 else "NG"} 違う行 {chg}（oldDecisiveFlag だけ）・崩壊の行で scoreIndex の旧規則と食い違う行 {cdiff}・newEnds の丸めの境 {edge}・不一致 {bad}')
 # (e) (1421) 値の検算：戦争ごとの最後の行（旧の崩壊 1 側だけ・強制の空白でない・oldDecisiveFlag=1）は、wars_s の verdictCode（0 白紙・1 A の勝ち・2 B の勝ち）が 崩壊の側の反対の勝ちである。
-if len(sys.argv) > 3:
-    w = rows(sys.argv[3]); wi = {n: w[0].index(n) for n in w[0]}
+import os
+wp = sys.argv[3] if len(sys.argv) > 3 else os.path.join(os.path.dirname(sys.argv[1]), os.path.basename(sys.argv[1]).replace('wexit_s', 'wars_s'))   # ident からは 2 引数で呼ばれる＝基準の表の隣の wars_s を使う（wars_s の中身は ident が基準と全行比べる）
+if os.path.isfile(wp):
+    w = rows(wp); wi = {n: w[0].index(n) for n in w[0]}
     ended = collections.defaultdict(list)
     for x in w[1:]:
         if x[wi['verdictCode']] != '-1': ended[(x[wi['sideA']], x[wi['sideB']], int(x[wi['months']]))].append(int(x[wi['verdictCode']]))
