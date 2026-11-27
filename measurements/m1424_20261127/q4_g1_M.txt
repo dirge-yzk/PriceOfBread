@@ -1,0 +1,4 @@
+RANGE 1-10 usable=79425 maxAbsD=0.1000000001
+GATE G1 over=0 firstOver=22
+GATE G1p over=0 firstOver=22
+# 外れた月：種・組・月・前の印字・今の印字・(|d|−0.10)・印字の丸めの幅（両方の半目盛りの和）・外れた門・丸めの幅の内か

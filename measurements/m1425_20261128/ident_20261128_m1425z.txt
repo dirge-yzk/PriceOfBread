@@ -1,0 +1,40 @@
+=== 恒等の判定（測った種で一致） m1425z（2026-11-28 04:28:38）===
+測った木：D:/PoB_work/wt_m1425z（HEAD cdde82df8・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_m1425z/scripts/instruments/ident/ident.cfg
+宣言：grown=['trrail_s'] rewritten=['wexit_s@scripts/instruments/c152wr/wexit_check3.py', 'sinkgood_s@scripts/instruments/c152wr/sinkgood_check.py'] tests_delta=16
+腕 a：rc=0 end=2026-11-28 04:14:39
+腕 b：rc=0 end=2026-11-28 04:28:37
+腕 t：rc=0 end=2026-11-28 04:00:22
+腕 s：rc=0 end=2026-11-28 04:13:42
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：c3f36e6a586888d0
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: c3f36e6a586888d0
+[素の 5 種] b5_ia_5.txt 対 b5_20261127_m1418
+  ○ 全行バイト一致（179 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261127_m1418.cost
+  ○ 件数の行 45 本・推定 227.2 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: c3f36e6a586888d0
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261127_m1418_ins
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261127_m1418_ins.cost
+  ○ 件数の行 45 本・推定 226.1 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_m1425z/out_ib_10/ins  対  基準 D:/PoB_work/keep_1418/base_ins
+  基準 1825 本・腕 1825 本・バイト一致 1775 本
+  列が増えた表（--grown-ok の宣言）10 本：trrail_s1.tsv+12列・trrail_s10.tsv+12列・trrail_s2.tsv+12列・trrail_s3.tsv+12列・trrail_s4.tsv+12列・trrail_s5.tsv+12列
+  表の中身が宣言どおり変わった表（--rewritten-tables・検算の台本が 0）20 本：sinkgood_s1.tsv［sinkgood_s 検算 OK 腕の行 1383501・重み同じ 1383501・重み 0 へ 0・旧から落ちた行 71920・不一致 0］・sinkgood_s10.tsv［sinkgood_s 検算 OK 腕の行 1395112・重み同じ 1395112・重み 0 へ 0・旧から落ちた行 82605・不一致 0］・sinkgood_s2.tsv［sinkgood_s 検算 OK 腕の行 1411286・重み同じ 1411286・重み 0 へ 0・旧から落ちた行 87221・不一致 0］
+  既知の揺れの列だけが違う表 20 本：burscan_s:seconds×10・clock_s:worldTotalPerMonth@kind=C×10
+  ○ 計器の表は恒等（バイト一致 1775・既知の揺れ 20・宣言された増減 10）・検算の台本で通った表 20
+  内訳：共通の表 1825 本＝バイト一致 1775＋既知の揺れ 20＋列が増えた 10＋行が増えた 0＋列が消えた 0＋検算の台本で通った表 20＋宣言の無い違い 0＋その他 0（和 1825）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ→検算の台本〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261127_m1418.txt（タグの行を除く）
+  ○ タグの行以外が一致（4788 行）
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ○ NG 77 件・新しい 0・外れた 0（基準 rd:D:/PoB_work/wt_m1425z/measurements/ng1418_20261127:m1418）
+[テストの数] --list-tests
+  ○ Category!=FullLength 3343（基準 3327+16 を宣言）・FullLength 4（基準 4）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 恒等

@@ -1,0 +1,3 @@
+D:/PoB_work/keep_1418/a11 ALL 7378 690 1696 0.094 0.230
+D:/PoB_work/keep_1418/a11 blank 725 31 150 0.043 0.207
+D:/PoB_work/keep_1418/a11 won 6653 659 1546 0.099 0.232

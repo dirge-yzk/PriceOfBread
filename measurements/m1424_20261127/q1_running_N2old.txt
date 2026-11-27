@@ -1,0 +1,24 @@
+s1 日本 vs スペイン civil=0 start=1949 months=7 entry=main
+s1 アメリカ vs 日本 civil=0 start=1949 months=7 entry=ally
+s1 イギリス vs スペイン civil=0 start=1949 months=5 entry=main
+s1 フランス vs イギリス civil=0 start=1949 months=5 entry=ally
+s1 マイソール vs イギリス civil=0 start=1949 months=5 entry=ally
+s1 ロシア vs スペイン civil=0 start=1949 months=5 entry=suzerain
+s1 フランス vs ロシア civil=0 start=1949 months=5 entry=ally
+s1 デンマーク vs イギリス civil=0 start=1949 months=5 entry=suzerain
+s1 イギリス vs サルデーニャ＝ピエモンテ civil=0 start=1949 months=5 entry=main
+s1 オスマン vs イギリス civil=0 start=1949 months=5 entry=ally
+s1 ロシア vs サルデーニャ＝ピエモンテ civil=0 start=1949 months=5 entry=suzerain
+s1 両シチリア vs サルデーニャ＝ピエモンテ civil=0 start=1949 months=5 entry=ally
+s2 スイス vs ポーランド civil=0 start=1949 months=8 entry=main
+s2 アメリカ vs ポーランド civil=0 start=1949 months=8 entry=suzerain
+s2 デリー vs スイス civil=0 start=1949 months=8 entry=suzerain
+s3 オスマン vs マラータ同盟 civil=0 start=1949 months=6 entry=main
+s3 ロシア vs マラータ同盟 civil=0 start=1949 months=6 entry=suzerain
+s5 清 vs マラータ同盟 civil=0 start=1949 months=4 entry=main
+s7 アメリカ vs イギリス civil=0 start=1939 months=135 entry=mediation
+s7 日本 vs マラータ同盟 civil=0 start=1949 months=9 entry=main
+s8 ロシア vs 日本 civil=0 start=1948 months=18 entry=ally
+SUM {'foreign': 21, 'entry_main': 7, 'entry_ally': 7, 'entry_suzerain': 6, 'entry_mediation': 1}
+RUNNING n=21 months median=5 max=135  >=24:1 >=60:1
+ALL wars=7140 meanMonths=13.52

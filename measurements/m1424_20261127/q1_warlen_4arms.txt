@@ -1,0 +1,4 @@
+D:/PoB_work/keep_1418/base_ins 1-10 wars=6586 mean=14.51 p50=12 p90=26 p99=62 max=157 ge36=259 ge60=75 ge120=5 running=41
+D:/PoB_work/keep_1418/n1 1-10 wars=7347 mean=13.62 p50=11 p90=24 p99=55 max=225 ge36=250 ge60=56 ge120=8 running=13
+D:/PoB_work/keep_1411/n2 1-10 wars=7140 mean=13.52 p50=11 p90=24 p99=55 max=200 ge36=241 ge60=59 ge120=7 running=21
+D:/PoB_work/keep_1418/a11 11-20 wars=7404 mean=12.94 p50=11 p90=22 p99=53 max=172 ge36=228 ge60=49 ge120=7 running=26

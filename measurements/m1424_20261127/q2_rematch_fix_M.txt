@@ -1,0 +1,3 @@
+D:/PoB_work/keep_1418/base_ins ALL 6545 485 1301 0.074 0.199
+D:/PoB_work/keep_1418/base_ins blank 690 17 103 0.025 0.149
+D:/PoB_work/keep_1418/base_ins won 5855 468 1198 0.080 0.205

@@ -1,0 +1,5 @@
+RANGE 11-20 usable=79828 maxAbsD=0.1000000003
+GATE G1 over=1 firstOver=31
+GATE G1p over=0 firstOver=31
+# 外れた月：種・組・月・前の印字・今の印字・(|d|−0.10)・印字の丸めの幅（両方の半目盛りの和）・外れた門・丸めの幅の内か
+OVER s16 ('サルデーニャ＝ピエモンテ', 'ジェノヴァ', '0', 1) m=178 prev=0.9934709857 now=1.093470986 excess=3e-10 printHalfUlpSum=5.5e-10 gates=G1 withinPrint=yes

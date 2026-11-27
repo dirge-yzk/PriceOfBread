@@ -1,0 +1,1 @@
+D:/PoB_work/keep_1418/a11 {'declare': 293, 'suzerain': 163, '?': 45, 'ally': 21, 'civil/civil': 5, 'subjugate': 3, 'mediation': 1, 'main': 1}

@@ -1,0 +1,3 @@
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+成功!   -失敗:     0、合格:   457、スキップ:     1、合計:   458、期間: 36 m 16 s - PriceOfBread.Tests.dll (net10.0)
+木 6251773b0・束は scripts/instruments/m1425/narrow.sh

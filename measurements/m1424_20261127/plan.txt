@@ -1,0 +1,12 @@
+(1424) c152rw 読む線 plan  2026-11-27
+作業の場所: D:/PoB_work/r1424_work/ （台本の写しは C:/Users/dirge/Documents/PriceOfBread/scripts/instruments/r1424/・コミットしない）
+worktree・枝は作らない（読むだけ・main の作業ツリーではコードを書かず台本だけ置く）
+読む生:
+ M   = D:/PoB_work/keep_1418/base_ins (種1-10・lk と fl 両方・全表)
+ S11 = D:/PoB_work/keep_1418/a11 (種11-20・89表)
+ N1  = D:/PoB_work/keep_1418/n1 (種1-10・89表)
+ N2旧 = D:/PoB_work/keep_1411/n2 (種1-10・WarLuck0.12・fl0・wexit 表は無い)
+読む表: wars wexit warpair cwend warpolity warband nation pop (home_break 用)
+読む成績表・読み: measurements/b10_20261127_c151lkB_ins mon_20261127_c151lkB.txt m1415_20261127/readB m1416_20261127_read m1416_20261127_result_fl.txt measurements/m1418_20261127/readM readS11
+台本: scripts/instruments/c151lk/lk_gate.py m1418/lk_gate_g1p.py brk693/home_break.py m1418/read_m1418.sh
+腕: 問い3 で分けられない時だけ（tq2.done の後・各旗 1 本まで）

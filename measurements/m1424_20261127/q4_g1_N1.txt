@@ -1,0 +1,12 @@
+RANGE 1-10 usable=83357 maxAbsD=0.1000000004
+GATE G1 over=8 firstOver=26
+GATE G1p over=0 firstOver=26
+# 外れた月：種・組・月・前の印字・今の印字・(|d|−0.10)・印字の丸めの幅（両方の半目盛りの和）・外れた門・丸めの幅の内か
+OVER s1 ('サルデーニャ＝ピエモンテ', 'スイス', '0', 1) m=133 prev=0.9592134027 now=1.059213403 excess=3e-10 printHalfUlpSum=5.5e-10 gates=G1 withinPrint=yes
+OVER s2 ('ライン諸邦', 'ネーデルラント', '0', 1) m=102 prev=0.9956148307 now=1.095614831 excess=3e-10 printHalfUlpSum=5.5e-10 gates=G1 withinPrint=yes
+OVER s3 ('マラータ同盟', 'ジェノヴァ', '0', 1) m=127 prev=0.9999998528 now=1.099999853 excess=2e-10 printHalfUlpSum=5.5e-10 gates=G1 withinPrint=yes
+OVER s4 ('スペイン', 'ジェノヴァ', '0', 1) m=109 prev=0.9999999958 now=1.099999996 excess=2e-10 printHalfUlpSum=5.5e-10 gates=G1 withinPrint=yes
+OVER s7 ('清', 'ジェノヴァ', '0', 1) m=121 prev=0.9999999117 now=1.099999912 excess=3e-10 printHalfUlpSum=5.5e-10 gates=G1 withinPrint=yes
+OVER s9 ('オーストリア', 'ジェノヴァ', '0', 1) m=118 prev=0.9999999787 now=1.099999979 excess=3e-10 printHalfUlpSum=5.5e-10 gates=G1 withinPrint=yes
+OVER s10 ('ペルシャ', 'ジェノヴァ', '0', 1) m=223 prev=0.9999504027 now=1.099950403 excess=3e-10 printHalfUlpSum=5.5e-10 gates=G1 withinPrint=yes
+OVER s10 ('両シチリア', 'ヴェネツィア', '0', 1) m=670 prev=0.9999950506 now=1.099995051 excess=4e-10 printHalfUlpSum=5.5e-10 gates=G1 withinPrint=yes

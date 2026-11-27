@@ -1,0 +1,6 @@
+# D:/PoB_work/keep_1411/n2 種 1-10
+B(wars_s・判定) ALL: ended=7119 re12=610 re60=1562 re12share=0.086 re60share=0.219
+B(wars_s・判定) blank: ended=689 re12=15 re60=87 re12share=0.022 re60share=0.126
+B(wars_s・判定) civil: ended=57 re12=0 re60=5 re12share=0.000 re60share=0.088
+B(wars_s・判定) foreign: ended=7062 re12=610 re60=1557 re12share=0.086 re60share=0.220
+B(wars_s・判定) won: ended=6430 re12=595 re60=1475 re12share=0.093 re60share=0.229

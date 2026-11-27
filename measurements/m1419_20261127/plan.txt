@@ -1,0 +1,6 @@
+(1419) c152tq plan  start 2026-11-27 23:13
+place: D:/PoB_work/t1419_work/ (wt=detached worktree e5db75f49, build=artifacts, runs=A A outputs, r1419=scripts not committed)
+read: measurements/m1412_20261127/report.txt, stages_ab.tsv, runs/load.txt + r1A/r3A/r2B/r4B (.err .txt.cost)
+script: r1419/time_a2.ps1 (copy of r1412/time_ab.ps1, order A A, 20s Get-Dot sampler, NOT_QUIET on foreign MSBuild/testhost/Tests.csproj, 1 rerun of NOT_QUIET, max 4)
+build once, -nodeReuse:false UseSharedCompilation=false (no resident MSBuild/VBCSCompiler during runs)
+mark: D:/PoB_work/t1419_work/tq2.done

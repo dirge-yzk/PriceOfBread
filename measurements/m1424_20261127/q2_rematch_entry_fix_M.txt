@@ -1,0 +1,1 @@
+D:/PoB_work/keep_1418/base_ins {'declare': 185, 'suzerain': 114, '?': 41, 'ally': 19, 'civil/civil': 11, 'subjugate': 7}

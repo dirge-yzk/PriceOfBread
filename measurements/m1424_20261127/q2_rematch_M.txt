@@ -1,0 +1,12 @@
+# D:/PoB_work/keep_1418/base_ins 種 1-10
+A(wexit・終わり方) ALL: ended=6571 re12=502 re60=1318 re12share=0.076 re60share=0.201
+A(wexit・終わり方) collapse: ended=3344 re12=377 re60=911 re12share=0.113 re60share=0.272
+A(wexit・終わり方) decisive: ended=2786 re12=99 re60=323 re12share=0.036 re60share=0.116
+A(wexit・終わり方) mediation: ended=226 re12=5 re60=33 re12share=0.022 re60share=0.146
+A(wexit・終わり方) other: ended=6 re12=2 re60=2 re12share=0.333 re60share=0.333
+A(wexit・終わり方) weary: ended=209 re12=19 re60=49 re12share=0.091 re60share=0.234
+B(wars_s・判定) ALL: ended=6545 re12=442 re60=1259 re12share=0.068 re60share=0.192
+B(wars_s・判定) blank: ended=690 re12=21 re60=91 re12share=0.030 re60share=0.132
+B(wars_s・判定) civil: ended=55 re12=10 re60=15 re12share=0.182 re60share=0.273
+B(wars_s・判定) foreign: ended=6490 re12=432 re60=1244 re12share=0.067 re60share=0.192
+B(wars_s・判定) won: ended=5855 re12=421 re60=1168 re12share=0.072 re60share=0.199

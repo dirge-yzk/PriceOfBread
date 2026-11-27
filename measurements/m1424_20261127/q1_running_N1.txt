@@ -1,0 +1,16 @@
+s1 イギリス vs スペイン civil=0 start=1947 months=39 entry=main wxRows=39 S0=+0.000 Send=+0.000 maxAbsS=0.000 meanPS=+0.000 meanAbsPS=0.000 noContactMonths=39 colA=0 colB=0 wearyM=0 crisisAend=0 crisisBend=1 kA=0.672 kB=0.755
+s2 オスマン vs オーストリア civil=0 start=1949 months=4 entry=main wxRows=4 S0=-0.025 Send=-0.198 maxAbsS=0.198 meanPS=-0.577 meanAbsPS=0.577 noContactMonths=0 colA=0 colB=0 wearyM=0 crisisAend=0 crisisBend=0 kA=0.802 kB=0.738
+s2 朝鮮 vs オーストリア civil=0 start=1949 months=4 entry=suzerain wxRows=4 S0=+0.052 Send=+0.107 maxAbsS=0.107 meanPS=+0.184 meanAbsPS=0.184 noContactMonths=0 colA=0 colB=0 wearyM=0 crisisAend=0 crisisBend=0 kA=0.764 kB=0.738
+s2 アメリカ vs オスマン civil=0 start=1949 months=4 entry=suzerain wxRows=4 S0=+0.000 Send=+0.000 maxAbsS=0.000 meanPS=+0.000 meanAbsPS=0.000 noContactMonths=4 colA=0 colB=0 wearyM=0 crisisAend=0 crisisBend=0 kA=0.650 kB=0.802
+s2 清 vs オスマン civil=0 start=1949 months=4 entry=ally wxRows=4 S0=+0.041 Send=+0.198 maxAbsS=0.198 meanPS=+0.525 meanAbsPS=0.525 noContactMonths=0 colA=0 colB=0 wearyM=0 crisisAend=0 crisisBend=0 kA=0.818 kB=0.802
+s3 イギリス vs アメリカ civil=0 start=1949 months=10 entry=main wxRows=10 S0=+0.000 Send=+0.000 maxAbsS=0.000 meanPS=+0.000 meanAbsPS=0.000 noContactMonths=10 colA=0 colB=0 wearyM=0 crisisAend=0 crisisBend=1 kA=0.786 kB=0.646
+s3 オスマン vs イギリス civil=0 start=1949 months=10 entry=ally wxRows=10 S0=-0.083 Send=-0.695 maxAbsS=0.695 meanPS=-0.680 meanAbsPS=0.680 noContactMonths=0 colA=0 colB=0 wearyM=0 crisisAend=1 crisisBend=0 kA=0.791 kB=0.786
+s6 日本 vs マイソール civil=0 start=1949 months=5 entry=main wxRows=5 S0=+0.092 Send=+0.470 maxAbsS=0.470 meanPS=+0.944 meanAbsPS=0.944 noContactMonths=0 colA=0 colB=0 wearyM=0 crisisAend=0 crisisBend=0 kA=0.786 kB=0.768
+s6 ロシア vs 日本 civil=0 start=1949 months=5 entry=ally wxRows=5 S0=-0.034 Send=-0.178 maxAbsS=0.178 meanPS=-0.362 meanAbsPS=0.362 noContactMonths=0 colA=0 colB=0 wearyM=0 crisisAend=0 crisisBend=0 kA=0.704 kB=0.786
+s8 ロシア vs 清 civil=0 start=1948 months=16 entry=main wxRows=16 S0=-0.025 Send=+0.456 maxAbsS=0.456 meanPS=+0.321 meanAbsPS=0.331 noContactMonths=0 colA=0 colB=0 wearyM=0 crisisAend=1 crisisBend=0 kA=0.677 kB=0.795
+s9 ダホメ王国 vs ウィダーの社会主義の大衆運動・ダホメ civil=1 start=1949 months=12 entry=civil wxRows=12 S0=+0.096 Send=-0.115 maxAbsS=0.528 meanPS=-0.192 meanAbsPS=0.977 noContactMonths=0 colA=7 colB=0 wearyM=0 crisisAend=1 crisisBend=1 kA=0.035 kB=0.015
+s10 日本 vs 朝鮮 civil=0 start=1949 months=13 entry=main wxRows=13 S0=+0.032 Send=+0.220 maxAbsS=0.220 meanPS=+0.157 meanAbsPS=0.157 noContactMonths=0 colA=0 colB=0 wearyM=0 crisisAend=0 crisisBend=1 kA=0.799 kB=0.772
+s10 イギリス vs マラータ同盟 civil=0 start=1949 months=13 entry=main wxRows=13 S0=+0.084 Send=+0.587 maxAbsS=0.587 meanPS=+0.420 meanAbsPS=0.420 noContactMonths=0 colA=0 colB=0 wearyM=0 crisisAend=1 crisisBend=0 kA=0.723 kB=0.859
+SUM {'foreign': 12, 'entry_main': 7, 'wx_matched': 13, 'noContactAll': 3, 'neverDecisive': 13, 'contactAll': 10, 'entry_suzerain': 2, 'entry_ally': 3, 'civil': 1, 'entry_civil': 1, 'hadCollapseFlag': 1}
+RUNNING n=13 months median=10 max=39  >=24:1 >=60:0
+ALL wars=7347 meanMonths=13.62

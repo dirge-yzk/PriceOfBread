@@ -1,0 +1,1 @@
+D:/PoB_work/keep_1418/n1 {'declare': 289, 'suzerain': 153, '?': 36, 'ally': 28, 'subjugate': 5, '?/civil': 1, 'main': 1}

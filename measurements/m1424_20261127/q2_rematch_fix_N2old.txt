@@ -1,0 +1,3 @@
+D:/PoB_work/keep_1411/n2 ALL 7119 695 1595 0.098 0.224
+D:/PoB_work/keep_1411/n2 blank 689 19 92 0.028 0.134
+D:/PoB_work/keep_1411/n2 won 6430 676 1503 0.105 0.234
