@@ -1,0 +1,8 @@
+# M1（d57893a52）
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T3_DはGに比例する [2 s]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T1_声が届かず法の隔たりが大きい意識の高い人でR等しsならDが0 [149 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T6_AIの不穏は満足が同じでDが違う2国でD平均に比例する_旗0は今の式 [377 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T9_本番の信任の入口の月の写しは旗1でD平均_旗0で満足度 [15 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T8_満足は低いがRがs以下ならDと不穏が0_旧の式なら不穏が正 [129 ms]
+  失敗 PriceOfBread.Tests.SatReadersToDiscontentTests.T2a_参加が闘争度に依らない [244 ms]
+失敗!   -失敗:     6、合格:     2、スキップ:     0、合計:     8、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
