@@ -1,0 +1,54 @@
+(1413) c151rb 事前登録（恒等の線・予言 0）。ident の前にコミットする。書いたモデル＝Claude Sonnet 5.5。
+線の種類：恒等（旗の焼き込みと読み手の無い規則の削除）。挙動は変えない。基準の成績表は m1411。
+注意：この前に dotnet build と絞った試験を 1 回ずつ回した（tq.done が出る前＝指示の順に反する）。腕と ident は起こしていない。報告に書く。
+
+[1] 恒等の線・予言 0
+- 旗 RandomOnlyClimateEpidemic は (1404) から既定 1。旗 1 で通る枝だけを残し、旗 0 の枝を消す。
+- 素の 5 種・計器つき 10 種は m1411 と名乗り行を除いて全行一致。savetest OK。
+- .cost は +0。DiploHegemonScans の件数は同じ（ThreatScore は計数を持たない純関数＝selfThreat の計算を消しても件数は動かない・Diplomacy.cs:1022 を読んで確かめた）。
+- 浮動小数の順序が変わる箇所：
+  a. EconomyStep.cs:148 と InstrumentsSubst.cs:286 の `* crop`（crop は 1.0 のまま）を外す。x*1.0 は x とビットが同じ。(a*b)*1.0*c を (a*b)*c にするだけで掛ける順は変えない。
+  b. EconomyStep.cs:898 の `harvestMul *= ch[..]`（1.0）を消す。同じ理由。
+  同じ盤面で旧と新の食い違いの件数＝0（ x*1.0==x は IEEE で例外なし。NaN は NaN のまま・無限大も同じ）。
+- 計器の列は同じ値を書く：rnd の cropDiseasedCount＝0・cropHealthMinShare＝1（F(1.0)）。monopolyPush の p・u＝nan・hit＝0。discontent の factionsMutatedCount＝0（f.Mutated は盤面で一度も真にならない）。
+- .Value の数：減りは 0〜数件（Share 型の HegemonRestraintFloor の宣言を消す＝UnitTypeTests の表から 1 行）。
+
+[2] 消す物と残す物（行は e5db75f49。読み手は SimCore・Tests・App・Display・Runner・scripts・POB_COEF・SaveGame を grep）
+消す：
+- AntiHegemonAllianceChance（p04:98）：読み手 Diplomacy.cs だけ。App・Display・Runner 0。scripts は表の文字列（r907）のみ。
+- AiColonizeChance（p05:33）・HegemonRestraintFloor（p06:63）：読み手 Diplomacy.cs と UnitTypeTests.cs:317・:772 の表。Runner・App 0。
+- DiplomacyAI の rng 引数（Diplomacy.cs:1711）：Step(:835) の rng 引数は残す。読み手＝テスト 40 余り（sim.Rng を渡す）と MultiNationSim.cs:689・Simulation.cs:2040。Step の中では使わなくなる。MultiNationSim.Rng（:14）も同じ理由で残す。（残る読み手の名＝CollapsePeaceTests・DiplomacyPendingTests・MilitaryTests ほか）。
+- 作物の病気：Simulation.cs の年次の抽選・HarvestRng（:55・:68）・CropHealth（World.cs:404・Model.cs:698・Simulation.cs:1819・EconomyStep.cs:148・:898・InstrumentsSubst.cs:286・InstrumentsRnd.cs:17）・CropDiseaseChance/Severity/Recovery（p02:72〜74）・Catalog.IsDiseaseProneCrop。読み手＝Tests の 4 件（FoodLedgerTests・UrbanFlowRealTests の `CropHealth = null` の代入・RandomOnlyClimateEpidemicTests）。App・Display・Runner 0。
+- 勢力の変異：Factions.cs の変異の枝・MutantStems・MutantSuffixes・MutationCohesionGate・係数 FactionMutationRate・FactionMutationCrisisFloor・MutantCohesionFloor（p09）。InstrumentsDiscontent.cs の `if (f.Mutated) fMut++`。
+- AiRng（World.cs:660）と Simulation.cs:123 の作成・MonopolyBurdenPushMode（p07:120）・SelfPlay.MonopolyPushDraw・MonopolyPushProbabilityOf。読み手の試験は MonopolyPushTests（重さの 2 本だけ残す）・EmptyPopEstateTests（AiRng の 2 行を消す）。
+- 旗 RandomOnlyClimateEpidemic の宣言（p05:32）と、これを明示する試験。
+残す（名を報告・〈次の波〉0 に残す）：
+- FactionState.Mutated・MutantName：読み手＝Politics.cs:662（LoyalistHeresyBoost）・RevoltIgnitionTests.cs:255・:424・:516・WarThemeTests.cs:1065・Factions.cs の成長と合流の比べ。盤面では一度も真にならない欄。Politics.cs は持ち主の行の外のため触らない。
+- World.FactionMutations（World.cs:661）：Runner/Program.cs:3964 が読む。書き手は無くなる＝0 のまま。名は 5 の束へ。
+- Diplomacy.Step の rng 引数と MultiNationSim.Rng：テストの読み手が 40 余り。
+- 項 4（FactionRng を述語へ）：外す。FactionRng は Factions.Step(:30)・CheckFactionRevolt(Politics.cs:486)・試験 5 か所（DiscontentReaderTests:131・EmptyPopEstateTests・RevoltIgnitionTests:269・:370・:412）が null かどうかを前提に読む。null になる盤面（一国のモード・instprobe・試験の盤面・セーブから戻した盤面）を全て列挙し切れない＝残す。以後は引かれない（Factions の変異の枝が消えた）。セーブには今までどおり載る。
+
+FactionRng が null になる所（確かめた分）：作る所は Simulation.cs:123 の scenario.NationConfig is not null だけ。作らない盤面＝NationConfig の無い Scenario（試験の盤面・一国のモードの一部）。セーブから戻した盤面の扱い（SaveGame の欄の復元）は未確認＝列挙し切れない。よって項 4 は外す。
+
+他の線との重なり：lk は p04_trade.cs:120 の値だけ（rb は :98 の行の削除）＝同じファイルの別の行。wr は Instruments の別のファイル（InstrumentsDiscontent・InstrumentsRnd・InstrumentsSubst は rb）。DormantIdentityTests は自分の行（:172 の注）だけ。
+
+㉘ の点検（grep の結果）：
+- 工業化度の読み手の許可表：この線の名は無い。`new MoneyStock(` は SimCore に 64 件・この線は増減 0。
+- route_anchors.tsv：鍵は文字列（Transfer の呼びの本文）。消す行を含まない＝行は変えない。
+- WriterRatchetTests の宣言の表：Diplomacy・Factions・Simulation の計数の行は変えない（件数は動かない＝予言 +0）。DiploHegemonScans は 4121812 のまま。
+- DormantIdentityTests：:172 の注だけ（旗は表から (1404) で外れている）。消す係数名が DormantZeroFields の表に無いことを grep で確かめた。
+
+[3] 足す試験と突然変異（Tests/RandomOnlyClimateEpidemicTests.cs を旗の無い形に書き換え）
+- T1 同盟は条件だけで結ばれ同じ盤面は同じ判断（ドイツ 6 国）。
+- T3 勢力の運動は乱数を引かず変異しない（FactionRng の次の値が対照と同じ）。
+- T5 独占の段は利払いが重くても抽選で広がらない（段 2 を保つ）。
+- T6 植民の試行は毎月の抽選を通らず条件だけで決まる（英×仏・8 盤面全てで DiplomacyAI が侵略の動詞に届き余剰戦力を使う）。
+突然変異（使い捨ての木で確かめ、出力は measurements/ にコミット）：
+- μ1 Diplomacy.cs の侵略の枝に確率 0.12 を戻す（盤面の兵力に依る擬似乱数）→ T6 が赤。
+- μ2 Factions.cs に変異の抽選を 1 回戻す（FactionRng.NextULong を引く）→ T3 が赤。（指示の〈FactionRng の述語を逆にする〉は項 4 を外したため使えない）
+- μ3 EconomyStep の `crop` を 0.9 に戻す形（StapleHarvestFactor に * 0.9）→ statediff が違いを出す。
+- μ4 SelfPlay に押しの段の加算を 1 段戻す → T5 が赤。
+㉑ 走査の番人の件数：書き換える件数の予言＝UnitTypeTests の表 2 か所（HegemonRestraintFloor の行を消す）。WriterRatchetTests は 0 件。
+
+[4] 素の 5 種・計器つき 10 種：m1411 と名乗り行を除いて全行一致（計器の表の差は宣言だけ＝無し）。段 1 で合わなければ段 2。
+[5]〈判定: 恒等〉なら採る。一致しない項は外して報告に回す。

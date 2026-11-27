@@ -1,0 +1,15 @@
+D:\PoB_work\m1418_work\nw\art\bin\PriceOfBread.Tests\release\PriceOfBread.Tests.dll (.NETCoreApp,Version=v10.0) のテスト実行
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+[xUnit.net 00:03:15.32]     PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 4283188) [FAIL]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 4283188) [30 ms]
+  エラー メッセージ:
+   計算量「外交：覇権の判定の国×国」が 2662704 件（宣言 4283188）＝10 % を超えて**下がった**＝表を 2662704 へ下げて理由を書く（＝改善の宣言）。
+  スタック トレース:
+     at PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Int32 item, Int64 declared) in D:\PoB_work\wt_m1418\PriceOfBread.Tests\WriterRatchetTests.cs:line 581
+   at InvokeStub_WriterRatchetTests.計算量の見た件数は宣言した表を超えない(Object, Span`1)
+   at System.Reflection.MethodBaseInvoker.InvokeWithFewArgs(Object obj, BindingFlags invokeAttr, Binder binder, Object[] parameters, CultureInfo culture)
+[xUnit.net 00:31:50.38]     PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [SKIP]
+  スキップ PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [1 ms]
+結果ファイル: D:\PoB_work\m1418_work\nw\trx\narrow1.trx
+
+失敗!   -失敗:     1、合格:   714、スキップ:     1、合計:   716、期間: 32 m 6 s - PriceOfBread.Tests.dll (net10.0)

@@ -1,0 +1,21 @@
+# (1415) 同じ台本 lk_gate.py の新（腕 B・種 1〜10）÷旧（keep_1411/base_ins）。N1・N2 は wars_s だけ（wexit_s なし）
+key	old	new	new/old	N1	N2
+wars	7100	8995	1.267	7306.0	7140.0
+usable	76979	92691	1.204		
+over	25494	3	0.000		
+firstOver	2590	26	0.010		
+moved	66631	81955	1.230		
+maxAbsD	0.21992	0.1	0.455		
+decShort	634	0	0.000		
+end_decisive	2917	3369	1.155		
+end_collapse	3685	5006	1.358		
+end_weary	235	331	1.409		
+end_mediation	247	260	1.053		
+end_other	6	3	0.500		
+end_running	17	28	1.647		
+blank	687	823	1.198	729.0	689.0
+running	20	32	1.600	13.0	21.0
+runningPerSeedMax	11	12	1.091	9.0	12.0
+longest	208	145	0.697	176.0	200.0
+longestRunning	38	62	1.632	57.0	135.0
+meanMonths	13.116	12.305	0.938	13.587	13.515

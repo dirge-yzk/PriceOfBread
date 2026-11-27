@@ -1,0 +1,4 @@
+mu1:   失敗 PriceOfBread.Tests.RandomOnlyClimateEpidemicTests.T6_植民の試行は毎月の抽選を通らず条件だけで決まる [2 s] 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 5 s - PriceOfBread.Tests.dll (net10.0) 
+mu2:   失敗 PriceOfBread.Tests.RandomOnlyClimateEpidemicTests.T3_勢力の運動は乱数を引かず変異しない [671 ms] 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 5 s - PriceOfBread.Tests.dll (net10.0) 
+mu4:   失敗 PriceOfBread.Tests.RandomOnlyClimateEpidemicTests.T5_独占の段は利払いが重くても抽選で広がらない [2 s] 失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 6 s - PriceOfBread.Tests.dll (net10.0) 
+mu3:   sim.MultiNationSim.<Diplomacy>k__BackingField.Diplomacy.Log.EventLog._items[277]

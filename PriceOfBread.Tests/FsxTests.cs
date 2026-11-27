@@ -128,28 +128,30 @@ public class FsxTests(ITestOutputHelper output)
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void 線を超えた国庫はまず国債の返済に回り_返済の後の国庫は線に着き_台帳は閉じる(bool ai)
+    public void 線を超えた国庫でも返済は年1パーセントの床だけで_余りは国庫に残り_台帳は閉じる(bool ai)
     {
+        // (1416) c151fl 旗 RepayFloorOnly＝1：旧の番人〈線を超えた分まで返し国庫は線に着く〉を新しい規則（返済は床だけ）へ書き換えた。台帳が閉じる性質は残す。
         var b = Board(ai);
         double line = UtilityAgent.OpulenceLineOf(b), d0 = b.GovDebt.Value;
         b.SetTreasuryRaw(line + 0.4 * d0);
         Month(b, 1.0, Ample);
         double lineB = UtilityAgent.OpulenceLineOf(b);
-        double tol = 1e-9 * (lineB + d0);
-        Assert.True(Math.Abs(b.Treasury.Value - lineB) <= tol, $"返済の後の国庫 {b.Treasury.Value} が線 {lineB} に着いていない");
-        // 年 1% だけの返済は月に d0 の 0.1% 未満。線を超えた分まで返しているなら 10 倍以上（その月の他の支払いで超過は 0.4 d0 より小さくなる）
-        Assert.True(d0 - b.GovDebt.Value > 0.1 * d0, $"国債の残高が年 1% を大きく越えて減っていない（{b.GovDebt.Value}・起債 {d0}）");
+        double repaid = d0 - b.GovDebt.Value, floor = d0 * b.Coef.BondRepayFracPerMonth.Value;   // 年 1% の額（定義）
+        Assert.True(Math.Abs(repaid - floor) <= 1e-9 * d0, $"返済 {repaid} が床 {floor} でない（起債 {d0}）");
+        Assert.True(b.Treasury.Value - lineB > 0.1 * d0, $"線を超えた余りが国庫に残っていない（国庫 {b.Treasury.Value}・線 {lineB}・起債 {d0}）");
         new BondLedger().Check(b);
     }
 
     [Fact]
-    public void 国庫が債務を大きく越えるなら国債は全て返り_残高は負にならない()
+    public void 国庫が債務を大きく越えても返済は床だけで_残高は負にならない()
     {
+        // (1416) c151fl 旗 RepayFloorOnly＝1：旧の番人〈国債は全て返る〉を新しい規則へ書き換えた。残高が負にならない性質と台帳は残す。
         var b = Board(false);
         double line = UtilityAgent.OpulenceLineOf(b), d0 = b.GovDebt.Value;
         b.SetTreasuryRaw(line + 5.0 * d0);
         Month(b, 1.0, Ample);
-        Assert.True(b.GovDebt.Value >= 0 && b.GovDebt.Value <= 1e-6 * d0, $"国債が返りきっていない（{b.GovDebt.Value}・起債 {d0}）");
+        Assert.True(b.GovDebt.Value >= 0, $"国債が負（{b.GovDebt.Value}・起債 {d0}）");
+        Assert.True(Math.Abs((d0 - b.GovDebt.Value) - d0 * b.Coef.BondRepayFracPerMonth.Value) <= 1e-9 * d0, $"返済 {d0 - b.GovDebt.Value} が床でない（起債 {d0}）");
         new BondLedger().Check(b);
     }
 
@@ -158,7 +160,7 @@ public class FsxTests(ITestOutputHelper output)
     {
         // 余剰（spare）が小さい月：返済は余剰を越えない
         var b = Board(false);
-        double line = UtilityAgent.OpulenceLineOf(b), d0 = b.GovDebt.Value, spare = 0.05 * d0;
+        double line = UtilityAgent.OpulenceLineOf(b), d0 = b.GovDebt.Value, spare = 0.5 * d0 * b.Coef.BondRepayFracPerMonth.Value;   // (1416) 床より小さい余剰（旧は 0.05×起債＝余りで返す規則の盤面）
         b.SetTreasuryRaw(line + 5.0 * d0);
         Month(b, 1.0, spare);
         Assert.True(d0 - b.GovDebt.Value <= spare * (1 + 1e-9) + 1e-9, $"返済 {d0 - b.GovDebt.Value} が余剰 {spare} を越えた");

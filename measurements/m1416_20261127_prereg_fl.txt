@@ -1,0 +1,82 @@
+m1416 事前登録 (1416) c151fl 挙動：国債の返済を床だけにする（旗 RepayFloorOnly 既定 0→1・英の国債の型 R・wl の案 B-1・3 回の規則の 1 回目）
+出発：00一覧〈次の波（波151〜）〉2 の④・§0-2 ★(1404) Q4〈作者「全て推奨で」で推奨を採った〉・設計の材料 docs/202611/20261127/20261127_戦争の運と英の国債の型R_下書き.md §B :54〜:91（案 B-1 は AI の案・確証なし）・_材料.md・measurements/m1410_20261127/uk_types_1404.*。
+形の型：入口（返済の額を決める式から〈豊かさの線の上の余り〉の項を外す）。基線 m1411（main e5db75f49）・比べる生 D:/PoB_work/keep_1411/base_ins・ヌル腕 keep_1411/n1・n2（記録だけ）。
+この事前登録は腕の前の最初のコミット。署名のモデル：Claude Opus 5.5。
+
+[0] 今の形（e5db75f49 で grep した）
+ Fiscal.cs:168 門（GovDebt＞1e-9・payRate≥1・spare＞0・助走でない）。:170 floorRepay＝min(GovDebt×BondRepayFracPerMonth, spare)。:171〜:172 excess＝Treasury−OpulenceLineOf（負なら 0）。
+ :173 repay＝min(GovDebt, min(spare, max(floorRepay, excess)))＝置き換える旧の規則（max の項）。:174 計器 FsxRepay(w, floorRepay, repay, excess)（Instruments.cs:890）。
+ Coefficients.cs:137 BondRepayFracPerMonth（年 1% の月換算・値は変えない）。
+
+[1] 形
+ 旗 RepayFloorOnly（double・既定 0・Coefficients.cs:137 の次の 1 行）。旗＞0 で repay＝min(GovDebt, floorRepay)（floorRepay は既に spare で頭打ち＝min(GovDebt, spare, GovDebt×率)）。旗 0 は :173 の式をそのまま残す（同じ式・同じ順＝ビット一致）。
+ 余りは国庫に残り、既にある読み手（SelfPlay.cs:675 RelieveOpulence＝AI の減税・World.cs:827 SpendableRevenue＝歳出の上乗せ）が使う。
+ 計器 FsxRepay の excess の記録はそのまま（excessWouldSum＝旧の規則なら床の上に返したはずの余り＝同じ盤面で旧の規則を数える列）。fsx_s の新しい列は足さない（指示）。
+ 新しい係数・状態・閾値・セーブの欄は 0。国ごとの特例 0。AI とプレイヤーは同じ式（Fiscal.Step は両方が通る）。
+ 〈確証なし〉：床の率（年 1%）だけで返す形は AI の案（史実の減債基金の形に近い・材料 B-1）。余りの使い道を減税と歳出の既存の読み手へ任せること。
+ 計算量：+0.0 秒〈推〉（月に国 1 回の分岐 1 本）。上限 248.5・基線 M 224.6・余り 23.9 のうち使う量 0。
+
+[2] 置き換える旧の規則と、それを固定する試験（grep：BondRepayFrac・DebtRepay・repayAboveFloor・OpulenceLineOf・RelieveOpulence・excessWould を PriceOfBread.Tests で）
+ 旧の規則（:173 の max・余りで返す）を固定する物＝旗 1 で赤の見込み：
+  FsxTests.cs:131 線を超えた国庫はまず国債の返済に回り_返済の後の国庫は線に着き_台帳は閉じる（×2 ai）
+  FsxTests.cs:146 国庫が債務を大きく越えるなら国債は全て返り_残高は負にならない
+  FsxTests.cs:157 余剰が国庫を下回る月は余剰で頭打ち_…（前半の前提〈余剰まで返す〉が旧の規則・後半〈線が非数なら年 1%〉は新でも成り立つ）
+  ⚠ FsxTests.cs は指示の持ち主の一覧に無い（一覧は FiscalTests.cs）＝旧の規則を固定する行だけを ㉜ の改めの手順で書き換え、報告の先頭に名乗る。
+ 旗 1 でも成り立つ見込みの物（書き換えない）：FsxTests:113（線の下は年 1%）・:194（done≥floor）・FiscalTests の率 0／1.0／既定の盤面（:174・:196・:219・:231・:248・:266・:291・:313・:321・:543・:922〜・:991）・TreasuryLedgerTests:244〜:262・Arrears*Tests（率 0）・PolicyPoliticsTests:732〜:809（RelieveOpulence の射程）。赤が出たら区分を書いて同じ線で直す。
+ 書き換えの方針：Assert は新しい規則の式（返済＝床ちょうど・余りは国庫に残る）で書く。旧の番人が守っていた性質のうち新でも成り立つ物（台帳が閉じる・残高は負にならない・余剰で頭打ち・線が非数でも有限）は残す。書き換えを外す突然変異で赤を確かめる。
+
+[3] 周辺の点検（README ★(1411) の教訓 1・返済の額と国庫・国債の水準を閾値で読む機構）
+ (a) OpulenceLineOf の読み手：Fiscal.cs:171（この線）・SelfPlay.cs:678 RelieveOpulence（国庫＞線なら税の目標×max(0.25, 線÷国庫)・SelfPower が null の国〔プレイヤー〕は読まない）・World.cs:830 SpendableRevenue（余り×年 0.6）→ Military.cs:34・Simulation.cs:1760・Instruments.cs:911・1708。
+   新しい国庫の水準：余りが国庫に残る＝線の上の国×四半期は増える〈推〉。基線で既に線の上 315,396／407,593（77%）・2 倍超 247,388（61%）＝RelieveOpulence と SpendableRevenue は既に大半の国×四半期で効いている＝閾値の側の作り直しは要らない〈推〉（下限 0.25 の減税と年 0.6 の歳出が余りを消す道）。
+ (b) 利払い÷歳入：Fiscal.cs:13 underLimit・:339 借入の門・CrownParliament.cs:20・SelfPlay.cs:369 InterestBurdenStressOf。国債が床の率でしか減らない＝利払いは基線より高く残る〈推〉＝借入の門が閉じる月と払えない月が増えうる。
+ (c) 債務÷GDP：PowerShares.cs:43 DebtGrip（議会の握り）・Government.cs:128 緊縮（AusterityStartDebt 0.3）・Fiscal.cs:242 金利の債務比プレミアム（BondRateDebtScale）。英の開幕の債務÷GDP 約 1.1＝返し切りが無くなると緊縮の項と DebtGrip が長く残る〈推〉（記録）。
+ (d) 金利生活者の道（記憶 pob-rentier-pump-collapse）：返済は持ち手への移転（Fiscal.cs:181 World.Transfer DebtRepay）。床だけ＝元本の戻りは減り、利払いの流れは長く続く〈推〉。基線の返した額÷床の和（種ごと）1.21〜1.82・英 1.00〜2.59。
+ (e) 不履行の門：Fiscal.cs:192 owes（payRate＜1・GovDebt＞0・上限の外）。国債が残る＝不履行の母集合が広がる〈推〉。m1411 の M の英の不履行は種 4・8（紙の台本で確かめた）。
+ 閾値の作り直しはこの線では 0（(a)〜(e) は記録で読む）。
+
+[4] 紙の台本（今の盤面 keep_1411/base_ins・scripts/instruments/c151fl/fl_gate.py・出力 measurements/m1416_20261127_paper_base.txt）
+ G1（旧なら床の上に返した行のうち返済＝床ちょうど）：基線（旗 0）は 10 種とも 0.000000（行 383〜530）＝門は旗 0 で落ちる。
+ G2（母集合の外で返済＝床ちょうど）：基線 0.9957〜0.9991＝旗 0 で落ちる（月の混ざった四半期）。
+ G3（返した額≦床の行）：基線 0.849〜0.907＝旗 0 で落ちる。
+ 英の型 R（uk_debt.py と同じ定義）：基線 5/10・D 2/10（不履行の種 4・8）。
+ 線の上の国×四半期 315,396・2 倍超 247,388／407,593（0.61）。
+
+[5] 門（腕 B・計器つき 10 種・種 1〜10）
+ G1 分子：fsx_s の q 行で repayGateMonths＞0 かつ excessWouldSum＞repayFloorSum の行のうち |repayAboveFloorSum|≦1e-9×max(1, repayFloorSum) の割合が 10/10 種で 1、行の数は各種 1 以上。
+ G2 母集合の外：excessWouldSum≦repayFloorSum の行で同じ割合が 10/10 種で 1（外へ回った割合の上限＝0）。
+ G3 上限（形に固有の誤り＝床より多く返す）：repayDoneSum≦repayFloorSum＋tol の行の割合が 10/10 種で 1。
+ 機構の試験 RepayFloorOnlyTests（盤面は試験の中で置く・英を 1 四半期温め税と外債を止めて 1 回起債・AI とプレイヤーの両方）：
+  T1 国庫が線の上＋0.4×国債・支払い率 1・余剰は十分 → 旗 1 で返済＝国債×率ちょうど、返済の後の国庫は線の上に残る、台帳が閉じる。旗 0 では赤。
+  T2 率 2.0（国債＜床の盤面）・旗 1 → 国債は 0 で負にならない・返した額＝国債・台帳が閉じる（保存）。
+  T3 余剰＜床の盤面・旗 1 → 返済＝余剰（頭打ち）。
+  T0 旗 0 の経路の番人：旗 0 では余りまで返す（返済＞10×床）＝旧の経路が残っている間の番人（焼き込みで消す）。
+ 突然変異（使い捨ての木・腕の門は紙の台本で読む）：
+  | 突然変異 | 赤になる門 |
+  | μ1 何もしない（旗 1 の枝を旧の式に） | T1（旗 1）・G1（基線と同じ＝0） |
+  | μ2 余りだけを返す（repay＝min(GovDebt, spare, excess)） | T1・T3（余り 0 の盤面ではない＝T1 で床と違う）・G1・G2・G3 |
+  | μ3 min(GovDebt) を外す（repay＝floorRepay） | T2（国債が負）。腕の門は緑のまま（年 1% の床は国債を越えない） |
+  | μ4 床を外し余剰まで返す（repay＝min(GovDebt, spare)） | T1・G1・G3 |
+
+[6] 止める線（作者 2026-11-16 ①・この回の形をそのまま写す）
+ 破綻（クラッシュ・NaN・保存則〔leakhunt の違反 0〕・savetest〔最終行が〈savetest OK〉で値の違い 0〕・進行不能）。
+ 1 四半期に 100 倍以上（価格水準・名目 GDP・建国の直後＝系列の最初の行から 4 四半期以内はヌル腕の件数と並べる・㊳ の政府の人口の 1/10・10 倍の四半期も並べる）・1e10 倍以上・非有限。基準とヌル腕も同じ台本で数え直す。
+ 空洞化：ピークの 1/10 未満で規則 A2 の名簿の外（an_h2.py -v4・既定 -ex rule）で、その線が原因と読めた件だけ＝基線 keep_1411/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない。
+ 推定の計算量＞248.5 秒。機構のテストの赤（ソースを走査する番人を含む）。
+ 史実の桁の線（10 倍）。NG・国力・史実度・ヌル腕の幅・nullgate・名目 GDP 0 の続き・開幕の 1000 倍以上は記録。
+
+[7] 予言（記録・門ではない）
+ 英の型 R：5/10 → 0〜1/10〈推〉（床だけでは残高は指数で減るだけ）。R が減った分は〈-〉か D へ。
+ 国庫÷線が 2 倍を超えた国×四半期の割合：0.61 → 0.61〜0.70〈推〉。線の上の国×四半期（RelieveOpulence が税を下げうる四半期の近似・AI の国）：315,396 → 増える〈推〉。
+ 英の不履行の種：m1411 M は 4・8 → 1〜4 種〈推〉（国債が残る＝母集合が広がる）。
+ 返した額÷床：1.21〜1.82 → 1.00（ちょうど）。
+ .cost の推定：+0〈推〉。成績表の差の行：多い〈推〉（世界の軌道が変わる）。
+
+[8] 点検（㉘・㉑・㉜）
+ ㉘ 走査の番人：工業化度の読み手の許可表（IndustrializationReaderTests）＝触る行に該当の名なし・`new MoneyStock(` の件数＝Fiscal.cs 7 のまま（足さない）・route_anchors.tsv（scripts/instruments/flow262/）の Fiscal.cs の鍵の行＝触らない（:181 の Transfer の行は動かさない＝行を挿さない形にする）・WriterRatchetTests の宣言の表＝Treasury・GovDebt の書き手を足さない。
+ ㉑ 変わる件数の予言：走査の番人の件数は変わらない（0）。DormantIdentityTests の表に旗 0 の器のコミットで 1 行足し、旗 1 のコミットで外して注の行に替える。
+ ㉜ 旗 1 の木で旧の規則を固定する番人＝[2] の FsxTests の 3 本（4 件）。他は grep で当たらない。
+ ⚠ ㉘ の注：Fiscal.cs の行を挿すと route_anchors の行番号の鍵がずれうる＝旗の分岐は :173 の 1 行の中の三項で書き、行の数を変えない。
+
+[9] 順
+ (1) この事前登録 → (2) tq.done を確かめる（無ければ 17:20 まで build・test・腕・ident を起こさない）→ (3) 旗 0 の器（Coefficients の 1 行・Fiscal.cs:173 の三項・RepayFloorOnlyTests・DormantIdentityTests の 1 行）→ ㉘ の束 → ident c151flz（予言 0＝〈判定: 恒等〉）→ (4) 突然変異（使い捨ての木）→ (5) 旗の既定を 1・FsxTests の書き換え → 絞った試験（RepayFloorOnly・Fsx・Fiscal・TreasuryLedger・Arrears・PolicyPolitics・DormantIdentity・WriterRatchet・㉘ の束・計器の束・savetest・leakhunt）→ (6) 腕 B c151flB（計器つき 10 種・表 nation_s,fiscal_s,fsx_s,class_s,stock_s,scalars_s,region_s,wars_s,pxmonth_s,migration_s,casualty_s）→ (7) 読み（scripts/instruments/c151fl/read_fl.sh）→ フルスイート 1 回。
+ 形の変え直しは 1 回だけ。結果を見た後に門と母集合を変えない。

@@ -874,7 +874,7 @@ public sealed class Diplomacy
         BreakStrainedAlliances(c);     // 緊張が高まった同盟は崩れる→強国は孤立へ
         ApplyHegemonContainment(c);    // 反覇権の経済封じ込め（B2）：明白な覇権国の交易アクセスを覇権度に比例して締める（包囲網の経済的な歯）
         StageTimer.Lap(ref lapD, StageTimer.DipRelations);
-        if (month % Calendar.MonthsPerQuarter == 0) DiplomacyAI(c, rng);
+        if (month % Calendar.MonthsPerQuarter == 0) DiplomacyAI(c);
         if (month % Calendar.MonthsPerQuarter == 0) TryUnificationWars(c);   // P4 統一戦争のAI（候補が立たなければ不発）
         TradePolicyReaction(c);   // 通商反応層：相手の対自国関税を観測し報復/相互低減の偏倚を各国TariffRetaliationBiasへ（TariffRetaliation=0で偏倚0＝較正中立。抽象標的Nation==nullは対象外で単一国較正は非発火）
         TriggerWars(c);                // 緊張100以上が続けば宣戦（月次）
@@ -1708,7 +1708,7 @@ public sealed class Diplomacy
         }
     }
 
-    private void DiplomacyAI(Coefficients c, DeterministicRng rng)
+    private void DiplomacyAI(Coefficients c)
     {
         var hegemon = Hegemon(c);   // 明白な覇権国（いれば合従の対象）。ThreatExcess（GDP/植民地/軍事の平均超過）の最大。
         // ★同盟数キャッシュ（各国×各国のO(n)走査を毎ペアで呼ぶO(n³)を回避＝AllianceCountを1回ずつ求めて締結ごとに+1・同じ値を同じ順序で読む）。
@@ -1766,8 +1766,7 @@ public sealed class Diplomacy
                         if (!(overlap > 0)) continue;   // ⚠否定形＝NaNは「出会えない」側へ倒す
                     }
                     int cap = c.MaxAlliances + (coalitionFoe == hegemon ? c.AntiHegemonExtraAlliances : 0);
-                    double chance = coalitionFoe == hegemon ? c.AntiHegemonAllianceChance : 0.4;
-                    if (allyCounts[p] < cap && allyCounts[q] < cap && !HasAlliance(p, q) && (c.RandomOnlyClimateEpidemic > 0 || rng.NextDouble() < chance))   // (1401) 旗 1＝条件だけで結ぶ
+                    if (allyCounts[p] < cap && allyCounts[q] < cap && !HasAlliance(p, q))   // (1413) 同盟は条件だけで結ぶ（乱数は気候と疫病だけ）
                     {
                         _alliance.Add(Key(p, q));
                         allyCounts[p]++; allyCounts[q]++;
@@ -1779,9 +1778,7 @@ public sealed class Diplomacy
             // 侵略の標的選択はAIのみ（プレイヤーはUIで能動的に）。〔履歴 Diplomacy.cs#188〕
             if (!p.IsPlayer)
             {
-                double selfThreat = ThreatScore(p, c);
-                double colonizeChance = c.AiColonizeChance * (selfThreat > 0 ? Math.Max(c.HegemonRestraintFloor.Value, 1.0 - selfThreat) : 1.0);   // colonizeChance〔履歴 Diplomacy.cs#189〕
-                if (p.Nation is not null && Suzerain(p) is null && (c.RandomOnlyClimateEpidemic > 0 || rng.NextDouble() < colonizeChance))   // (1401) 旗 1＝TryAiSubjugate の門だけで決める
+                if (p.Nation is not null && Suzerain(p) is null)   // (1413) TryAiSubjugate の門だけで決める（毎月の試行の確率は無い）
                     TryAiSubjugate(p, c);
             }
         }

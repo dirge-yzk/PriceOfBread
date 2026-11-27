@@ -23,10 +23,10 @@ public class CoefficientRelationTests
     /// <summary>(842) 既定の値の固定（上の関係の Fact とは別の Fact）：WarPushSpeed と WarLuck の既定。リテラルは Coefficients を呼ばない別の出所
     /// （(821) の事前登録 measurements/m821_20261104_prereg_md.txt）。(835) で関係の Fact から外れていたのを戻した（(835) の反証役 low）。白紙の線の既定 0.25 は WarVerdictTests が固定するのでここでは重ねない。</summary>
     [Fact]
-    public void 戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0_12()
+    public void 戦勝点の月の動きの係数の既定_WarPushSpeedは0_10_WarLuckは0()
     {
         var c = new Coefficients();
         Assert.Equal(0.10, c.WarPushSpeed.Value);
-        Assert.Equal(0.12, c.WarLuck);
+        Assert.Equal(0.0, c.WarLuck);   // (1415) c151lk：0.12→0（乱数は気候と疫病だけ・作者 2026-11-26）。出所は事前登録 measurements/m1415_20261127_prereg_lk.txt
     }
 }

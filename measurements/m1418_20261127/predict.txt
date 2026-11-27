@@ -1,0 +1,22 @@
+# (1418) 合流（波151）の予言（merge の前・腕の前にコミット）。書き手 Opus 5.5。基点 e5db75f49（m1411）。
+## 入れる線と外す線
+- 恒等 c151rb（9598b95ad・ident〈判定: 恒等〉）を入れる。
+- 恒等 c151wr（b475d2a2b）は外す：ident 段 2 が未実施＝〈判定: 恒等〉が無い（指示〈判定: 恒等のときだけ〉）。反証役 v の中〈ident の宣言の形（sinkgood_s の検算の台本が無い）〉も残る。
+- 挙動 c151lk（54c71a9ee・WarLuck 0.12→0）：線の腕 B の G1＝3（事前登録の字では外れ）。事前登録の追記 48ca5ed9e（腕 B の後＝〈結果の後の変更〉と名乗った）が G1′（許し 2e-9）を種 11〜20 で 1 回だけ読むと先に書いた＝採否は合わせた木の S11 の G1′ で 1 回だけ決める。M の G1（許し 1e-10）と G1′ は記録。
+- 挙動 c151fl（fd66528e9・RepayFloorOnly 1）：線の門 G1〜G3 が 10/10 で通った＝入れる。
+- 読む線 c151tq と設計の材料 c151fy は写すだけ。
+## merge の予言（merge-tree）
+- 順 rb → lk → fl。衝突は fl の merge の WriterRatchetTests.cs だけ（lk と fl が同じ ★(749) の行を別の値へ）。DormantIdentityTests.cs と Coefficients.p04_trade.cs（rb :98・lk :120）は自動で合う。
+- 解き方：WriterRatchetTests.cs は基点のバイト（CRLF 492・LF 116 の混在）に ★(749) の行の値だけを合わせた木の 1 種 40 四半期の実測で置く（lk の CRLF への正規化は入れない＝lk の反証役 v・v2 の中）。
+- rb が消す名（HegemonRestraintFloor・AiColonizeChance・AntiHegemonAllianceChance・CropDisease*・HarvestRng・IsDiseaseProneCrop・FactionMutation*・MutantCohesionFloor・MutantStems・MutantSuffixes・MonopolyPushDraw・MonopolyPushProbabilityOf）と減らす名（CropHealth・AiRng・MonopolyBurdenPushMode・RandomOnlyClimateEpidemic）は lk・fl・wr の枝で基点と同じ件数＝新しい読み手なし（★(773)）。
+## 腕 Z（恒等の判定・合わせた木から WarLuck を 0.12・RepayFloorOnly を 0 へ戻した使い捨ての木）
+- Z1 素の 5 種・計器つき 10 種の成績表が m1411 と全行バイト一致（名乗り行を除く）。.cost の推定 219.3／224.6 秒。
+- Z2 計器の表は宣言 0 で一致（rb は表の差 0・lk と fl は計器を足していない）。
+- Z3 テストの数 Category!=FullLength 3333→3327（rb −14・lk +3・fl +5＝--tests-delta -6）・FullLength 3。
+## 合わせた木の腕（M＝計器つき 10 種の全表・S11＝種 11〜20・N1・N2＝SupplySlope 0.50000001／0.49999999・S11 と N の表は m1411 の 87 表＋wexit_s・fsx_s＝89 表）
+- M1 成績表は m1411・lk の腕 B・fl の腕 B のどれとも違う（2 本の挙動の線が重なる）。
+- 門（止める線の段）：lk G1′＝0（M は記録・S11 が採否）。fl G1〜G3＝全ての種で 1（M と S11）。
+- 止める線：1 四半期に 100 倍の〈それ以外〉0・1e10 倍 0・非有限 0・空洞化 1/10 未満〈線が原因〉0・推定の計算量 ≦248.5 秒（見込み M 約 221 秒＝lk −3.5・fl −0.3）・進行不能（最後まで続いた戦争 ≦42・最長 ≦416 か月）。
+- 記録の段（採否に使わない）：lk の G1（許し 1e-10）・最初の月の |S|＞0.10・戦争の数（lk の腕 B で ×1.27）・英の型 R（fl の腕 B で 0/10）・英の不履行・議会の握りと緊縮の割合（fl の v2）・NG・nullgate・exact・near・開幕の 1000 倍・名目 GDP 0 の続き・㊳。
+- 合わせた木の M で lk G1′ と fl G1〜G3 が全て通れば、アブレーションの腕は回さない（作者のセッション 2026-11-18 の効率化）。
+- WriterRatchetTests の ★(749) の行（ClaimProducers・DeadProdZeroPop・DiploHegemonScans ほか）は合わせた木で取り直す見込み（lk と fl の値の間か外かは読めない＝点の予言はしない）。

@@ -314,7 +314,6 @@ public class UnitTypeTests
         (typeof(Coefficients), "EpidemicSeverity", typeof(Share)),
         (typeof(Coefficients), "SmugglingMax", typeof(Share)),
         (typeof(Coefficients), "WartimeUpkeepFloor", typeof(Share)),
-        (typeof(Coefficients), "HegemonRestraintFloor", typeof(Share)),
         (typeof(Coefficients), "FactionMergeCohesionGain", typeof(Share)),
         (typeof(Coefficients), "CanalInvestReturns", typeof(Share)),
         (typeof(Coefficients), "ModernizationToRecruit", typeof(Share)),
@@ -769,7 +768,7 @@ public class UnitTypeTests
     [Fact]
     public void セーブの往復と名前引きで閾値と取り分と床の係数の欄が残る()
     {
-        string[] names = ["ReignitionDemandFrac", "IndInvestmentFrac", "FactoryMaterialFrac", "ResearcherFrac", "NationalizationStateShare", "PartyDominanceThreshold", "LandReformRentCap", "SerfEmancipationRentCap", "FactoryMothballCap", "DepositGradeKnee", "ManifestoFulfillMove", "FascismCrisisLeftRef", "EpidemicSeverity", "SmugglingMax", "WartimeUpkeepFloor", "HegemonRestraintFloor", "FactionMergeCohesionGain", "CanalInvestReturns", "ModernizationToRecruit", "MerchantTradeMargin"];
+        string[] names = ["ReignitionDemandFrac", "IndInvestmentFrac", "FactoryMaterialFrac", "ResearcherFrac", "NationalizationStateShare", "PartyDominanceThreshold", "LandReformRentCap", "SerfEmancipationRentCap", "FactoryMothballCap", "DepositGradeKnee", "ManifestoFulfillMove", "FascismCrisisLeftRef", "EpidemicSeverity", "SmugglingMax", "WartimeUpkeepFloor", "FactionMergeCohesionGain", "CanalInvestReturns", "ModernizationToRecruit", "MerchantTradeMargin"];
         var sim1 = new MultiNationSim([NationConfig.Britain(), NationConfig.France()], 1789, _ => new NullAgent());
         var c1 = sim1.Nations[0].World.Coef;
         for (int k = 0; k < names.Length; k++)

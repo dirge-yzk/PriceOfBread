@@ -163,13 +163,14 @@ public class DormantIdentityTests
         // ★WarWearyPoliticsCut（(1371) c145rv 厭戦の政治の側の 3 本の読みを外す旗）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した。(1385) c147wb で旗ごと焼いた（番人 WarWearyPoliticsCutTests は旗なし）。(1377) c146wy
         "SatReadersToDiscontent",       // (1371) c145rv 不満度から声の項を抜き参加と思想が D を読む旗（0＝今の式・番人 SatReadersToDiscontentTests）。点火は波146
         "ArrearsOnePredicate",          // (1284) c132df 本位の停止の門を不履行の導火線と同じ述語にして判定の前へ（0＝今の形・番人 ArrearsOnePredicateTests）。点火時にこの表から外す
+        // ★RepayFloorOnly（(1416) c151fl 国債の返済を床だけにする）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は RepayFloorOnlyTests の T0）。
         // ★LawPrefSinglePeaked（(1323) c138lp 法の好みの向き＝後退は 1 段下からの上げの好みの反転）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は LawPreferenceDirectionTests＝旗を明示）
         // ★MajorityLabelTierOrder（(1290) c133mr 国の主流の札を格の順で選ぶ）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は MajorityLabelTierOrderTests の T1）。
         // ★NextCapitalHomeFirst（(1304) c135nc 首都の付け替えを格の順に）は 2026-11-22 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は NextCapitalHomeFirstTests の T1・T7）。
         // ★NextCapitalCoreFirst（(1332) c139nc 首都の付け替えの候補を最も高い格の州だけに）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は NextCapitalHomeFirstTests の T8・T11）。
         // ★SecessionTreasuryByMoney（(1318) c137ak 分離の国庫の分与を民間の貨幣の比へ）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は SecessionTreasuryShareTests の T1・T2・T8）。
         // ★StateProcureAsSold（(1336) c140sp 国家の購入〔buyer null〕を LastExport でなく LastSold に積む）は 2026-11-25（(1357) c143sp）に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は StateProcureLedgerTests の T1〜T5）。
-        // ★RandomOnlyClimateEpidemic（(1401) c149rn 乱数を気候と疫病だけにする旗）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は RandomOnlyClimateEpidemicTests＝旗を明示・MonopolyPushTests の 2 件も旗を明示）。
+        // ★RandomOnlyClimateEpidemic（(1401) c149rn 乱数を気候と疫病だけにする旗）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した。(1413) で旗の宣言ごと焼いた（旗の無い番人は RandomOnlyClimateEpidemicTests の T1・T3・T5・T6）。
         "EmptyPopDebtFirst",            // (910) c78ep 案 B5 相続の前に人の居ない POP の債務を返す旗（0＝今の形・番人 EmptyPopDebtFirstTests）。点火時にこの表から外す
         // ★ColonyLabelsFromData（(1278) c131cr 植民地の州の文化と宗教の札を places.json から・国の主流の札は植民地格を数えない）は 2026-11-21 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は ColonyLabelsFromDataTests.T1c＝旗を明示）
         // ★LaborWeightsByPower（(1037) c98lw 労働力の重み）は 2026-11-11 に 1 で**点火**＝この表から外した（番人 LaborWeightTests）。
@@ -264,6 +265,8 @@ public class DormantIdentityTests
         "ResearcherFrac",
         // SeaEscortPerTradeValue は 2026-10-01 (151) に係数ごと削除（通商保護は割合の形）＝外した・SilverStandardIndThreshold は 2026-10-04 (210) に係数ごと削除＝外した
         "SoeSaleMilitancyCeil", "SpecialistExitBanPrefScale",
+        // (1415) c151lk：戦争の運を 0 にした（乱数は気候と疫病だけ・作者 2026-11-26）＝0 が正しい値。運の式と欄は段 2（恒等の線）で消し、その時にここからも外す
+        "WarLuck",
     ];
 
     /// <summary>★休眠の棚卸し（2026-10-11 (253)・measurements/dormant_20261011.tsv の行き先「消す」）で削除した係数の名簿＝**再び入れたら赤**。

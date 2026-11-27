@@ -1,0 +1,23 @@
+start 2026-11-27 16:22:19 dll=D:/PoB_work/t1412_work/build/bin/PriceOfBread.Runner/release/PriceOfBread.Runner.dll
+16:22:25 r1A begin cpu=39.8% dotnet=2 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1]
+16:23:25 r1A begin-retry1(60s avg) cpu=11.1% dotnet=2 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1]
+16:24:26 r1A begin-retry2(60s avg) cpu=13.3% dotnet=2 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1]
+16:25:26 r1A begin-retry3(60s avg) cpu=7.3% dotnet=3 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1 dotnet.exe:PriceOfBread.Tests.csprojx1]
+16:27:11 r1A mid cpu=54% dotnet=3 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1 dotnet.exe:PriceOfBread.Runner.dllx1]
+16:29:19 r1A end cpu=17.8% dotnet=2 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1]
+r1A combo=A coef=[] rc=1 wall=228.1 cpu=271.8 quiet
+16:29:24 r2B begin cpu=17.2% dotnet=2 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1]
+16:30:25 r2B begin-retry1(60s avg) cpu=7.2% dotnet=2 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1]
+16:32:10 r2B mid cpu=40.6% dotnet=3 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1 dotnet.exe:PriceOfBread.Runner.dllx1]
+16:34:01 r2B end cpu=17.2% dotnet=2 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1]
+r2B combo=B coef=[PriceOnlyStepDays=15] rc=1 wall=210.5 cpu=270.6 quiet
+16:34:06 r3A begin cpu=8% dotnet=2 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1]
+16:35:51 r3A mid cpu=43.4% dotnet=3 [dotnet.exe:MSBuild.dllx1 VBCSCompiler.exex1 dotnet.exe:PriceOfBread.Runner.dllx1]
+16:37:33 r3A end cpu=47.4% dotnet=1 [VBCSCompiler.exex1]
+r3A combo=A coef=[] rc=1 wall=201.7 cpu=253.3 quiet
+16:37:38 r4B begin cpu=29% dotnet=1 [VBCSCompiler.exex1]
+16:38:38 r4B begin-retry1(60s avg) cpu=5.6% dotnet=0 []
+16:40:24 r4B mid cpu=58% dotnet=1 [dotnet.exe:PriceOfBread.Runner.dllx1]
+16:42:15 r4B end cpu=12% dotnet=0 []
+r4B combo=B coef=[PriceOnlyStepDays=15] rc=1 wall=211.3 cpu=268.1 quiet
+done 2026-11-27 16:42:15 runs=4 quiet=4

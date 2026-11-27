@@ -95,7 +95,6 @@ public sealed partial class Coefficients
     public double AllyJoinTension = 40;           // 同盟国が参戦する敵への緊張（参加義務なし＝利害一致時のみ）
     public int MaxAlliances = 2;                  // 1国の同盟数の上限（全員同盟を防ぐ）
     public double HegemonThreatMin = 0.3;         // 覇権と見なす最低脅威超過（GDP×0.6＋植民地×0.4 の平均超過分）
-    public double AntiHegemonAllianceChance = 0.7;// 覇権が共通の敵のときの同盟成立確率（通常0.4より高い＝合従が組まれやすい）
     public int AntiHegemonExtraAlliances = 1;     // 覇権に対抗する時だけ同盟上限を+これ（三国協商＝三極以上の合従を許す）
     public double AntiHegemonJoinFactor = 0.6;    // 敵が覇権のとき同盟国の参戦閾値をこの倍率に下げる（皆で覇権に雪崩れ込む）
     public double HegemonContainmentTrade = 0.40; // 封じ込めで覇権国が失う交易アクセス＝これ×脅威超過（0で無効）
@@ -117,7 +116,7 @@ public sealed partial class Coefficients
     public double ArmsWarWearScale = 1.0;         // 戦闘消耗＝摩耗に (warMult−1)×これ を上乗せ（1.0＝9倍戦時は摩耗9倍）
     public double TrenchDefenseWeight = 0.5;   // 塹壕の防御の重み（装備が戦場に残る ArmsStock と対で意味を持つ）
     public FractionPerMonth WarPushSpeed = new(0.10);            // 戦争スコアの押し合い速度（月・押しの割合1あたり・(1408) 項 4 で型を付けた＝読み手は Close(押しの割合)）
-    public double WarLuck = 0.12;                 // 戦況の運（決定的会戦・補給・士気）＝毎月の戦勝点に±これの乱数を加算
+    public double WarLuck = 0.0;                  // 戦況の運（決定的会戦・補給・士気）＝毎月の戦勝点に±これの乱数を加算
     public double SeaInvasionControlMin = 0.65;   // ＋精密化「厳密には、海戦で閾値に勝たない限り上陸はできない＝陸戦は起きるが、その被害は民間には出ない」
     public double WarDeclareTension = 140.0;      // 屈服経路（AISubmitMilRatio=3.0）の開通で一方的な組合せは戦わずに折れる＝旧140へ戻し互角の対立だけが戦争へ（160は屈服なし時代の戦争過多対策だった）
     public Share MobilizationConscriptFrac = new(0.22);   // 既存のDrawFromPoolで非兵士POPを兵士へ変換＝代償は自然（労働喪失で経済悪化・兵増で戦死増・国民意識ゲートで低NC国は届かない）

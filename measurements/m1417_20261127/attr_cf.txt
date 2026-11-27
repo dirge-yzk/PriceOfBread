@@ -1,0 +1,15 @@
+flag0 strong rows 142  flag1 strong rows 4
+k=0.25: flag0 gate rows with ratio*k>1 : 4
+k=0.31: flag0 gate rows with ratio*k>1 : 6
+k=0.37: flag0 gate rows with ratio*k>1 : 11
+k=0.5: flag0 gate rows with ratio*k>1 : 28
+k=0.69: flag0 gate rows with ratio*k>1 : 56
+k=1.0: flag0 gate rows with ratio*k>1 : 142
+revolts sum, nations>0 : flag0 (70.0, 47)  flag1 (2.0, 2)
+seed-nations with gate rows: flag0 608  flag1 561  both 560
+top flag0 (seed,nation):rows -> flag1 rows [((6, 'イギリス'), 530, 0), ((10, 'プロイセン'), 515, 36), ((3, 'イギリス'), 484, 0), ((5, 'プロイセン'), 476, 112), ((4, 'オーストリア'), 465, 104), ((6, 'オーストリア'), 462, 35), ((5, 'イギリス'), 438, 2), ((7, 'イギリス'), 418, 8)]
+k=2: flag0 gate rows with ratio*k>1 : 689
+k=3: flag0 gate rows with ratio*k>1 : 1133
+k=4.7: flag0 gate rows with ratio*k>1 : 1872
+k=7.7: flag0 gate rows with ratio*k>1 : 2956
+k=10: flag0 gate rows with ratio*k>1 : 3712
