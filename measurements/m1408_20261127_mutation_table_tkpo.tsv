@@ -1,0 +1,9 @@
+線	突然変異	赤になる試験（事前登録）	記録された結果	出所
+tk (1391)	μ0 Digest が double を数えない	StateDigestToolTests 自己試験	1 本の赤の記録なし（未取得）	m1391_20261126_prereg_tk.txt :24
+tk (1391)	μ1 IsMonthEndDay を 1 日ずらす	暦の関数の試験 T2・statediff・ident	1 本の赤の記録なし（未取得）	m1391_20261126_prereg_tk.txt :25
+tk (1391)	μ3 計時の数えを TimeOn の外へ	計時の閉じの番人	1 本の赤の記録なし（未取得）	m1391_20261126_prereg_tk.txt :27
+tk (1391)	μ4 ValueScan 深さ 2 の拾いを外す	ValueScan 深さ 2 の自己試験 T3	1 本の赤の記録なし（未取得）	m1391_20261126_prereg_tk.txt :26
+po (1393)	μ1 A2-08 の Census の比べを逆にする	項 8 の試験	失敗 1・合格 3（4 本中）	m1393_20261126_mutations.txt mu1
+po (1393)	μ2 A2-21 の減衰の k を別の係数にする	項 4 の試験か ident	失敗 1・合格 3（4 本中）	m1393_20261126_mutations.txt mu2
+po (1393)	μ3 ScalarDeletionTests の新しい Assert を壊す	ScalarDeletionTests	失敗 1・合格 14（15 本中）	m1393_20261126_mutations.txt mu3
+wx (1399・参考)	μ4 statediff 自己試験の比べから状態の群を全て外す	StateDigestToolTests 自己試験	失敗 1・合格 2（3 本中・3 分 57 秒）	m1399_20261127_mutations_wx.tsv
