@@ -1,0 +1,5 @@
+# M4（fb9386ecd）
+  失敗 PriceOfBread.Tests.FactionFloorByParticipationTests.TG3_旗1では実際に作った勢力の中の対象の層が旧の足切りより多い_旗0では等しい [659 ms]
+  失敗 PriceOfBread.Tests.FactionFloorByParticipationTests.T1_人口の1パーセント未満でも参加の総量の1パーセント以上の組は旗1で勢力になる [116 ms]
+  失敗 PriceOfBread.Tests.FactionFloorByParticipationTests.T3_作った組は同じStepの中で見えないと読まれない [219 ms]
+失敗!   -失敗:     3、合格:    11、スキップ:     0、合計:    14、期間: 16 s - PriceOfBread.Tests.dll (net10.0)

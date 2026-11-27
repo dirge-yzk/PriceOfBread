@@ -1,0 +1,8 @@
+ins=D:/PoB_work/ident_c152sd/out_ib_10/ins 種=1..10 行 408126・表の無い種 0・floorFlag ['0']
+Σ facSeenTargetK 1.02242e+08・Σ targetAboveNK 1.02242e+08・Σ targetAbovePK 2.07375e+08・Σ targetK 2.21366e+08
+比 facSeen÷aboveN 1（門 ≥ 1.10）→ 落ちる
+記録：facSeen÷targetK 0.461867・aboveN÷targetK 0.461867
+記録：参加の割合 partEngK÷popK 0.0981563・partDK÷popK 0.0438382
+記録：勢力の数の平均 2.858・facSeenCount の最大 19（≤100）・cellsAboveP の最大 47・cellsAboveP の平均 7.5・cellsAboveN の平均 1.963
+旗 0 の確かめ：facSeenTargetK≠targetAboveNK の行 0・差の最大 0
+G3	FAIL	1

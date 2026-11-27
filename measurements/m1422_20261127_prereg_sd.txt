@@ -112,3 +112,15 @@
 → 5. ident（段 1→計器が違えば段 2・--work D:/PoB_work/ident_c152sd・--added-tables facfloor_s）で〈判定: 恒等〉→ 6. 旗 2 本の既定を 1 にするコミット → 旗 1 の絞った試験（差分の名の grep で当たったクラス・FullLength・㉘・㉜・savetest・leakhunt・trx）
 → 7. 腕 B（INS=1・10 種・表＝dcont_s,facfloor_s,nation_s,cwend_s,coupgate_s,scalars_s,region_s,wars_s,pxmonth_s,migration_s,stock_s,casualty_s・起こす直前に 38GB 以上）→ 8. フルスイート 1 回（腕 B の後・Category で分け --list-tests と突き合わせる）→ 9. 印 D:/PoB_work/c152sd_work/sd.mark → push。
 - 形の変え直しは 1 回だけ。落ちたら採らないで止める（同じ腕で物差しを替えない）。腕 B の生は合流の判断まで消さない。種 11〜20 は線では回さない。
+
+== [追記 1]（2026-11-28・腕 B の前・旗 0 の腕 Z〔ident c152sdz〕の出力で取った基準の数と確かめ・門の形は変えない）
+- 突然変異（[9]・使い捨ての木・コミット fb9386ecd・measurements/m1422_20261127/mut/）：M0 緑 14/14・μ1 赤 4（T1・T2・T3・TG3）・μ2 赤 4（T1・T2・T3・TG3）・μ3 赤 1（T5）・μ4 赤 3（T1・T3・TG3）・μ5 赤 1（T4）。
+  紙の予言との差：μ1・μ2 は T3 も赤（T1 の盤面で勢力が作られない＝Single が落ちる）・μ4 は T2 が緑（Compute の側は :86 の FloorOf を読む＝:49 を読まない）。全ての突然変異が少なくとも 1 本の試験で赤。
+- ㉘ の束（旗 0 の器の木）：赤 5 件 → 直した 3 件（WriterRatchetTests の DeadProdBankrupt を main の行へ・DormantIdentityTests に SatReadersToDiscontent を戻す・T5 の盤面をロシアへ＝前提〈組の数 ＞100〉が仏で 85）・残り 2 件は c150sd が旗 1 の規則へ書き換えた DiscontentReaderTests（旗 0 の器で赤は想定どおり＝旗 1 の絞った試験で読む）。
+- G1 の基準の数（腕 Z＝m1418 の世界と同じ軌道・scripts/instruments/c152sd/paper_g1.py）：5 大国の勢力の蜂起 0・route3 7・一揆の条件の州×四半期 15936（英 6082・仏 1737・普 168・墺 479・露 7470）＝B＝15943。
+  [8] の規則のとおり：B ≥ 40＝下側〈腕 ≥ 40〉・B ＞ 9000＝上側〈腕 ≤ 10×B＝159430〉（基準が上側の外＝〈元からの弱さ〉の型）。
+  記録：和の 99.96% が一揆の条件の州×四半期＝この門は事実上 州の闘争度の門（勢力の蜂起と首都の蜂起は内訳で記録）。
+- G3 の旗 0 の確かめ（腕 Z の facfloor_s・10 種 408126 行・scripts/instruments/c152sd/g3.py）：facSeenTargetK≠targetAboveNK の行 0・差の最大 0＝比 1.00（門 ≥1.10 で赤）。計器は旗 0 の盤面でエンジンの足切りと全ての行で一致した。
+  記録（旗 0）：facSeen÷targetK 0.4619・参加の割合 partEngK÷popK 0.0982・partDK÷popK 0.0438・勢力の数の平均 2.858・facSeenCount の最大 19・cellsAboveP の平均 7.5・cellsAboveN の平均 1.963。
+- ident（bash scripts/instruments/ident/ident.sh run c152sdz --tree D:/PoB_work/wt_c152sd --work D:/PoB_work/ident_c152sd --added-tables facfloor_s --tests-delta 9・木 fb9386ecd・段 2・00:10〜01:2x）：〈判定: 恒等〉（測った種で一致）。
+  素の 5 種 b5 は m1418 と全行バイト一致（179 行・推定 227.2 秒）・計器つき 10 種 b10 は全行バイト一致（180 行・推定 226.1 秒）・計器の表 1825 本＝バイト一致 1805＋既知の揺れ 20・足した表 facfloor_s 10 本・注視の表 4788 行一致・試験の数 +9（Tests 3104＝基準 3095＋この線 7〔FactionFloorByParticipationTests 6・InstrumentHookClosureTests 1〕＋c150sd 2）。出力の要約は measurements/m1422_20261127/ident_c152sdz.txt。

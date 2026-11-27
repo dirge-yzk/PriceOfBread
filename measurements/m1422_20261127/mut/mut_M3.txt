@@ -1,0 +1,3 @@
+# M3（fb9386ecd）
+  失敗 PriceOfBread.Tests.FactionFloorByParticipationTests.T5_足切りを越えた組の数は1割るファイ以下 [1 s]
+失敗!   -失敗:     1、合格:    13、スキップ:     0、合計:    14、期間: 25 s - PriceOfBread.Tests.dll (net10.0)
