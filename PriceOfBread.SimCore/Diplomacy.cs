@@ -500,7 +500,7 @@ public sealed class Diplomacy
             {
                 if (p.Nation is not { } w) continue;
                 double ratio = shareScore[p.Id] / topC;
-                double fade = PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio.Value) * c.DominanceSpeed;
+                double fade = c.TreatyPortFadeSpeed.Close(PoliticalQuantities.Clamp01(ratio / c.TreatyPortLapseRatio.Value));
                 if (!(fade > 0)) continue;
                 foreach (var r in w.Regions)
                     for (int k = 0; k < r.ForeignShares.Length; k++) if (r.ForeignShares[k] > 0) r.ForeignShares[k] = System.Math.Max(0, r.ForeignShares[k] * (1.0 - fade));
@@ -2338,6 +2338,23 @@ public sealed class Diplomacy
         bool wexOn = c.WarExitFromCapacity > 0;   // 段 2 の器（既定 0＝下の旧の経路だけ通る）
         bool fpBlank = c.ForcedPeaceBlankOverCollapse > 0;   // fpBlank〔履歴 Diplomacy.cs#249〕
         Dictionary<Power, int>? cpCount = null; Dictionary<int, List<Power>>? cpFlushAt = null; Dictionary<Power, List<War>>? cpPending = null;
+        // 旗 1 の枝だけ：歩の本体が今月の更新の後に読む戦勝点を前走査が先に求め、敗者の集合を 1 つにして歩へ渡す（式は歩の本体の更新の写し）。
+        Dictionary<int, Power?>? wexLosers = wexOn && cpOn ? new() : null;
+        double WexNextScore(War w, int wi)
+        {
+            double a = pushA[wi], b = pushB[wi];
+            TrenchAdjust(c, w, ref a, ref b);
+            double lk = c.WarLuck * (Hash01(Key(w.A, w.B) ^ ((long)_year << 20), w.Months + 1) * 2 - 1);
+            if (!(a + b > 0)) lk *= 0.0;
+            double sh = a + b > 0 ? (a - b) / (a + b) : 0;
+            if (!(sh >= -1 && sh <= 1)) sh = 0;
+            return Math.Clamp(w.Score + c.WarPushSpeed.Close(sh) + lk, -CollapseScore, CollapseScore);
+        }
+        Power? WexLoser(War w, int wi)
+        {
+            double sc = WexNextScore(w, wi);
+            return sc >= KOf(w.B) || -sc >= KOf(w.A) ? (sc > 0 ? w.B : sc < 0 ? w.A : null) : null;
+        }
         if (cpOn)
         {
             cpCount = new(); cpFlushAt = new(); cpPending = new();
@@ -2350,7 +2367,8 @@ public sealed class Diplomacy
                 bool ac = cw.A.WarExhaustion >= 1.0 * RevCut(cw.A), bc = cw.B.WarExhaustion >= 1.0 * RevCut(cw.B);
                 // 両者が崩壊の線にいる戦争は、歩の本体と同じ規則で敗者を決める（厭戦が高い方・同値なら塹壕の後の押しが小さい A 側が負ける）。厭戦は 1.0 で頭打ちなので、長い戦争では両者が 1.0 で並ぶことが多い。
                 double tA = pushA[wi], tB = pushB[wi]; if (ac && bc) TrenchAdjust(c, cw, ref tA, ref tB);   // 同値の厭戦の敗者決めは塹壕の後の押し（歩の本体と同じ関数）
-                Power? pl = wexOn ? (WarEnds(cw) ? (cw.Score > 0 ? cw.B : cw.Score < 0 ? cw.A : null) : null) : ac && bc ? (cw.A.WarExhaustion != cw.B.WarExhaustion ? (cw.A.WarExhaustion > cw.B.WarExhaustion ? cw.A : cw.B) : (tA < tB ? cw.A : cw.B)) : ac ? cw.A : bc ? cw.B : null;
+                Power? pl = wexOn ? WexLoser(cw, wi) : ac && bc ? (cw.A.WarExhaustion != cw.B.WarExhaustion ? (cw.A.WarExhaustion > cw.B.WarExhaustion ? cw.A : cw.B) : (tA < tB ? cw.A : cw.B)) : ac ? cw.A : bc ? cw.B : null;
+                if (wexLosers is not null) wexLosers[wi] = pl;
                 if (pl is null) continue;
                 cpCount[pl] = cpCount.GetValueOrDefault(pl) + 1;
                 if (cpSeen.Add(pl)) { if (!cpFlushAt.TryGetValue(wi, out var fl)) cpFlushAt[wi] = fl = []; fl.Add(pl); }
@@ -2380,8 +2398,8 @@ public sealed class Diplomacy
             // ゲージは装備の充足・質・兵数で時代と規模により約1000倍動くので、     前近代と小国の戦争は押しがほぼ0で運（±WarLuck）だけで決まり、後期の大国は1か月で決着した（1914年以降の戦争は平均約4か月）。〔履歴 Diplomacy.cs#254〕
             double pushShare = aPush + bPush > 0 ? (aPush - bPush) / (aPush + bPush) : 0;
             if (!(pushShare >= -1 && pushShare <= 1)) pushShare = 0;
-            war.Score = Math.Clamp(war.Score + c.WarPushSpeed * pushShare + luck, -CollapseScore, CollapseScore);
-            double delta = c.WarPushSpeed * pushShare + luck;   // 記帳用（この値は war.Score の計算に使わない）
+            war.Score = Math.Clamp(war.Score + c.WarPushSpeed.Close(pushShare) + luck, -CollapseScore, CollapseScore);
+            double delta = c.WarPushSpeed.Close(pushShare) + luck;   // 記帳用（この値は war.Score の計算に使わない）
             war.PushA += aPush; war.PushB += bPush;   // 崩壊講和の取り分の材料（純記帳・war.Score の式には一切入れない）
 
             // 1ヵ月1ラウンド」）。〔履歴 Diplomacy.cs#255〕
@@ -2402,6 +2420,7 @@ public sealed class Diplomacy
             double aCut = RevCut(war.A), bCut = RevCut(war.B);
             // 厭戦100%（革命圧力で前倒し）＝無条件敗北（厭戦は上で Power単位に更新済み）。戦勝点を決定的敗北に上書き。
             bool aCollapse = !wexOn && war.A.WarExhaustion >= 1.0 * aCut, bCollapse = !wexOn && war.B.WarExhaustion >= 1.0 * bCut;
+            double wxScoreBefore = war.Score;   // 計器 wexit_s が読む：旧の崩壊の書き換えの前の戦勝点
             Power? cpLoser = null;   // cpLoser〔履歴 Diplomacy.cs#257〕
             if (Instruments.On) Instruments.CpIter(war, aCollapse || bCollapse);   // Instruments〔履歴 Diplomacy.cs#258〕
             // ForcedPeace〔履歴 Diplomacy.cs#259〕
@@ -2417,8 +2436,8 @@ public sealed class Diplomacy
                 double impose = CollapseScore * (1.0 - (1.0 - reach));
                 war.Score = aLoses ? -impose : impose;
             }
-            if (wexOn && cpOn && !(fpBlank && war.ForcedPeace) && WarEnds(war)) cpLoser = war.Score > 0 ? war.B : war.Score < 0 ? war.A : null;   // 旗 1：負け手は戦勝点の符号（ResolvePeace と同じ読み）
-            Instruments.WexitRow(this, c, war);   // 計器（読むだけ・旗 0 でも同じ行を書く・On の判定は計器の中）
+            if (wexLosers is not null && !(fpBlank && war.ForcedPeace) && WarEnds(war)) cpLoser = wexLosers.GetValueOrDefault(i);   // 旗 1：負け手は前走査が決めた集合から読む（歩の途中の講和で K が動いても集合はずれない）
+            Instruments.WexitRow(this, c, war, wxScoreBefore);   // 計器（読むだけ・旗 0 でも同じ行を書く・On の判定は計器の中）
             bool decisive = Math.Abs(war.Score) >= 1.0;
             // 早期講和（革命圧力で前倒し）。〔履歴 Diplomacy.cs#261〕
             bool weary = !(war.A.WarExhaustion <= c.WarPeaceExhaustion * aCut) && !(war.B.WarExhaustion <= c.WarPeaceExhaustion * bCut);

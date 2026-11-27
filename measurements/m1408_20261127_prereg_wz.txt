@@ -1,0 +1,36 @@
+(1408) 線 c150wz 恒等の事前登録（最初のコミット・木 871430d15 から・基線 m1404）
+
+[1] 恒等の線・予言 0
+- 計器の列の追加と、型・名・宣言の付け替え、因子 1.0 の畳み込みだけ。挙動を変えない。
+- 素の 5 種と計器つき 10 種は m1404（b5_20261127_m1404・b10_20261127_m1404_ins）と名乗り行を除いて全行一致。
+  計器の表の差は宣言だけ＝新しい表 sinkgood_s。wexit_s は項 2(c) で行の中身が変わる（旧の崩壊の書き換えの前の戦勝点を読む）＝宣言に足す。
+- savetest OK（最終行が〈savetest OK〉で始まり値の違い 0）。.cost は +0（計器は Instruments.On の時だけ）。
+- .Value の数は増えない（SimCore の .Value 行の数 766 を始点・WarPushSpeed と DominanceSpeed は型を付けるが読み手に .Value を足さない）。
+- テストの数の増分＝SinkgoodInstrumentTests 3 本＋項 2・3・4・9 の試験（確定は ident の前に書き足す）。
+
+[2] 消す物と残す物
+- 項 1：新しいファイル Instruments/InstrumentsSinkgood.cs（計器 sinkgood_s）・Instruments.cs の呼び 2 行（SinkgoodTable・SinkgoodClose）。エンジンの欄は足さない。
+- 項 2：(a) WarExitFromCapacityTests へ旗 1 の枝 7 か所の試験 (b) Diplomacy.cs の cp の前の走査と歩の本体の敗者の集合（旗 1 の枝だけ）(c) InstrumentsWexit.cs と Diplomacy.cs の WexitRow の呼び (d) statediff の自己試験 μ4。
+- 項 3：DominanceSpeed の 3 通りの意味（Politics.cs:915・:947・Diplomacy.cs:503）を分ける。項 4：WarPushSpeed（Diplomacy.cs:2383〜:2384）。項 5：EconomyStep.cs:1017 の IndInvestmentFrac.Value。
+- 項 6：Territory.cs:71・:74 と MultiNationSim.cs:1081 の EraFactor の因子（1.0 を返す）。TerritoryTests.cs:112 の前提を同じコミットで書き直す。宣言 p10:55〜:56 は App が読むので残す。
+- 項 7：scripts/instruments/r1396/k_first.py の窓。項 8：tk と po の突然変異の表（記録だけ）。項 9：試験の種の補助（Tests の新しいファイル）。
+- 他の線との重なり：sd（Coefficients.cs:101・InstrumentsTests.cs:2385〜:2392）・rp（Transport.cs・p04:80）には触らない。Coefficients.p04_trade.cs は :118 の行だけ。
+- 読み手の grep は各項のコミットの前に実施し実装の記録へ。
+
+[3] 足す試験と突然変異
+- μ1：sinkgood の fraction の分母を入れ替える → SinkgoodInstrumentTests.T1 が赤。
+- μ2：B13 の型を入れ替える → 型の試験が赤。μ3：(b) の敗者の集合を戻す → 旗 1 の盤面の試験が赤。μ4：補助が範囲の終わりを返す → 越境の対照が赤。
+- ㉘ の束（DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・Instruments）を器のコミットの後に回す。
+- 書き換える件数の予言（㉑）：WriterRatchetTests・ValueCountRatchetTests の件数の表は、項 3〜5 の型の付け替えで変わる行だけ。変わった行は項のコミットで列挙。
+
+[4] 素の 5 種・計器つき 10 種が m1404 と全行一致（上の宣言を除く）。浮動小数の順序が変わる箇所は無い（項 6 は 1.0 の因子を外すだけ＝x*1.0 は恒等・紙の台本で旧≠新 0 を数える）。
+[5]〈判定: 恒等〉なら採る。一致しなければ、その項を外して報告に回す。
+
+[追記・ident の前（項のコミットの後）]
+- 項 6 の補正：DormantIdentityTests.係数は全て本体のどこかで読まれる が EraEpidemicRange の読み手 0 で赤になった（p10:55 の宣言は App も Runner も読まない＝prereg [2] の〈App が読む〉は誤り）。宣言を消し、DormantIdentityTests の削除済みの名簿へ 1 行足した（許可表の行を足すだけ）。EraMigrationScale は計器 InstrumentsMigcap.cs:45 が読むので残す。
+- 項 3・5 の補正：計器の .Value を増やさないため RuleOldStep を FractionPerQuarter で受ける。ValueCountRatchetTests の SimCore の表 752→751（項 5 の −1・予言どおりの行だけ）。
+- 項 2(c) の宣言：wexit_s の行の中身が変わる（旧の崩壊の書き換えの前の戦勝点）＝ident に --rewritten-tables wexit_s@scripts/instruments/c150wz/wexit_rewrite_check.py。
+- テストの数：Category!=FullLength が 3085→3096（+11＝Sinkgood 3・WarExit 4・DominanceSpeedSplit 2・WarPushSpeedType 1・SeedPick 1）。--tests-delta 11。
+- 事前登録の点検（grep・木 919b08886）：工業化度の読み手＝足していない・new MoneyStock( の件数＝足していない・route_anchors.tsv の鍵の行＝触っていない・WriterRatchetTests の宣言の表＝触っていない（㉘ の束は緑）。
+- 試験の書き換え（区分・前と後）：TerritoryTests.cs:112 前提の Assert から EraFactor の項を外す（前提の述語の整理）／RevoltIgnitionTests・RuleOrderP1Tests・RuleOnsetInstrumentTests・ScoreReaderTests・SecessionLaborLawInstrumentTests・ModernizeReturnAndScoreTests＝DominanceSpeed の名と型の付け替えだけ（Assert の式と閾値は同じ）／CoefficientRelationTests・WarThemeTests・WarExitFromCapacityTests＝WarPushSpeed の型に合わせた .Value・FractionPerMonth の付け替えだけ。
+- 紙の台本（項 6）：EraFactor は定数 1.0＝x*1.0 は全ての有限・非数の x で x とビット一致＝旧≠新の件数 0。項 3・4・5 の Close は Value*x＝旧の x*Value と乗算の可換でビット一致（旧≠新 0）。

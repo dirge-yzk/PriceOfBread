@@ -105,7 +105,10 @@ public sealed partial class Coefficients
     public double SecessionHoldProjection = 1.0;   // 0で厳密恒等
     public double WallLinkKm = 700.0;          // 壁の線分にする点の間隔の上限（データの最大間隔＝ヒマラヤ694・サハラ697 を含む）
 
-    public double DominanceSpeed = 0.025;            // 四半期あたりの積分速度＝(hold−pressure)≈−1 が10年続くと 1→0（分離判定と同じ四半期刻み）
+    // (1408) 項 3（B13）：旧 DominanceSpeed の 3 通りの意味を名と型で分けた（3 本とも 0.025・値は旧と同じ）。
+    public FractionPerQuarter DominanceIntegralSpeed = FractionPerQuarter.FromQuarter(0.025);   // 四半期あたりの積分速度＝(hold−pressure)≈−1 が10年続くと 1→0（分離判定と同じ四半期刻み・Politics の州の支配の積分）
+    public FractionPerQuarter RuleRelaxSpeed = FractionPerQuarter.FromQuarter(0.025);           // 4 区分の支配（Rule）が目標へ寄る四半期あたりの割合
+    public FractionPerQuarter TreatyPortFadeSpeed = FractionPerQuarter.FromQuarter(0.025);      // 条約港の外国の支配が消える四半期あたりの速さ（失効の比で絞る・Diplomacy）
     public double RuleOrderByRegion = 1.0;           // c69po 州ごとの治安 P1-1 の旗
     public double DominanceMatureYears = 30.0;       // 初期値＝保有年数÷これ（世代長＝同化の物差し）
     public double OpeningColonyDominanceFull = 1.0;  // 接収（Diplomacy.AcquireColony）は常に 0
@@ -113,7 +116,7 @@ public sealed partial class Coefficients
     public double MajorityLabelTierOrder = 1.0;   // (1290) c133mr 2026-11-22 点火（腕 B の木）：1＝ColonyLabelsFromData 1 の下で、本国格に札の付いた人口が無い札（文化と宗教は別々）だけ植民地格の州で数える・0＝今（植民地格だけの国の札は空）
     public double NextCapitalHomeFirst = 1.0;   // (1304) c135nc 2026-11-22 点火（腕 B の木）：1＝首都の付け替え（Territory.NextCapital）の候補を本国格（Core・Integrated）の州に限る（本国格が無ければ今と同じ全ての州）・0＝今（格を見ない）。NextCapitalCoreFirst 1（既定）の下では読まれない（この分岐は CoreFirst 0 のときだけ）
     public double NextCapitalCoreFirst = 1.0;   // (1332) c139nc 2026-11-24 点火（腕 B の木）：1＝首都の付け替え（Territory.NextCapital）の候補を leaving の外で最も高い格（Core＞Integrated＞Colonial）の州だけにする（NextCapitalHomeFirst の分岐を置き換える）・0＝今（NextCapitalHomeFirst の形）
-    public double ForeignRuleFromTreaty = 0.5;   // DominanceSpeed で目標へ寄せる
+    public double ForeignRuleFromTreaty = 0.5;   // RuleRelaxSpeed で目標へ寄せる
     public double TreatyPortHomeOnly = 1;        // (1138) c111tp 2026-11-14 点火：1＝条約港の読み手（ForeignPortShare・TreatyPortInForce）が植民地格の港を数えない・0＝旧（全ての港）
     public double ProjectionRuleMin = 1.1;   // 1.1（到達不能）＝{首都}＝旧＝厳密恒等
     public double ProjectionUsesLand = 0.0;   // §14b：非港州も陸路距離（PathGraph）で起点にする（露の中央アジア・シベリア＝鉄道の延伸が投射になる）

@@ -137,10 +137,10 @@ public static partial class Instruments
     }
 
     /// <summary>旧の寄せの 1 歩（純関数）：v＝r＋(t−r)×速度・負は 0・和で割る（和が 0 なら Rule[0]＝1）。</summary>
-    internal static double[] RuleOldStep(double[] rule, double[] t, double speed)
+    internal static double[] RuleOldStep(double[] rule, double[] t, FractionPerQuarter speed)
     {
         var o = new double[4]; double sum = 0;
-        for (int k = 0; k < 4; k++) { double v = rule[k] + (t[k] - rule[k]) * speed; if (!(v > 0)) v = 0; o[k] = v; sum += v; }
+        for (int k = 0; k < 4; k++) { double v = rule[k] + speed.Close(t[k] - rule[k]); if (!(v > 0)) v = 0; o[k] = v; sum += v; }
         if (sum > 1e-9) for (int k = 0; k < 4; k++) o[k] /= sum; else o[0] = 1.0;
         return o;
     }
@@ -193,7 +193,7 @@ public static partial class Instruments
         double resid = double.NaN;
         if (RuleRegPrevs.TryGetValue(r, out var pv) && pv.Has)
         {
-            var pred = RuleOldStep(pv.Prev, t, c.DominanceSpeed);
+            var pred = RuleOldStep(pv.Prev, t, c.RuleRelaxSpeed);
             resid = 0; for (int k = 0; k < 4; k++) resid = System.Math.Max(resid, System.Math.Abs(pred[k] - r.Rule[k]));
         }
         return string.Join('\t', F(sh[0]), F(sh[1]), F(sh[2]), F(sh[3]), F(RuleDeliveryOf(r.Rule, r.AdminFill, disc)), F(RuleDeliveryOf(sh, r.AdminFill, disc)),

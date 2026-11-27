@@ -912,7 +912,7 @@ public static class Politics
         double sharedDivDom = c.SecessionHoldSharedArmy > 0 ? 1.0 + c.SecessionHoldSharedArmy * System.Math.Max(0, restive - 1) : 1.0;
         foreach (var (r2, h2, p2) in margins)
         {
-            double d = r2.Dominance + (h2 / sharedDivDom - p2) * c.DominanceSpeed;
+            double d = r2.Dominance + c.DominanceIntegralSpeed.Close(h2 / sharedDivDom - p2);
             if (!(d > 0)) d = 0; else if (d > 1) d = 1;
             r2.Dominance = d;
         }
@@ -944,7 +944,7 @@ public static class Politics
                 double tState = System.Math.Max(0, 1.0 - tLocal - tForeign - tUngov);
                 double[] t = [tState, tLocal, tForeign, tUngov];
                 double sum = 0;
-                for (int k = 0; k < 4; k++) { double v = r4.Rule[k] + (t[k] - r4.Rule[k]) * c.DominanceSpeed; if (!(v > 0)) v = 0; r4.Rule[k] = v; sum += v; }
+                for (int k = 0; k < 4; k++) { double v = r4.Rule[k] + c.RuleRelaxSpeed.Close(t[k] - r4.Rule[k]); if (!(v > 0)) v = 0; r4.Rule[k] = v; sum += v; }
                 if (sum > 1e-9) for (int k = 0; k < 4; k++) r4.Rule[k] /= sum; else r4.Rule[0] = 1.0;
                 if (r4.RuleStateLastYear != w.Year && r4.RuleStateYears.Length > 0)
                 {

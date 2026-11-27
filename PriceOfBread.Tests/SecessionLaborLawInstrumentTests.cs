@@ -64,7 +64,7 @@ public class SecessionLaborLawInstrumentTests
             Assert.Equal(Instruments.SecessionHeaderText.Split('\t'), h);
             Assert.All(rows, r => Assert.Equal(h.Length, r.Length));
             Assert.True(rows.Count > 100, $"行が少ない {rows.Count}＝CheckSecession の hook が呼ばれていない？");
-            double speed = sim.Nations[0].World.Coef.DominanceSpeed;
+            double speed = sim.Nations[0].World.Coef.DominanceIntegralSpeed.Value;
             int nonZeroPressure = 0, withMargin = 0;
             foreach (var r in rows)
             {

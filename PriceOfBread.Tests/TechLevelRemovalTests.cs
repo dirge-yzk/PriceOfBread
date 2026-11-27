@@ -22,7 +22,7 @@ public class TechLevelRemovalTests
         ("PriceOfBread.SimCore", "InstrumentsMigcap.cs", 1), // (1349) 計器 migcap_s の距離の時代の係数（エンジンの移民と同じ入力を写す・記録・Instruments.On のときだけ）
         // (1399) c149wx 項 6：Military.cs の行（海軍燃料の EraFactor）だけを消した＝許可表の行を消す（件数の予言どおり）。Territory・MultiNationSim・Migcap の EraFactor は外さない（外すと EraEpidemicRange・EraMigrationScale の読み手が 0 になり DormantIdentityTests が赤）
         ("PriceOfBread.SimCore", "InstrumentsDsc.cs", 1), // (727) 計器 dsc2_s の N 行の techLevel の列（記録・POB_INSTRUMENTS_DSC=1 のときだけ・段0′ の再生の B）
-        ("PriceOfBread.SimCore", "MultiNationSim.cs", 7),
+        ("PriceOfBread.SimCore", "MultiNationSim.cs", 6),   // (1408) c150wz 項 6：疫病の伝播距離の EraFactor(w.WorldTechLevel, …) の行を外した＝7→6（予言に書き漏らした件数・許可表の行を直すだけ）
         ("PriceOfBread.SimCore", "TechEducation.cs", 8), ("PriceOfBread.SimCore", "Territory.cs", 1),
         ("PriceOfBread.SimCore", "World.cs", 3),   // (1160) c114sr D-r2：4→3（World.cs:1956 の EraFactor(WorldTechLevel, EraTensionRange) の行を消した）
         ("PriceOfBread.Runner", "Program.cs", 2),

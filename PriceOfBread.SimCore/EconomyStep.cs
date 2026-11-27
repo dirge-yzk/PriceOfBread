@@ -1014,7 +1014,7 @@ public static class EconomyStep
                 buildCostPerUnit += coef.ConsRail * Math.Max(region.Markets[coef.RailGoodId].Price, Eps)
                               + coef.ConsLoco * locoGate * Math.Max(region.Markets[coef.LocoGoodId].Price, Eps);
             // ── 実測（powertrace・1800年）───────────────────────────────────────   投資家の**所得**はGDPの約20%＝妥当（英17,198 / GDP86,742）。〔履歴 EconomyStep.cs#145〕
-            double budget = coef.IndInvestmentFrac.Value * Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value);
+            double budget = coef.IndInvestmentFrac.Close(Math.Max(0, region.Pops[region.InvestorPopIndex].Savings.Value));   // (1408) 項 5：型のまま読む（旧 .Value*）
             // 無補償で工場を取られた資本家は次の投資を控える。〔履歴 EconomyStep.cs#146〕
             if (region.SeizureChill > 0) budget *= Math.Max(0, 1.0 - region.SeizureChill);
             // 収益駆動の投資：工業化の限界収益（飽和カーブの傾き＝逓減）が資本コストを上回る限り投資する。〔履歴 EconomyStep.cs#147〕

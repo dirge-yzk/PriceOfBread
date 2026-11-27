@@ -68,10 +68,10 @@ public static class Territory
     }
 
     internal static double MigrationDecay(double km, double worldTech, Coefficients c)
-        => c.MigrationDistanceScale > 0 ? 1.0 / (1.0 + km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale))) : 1.0;
+        => c.MigrationDistanceScale > 0 ? 1.0 / (1.0 + km / c.MigrationDistanceScale) : 1.0;   // (1408) 項 6：時代の伸縮の因子 EraFactor（常に 1.0）を外した
 
     internal static double EntryFrictionTerm(double km, double worldTech, Coefficients c)
-        => c.MigrationDistanceScale > 0 ? c.TransportFriction * km / (c.MigrationDistanceScale * c.EraFactor(worldTech, c.EraMigrationScale)) : 0.0;
+        => c.MigrationDistanceScale > 0 ? c.TransportFriction * km / c.MigrationDistanceScale : 0.0;   // (1408) 項 6：同上
 
     private static double Movable(Region src, int dstClasses)
     {
