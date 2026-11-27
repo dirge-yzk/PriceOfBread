@@ -1,0 +1,13 @@
+seed	wars	popRows	popRowsEnded0	popWarsIntl	popWarsCivil	endedAtFirstPop0	contRun1950	medianExtraMonths	maxExtraMonths	otherEndG3
+1	903	429	21	24	0	2	1	9	72	1
+2	623	364	17	22	0	3	0	17	54	0
+3	800	253	9	17	0	0	1	13	79	0
+4	785	330	16	23	0	1	0	14	43	2
+5	828	352	21	27	0	0	1	8	40	0
+6	765	477	16	25	1	1	0	15	77	1
+7	1172	495	19	25	0	0	0	14	79	1
+8	678	686	34	43	0	4	0	11	72	0
+9	610	349	19	24	0	1	0	8	103	0
+10	547	404	22	33	0	1	0	11	37	0
+total	popRows=4139	popEnded0=194	intl=263	civ=1	endedFirst=13	cont=3	otherEnd=5
+旗0の門の値（母集合の月にその月で終わった割合）= 194/4139 = 0.0469

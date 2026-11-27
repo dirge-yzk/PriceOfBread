@@ -1,0 +1,126 @@
+(1429) c153nx 事前登録（挙動の線・3 回の規則の 1 回目・腕の前のコミット）
+================================================================
+形の型：尾（接触の無い戦争だけに効く出口）。旗 NoContactCollapseBlank（仮名・既定 0 の器→1）。
+出発：00一覧〈次の波（波153〜）〉2 の①・measurements/m1424_20261127/prereg_draft.txt の案 1・c152rw の読み（summary.txt・q1_*・q2_rematch_fix_*）。
+基線：m1425（c3290bbbd）。生は D:/PoB_work/keep_1425/base_ins（読むだけ）・ヌル腕 keep_1425/n1・n2（読むだけ）。
+作者の裁定との関係：AI の案・確証なし（作者の〈消す／こうする〉の形ではない）。作者 2026-11-16 ①〜⑦ と〈しばらくの間、全て推奨で〉で進める。
+
+0. 紙の台本の出力（今の盤面 keep_1425 で取った・旗 0 で門が落ちることの確かめ）
+- 台本 scripts/instruments/c153nx/paper_nx.py（生の wexit_s を読むだけ・エンジンと係数を読まない）。出力 measurements/m1429_20261128/paper_base_ins.txt・paper_n1.txt・paper_n2.txt。
+- 1 本の戦争＝wexit_s の同じ (powerIdA,powerIdB) で月が 1 ずつ続く行。終わり＝その戦争の最後の行で、表の最後の月より前。
+- 母集合の月＝旧の崩壊の側あり（oldCollapseAFlag か oldCollapseBFlag が 1）かつ pushSumPositiveFlag＝0（累計の押しの和 0）。
+- 旗 0 の値（その月に終わった割合）：基線 178/3725＝0.0478・N1 194/4139＝0.0469・N2 157/3539＝0.0444 ＝門 G1（＝1）は旗 0 で必ず落ちる。
+- 母集合に入る戦争（最初の母集合の月がある戦争）：基線 国どうし 245・内戦 0（種ごと 16〜31）・N1 263・1・N2 228・3。
+  そのうち最初の母集合の月で既に終わった戦争：基線 12・N1 13・N2 10。最初の母集合の月から終わりまでの月数の中央 8〜26・最大 30〜94（種ごと・基線）。
+  表の最後まで続いた物：基線 0・N1 3・N2 2。
+- G3（記録）＝母集合の外で、旧の終わりの述語（oldDecisiveFlag・oldWearyFlag・forcedFlag）が全て 0 なのに終わった月：基線 4・N1 5・N2 4（国の除去などの経路）。
+- 進行不能の線の値（c151lk/lk_gate.py --wars-only・measurements/m1429_20261128/stall_base.txt）：
+  基線 最後まで続いた 20・種ごとの最大 6・最長 137 か月・最後まで続いた物の最長 17 か月。N1 35・28・123・52。N2 11・5・192・21。
+
+1. 形（Diplomacy.cs の崩壊の書き換えと終わりの述語だけ・:2410〜:2445）
+- 係数 Coefficients.p04_trade.cs:133（WarPeaceExhaustion）の隣に 1 行：public double NoContactCollapseBlank = 0.0;（旗・既定 0）。
+- 今の形：崩壊の側（厭戦≥RevCut・!wexOn）がいると戦勝点を ±1.5×reach に書き換える。reach＝Clamp01(2×勝ち側の累計の押し÷(両側の累計＋1e-12))。
+  累計の押しが両側 0 なら reach＝0＝Score＝0 を書くだけで、決定的（|Score|≥1）にも疲れ果て（両側が WarPeaceExhaustion×切り目より上）にも入らない＝出口は調停だけ。
+- 新しい形：旗＞0 かつ (aCollapse||bCollapse)（aCollapse は既に !wexOn を含む）かつ war.PushA＋war.PushB≤1e-12 の月は、その月の終わりの述語に入れる。
+  - Score は書き換えのまま（押しが 0 なら 0）＝ResolvePeace は白紙（VerdictOf の Blank）。cpLoser は null（矯正講和の保留に入れない＝今でも Score 0 は Blank で保留に入らない）。
+  - 比べは <= 1e-12（NaN は偽＝旧の経路のまま・守りは既存の割り算の 1e-12 と同じ桁）。0＜和≤1e-12 の月は Score が 0 でない＝計器で件数を数えて記録（予言 0 件）。
+- wexOn（WarExitFromCapacity＞0）の段 2 の経路は 1 行も変えない（aCollapse・bCollapse が !wexOn を含むので旗 1 でも wexOn では偽）。
+- 新しい状態・係数・閾値は 0（旗の他）。[NonSerialized] の状態も作らない。
+- 内戦（CivilWarParent≠null）は**含める**（条件を足さない＝③の〈必要以上の閾値を足さない〉）。
+  終わりの経路の grep（Diplomacy.cs:2563 ResolvePeace）：内戦の白紙は :2579 の枝＝分断の固定（ConfirmIndependence・反乱側は独立国として残る・RumpParentName・CivilWarSplitCount++）。
+  :2577 の注〈分断が固まったのは両陣営が互いに届かない場合〉と同じ形＝接触なしの内戦の白紙は分断で読む。
+  分離戦で ForcedPeace の枝（:2569）は今のまま（ForcedPeace は既に終わりの述語）。基線の母集合の内戦は 0・N1 1・N2 3（記録）。
+- 計器（Instruments/InstrumentsWexit.cs の wexit_s の末尾に 7 列・旗 0 で他の列は全行一致）：
+  exhA・exhB（両側の WarExhaustion）・cutA・cutB（計器の自前の式 WxCut）・cumPushA・cumPushB（war.PushA・PushB＝累計）・
+  imposeScore（行を書く時点の war.Score＝崩壊の書き換えの後のエンジンの値・読むだけ）。
+  門の台本は imposeScore を、計器の列（cumPush・exh・cut）から台本が自分で組んだ旧の reach の式と突き合わせる（エンジンの関数を呼ばない）。
+
+2. 置き換える旧の規則と、それを固定する試験（grep：PriceOfBread.Tests で WarExhaustion = 1 を書くクラス 6 本）
+- 旧の規則：接触の無い崩壊の戦争は Score 0 のまま続く（出口は調停・相手の厭戦が上がる・国の除去）。
+- 候補：CollapsePeaceTests・CpeaceColumnsTests・ForcedPeaceBlankTests・ImposeAndCrownSourceTests・ImposeCrownFromLoserTests・WarExitFromCapacityTests。
+  押しを 0 にする盤面（MilitaryReadiness＝0・Military＝0・PushA＝0）を持つのは CollapsePeaceTests（:226 抽象の勢力の Military＝0）と WarExitFromCapacityTests（旗 1 の段 2＝wexOn で今の線は効かない）。
+- 予言：旗 1 の木の絞った試験で、旧の規則を固定する赤は 0〜1 本〈推〉。赤が出たら ㉜ の改めのとおり新しい規則の機構の試験へ書き換え、ここに追記する（Assert は新しい規則の式で書く）。
+- WriterRatchetTests の計算量の宣言の表（1 種 40 四半期の実測の件数）は戦争の形が変わると動き得る＝★(749) の〈軌道の件数を写しただけの番人〉で取り直す（取り直したら verdict に列挙）。
+
+3. 周辺の点検（c3290bbbd で grep）
+- 遺恨 _grudge（Diplomacy.cs:288）：立つのは割譲の後の _pendingRevanch（:2480）だけ・調停の白紙は消す（:2101）・冷めの遅れ（:3281〜:3302）。白紙の講和は割譲しない＝遺恨は立たない（今の Score 0 の戦争と同じ）。
+- 同じ組の再戦：講和の後の緊張 PostWarTension 38（EndWar :3011）・開戦の門 WarGateOpen（:1376 厭戦＞WarWearyThreshold 0.5 の国は開戦しない）。
+  崩壊の側は講和の月に厭戦が切り目以上＝戦っていない月から減衰（:858 WarWearinessKeepPerMonth）＝今より早く再戦の門が開く〈推〉＝記録（q2_rematch_fix.py）。
+- ForcedPeace と fpBlank（:2336・ForcedPeaceBlankOverCollapse 既定 0）：調停の戦争は今の終わりの述語のまま。fpBlank＝1 のとき崩壊の書き換えを通らない枝は変えない（旗 1 の条件は aCollapse||bCollapse だけを読む＝調停は既に終わる）。
+- cpCount（矯正講和の前走査 :2355〜:2373・CollapsePeaceOneShare 既定 1）：前走査は今のまま（接触なしの崩壊の戦争も敗者の数に入る）。Score 0 は Blank で保留に入らない（:2445）＝今の旗 0 と同じく単独の講和。
+- 同盟の参戦（JoinAllies :1545・:1604）：戦争は組ごとの War＝1 本の講和は他の組の戦争を終わらせない（EndWar :3009 は終えた戦争を指す参戦の待ち PendingCallToArms を下ろすだけ）。
+- 講和の後の厭戦の戻り：:858 の減衰（戦っていない国だけ）＝今は接触なしの崩壊の戦争が続く間、崩壊の側の厭戦が切り目より上に貼り付き、他の開戦の門も閉じる＝その貼り付きが外れる〈推〉。
+- EndedWars の記録（EndWar :3004・256 件のリング）：白紙の Verdict が増える。読み手は計器（InstrumentsRk.cs:124・InstrumentsWar.cs:102・InstrumentsRulePower.cs:415・InstrumentsCwend.cs:62）と
+  App（GameViewModel.News.cs・GameViewModel.Refresh.cs）・Runner（PlayHarness.cs・Program.cs）＝表示の読み手で変えない（〈次の波〉5 の束へ名を報告）。
+- WarExitFromCapacity の段 2（wexOn）：今の線は wexOn＝0 の経路だけを変える（上の 1）。
+
+4. 門（採否）＝作者 2026-11-16 ①：止める線＋史実の桁＋単体の機構の試験
+4-1 単体の機構の試験（新しい PriceOfBread.Tests/NoContactWarExitTests.cs・盤面は試験の中・仏英の 2 国・外交の AI は止める）
+- T1：旗 1・両側の MilitaryReadiness＝0（押し 0）・A の厭戦 1.0（切り目以上）・B の厭戦 0（WarPeaceExhaustion×切り目の未満）・ForcedPeace＝false。
+  → 1 か月で戦争が消え、EndedWars の最後の記録は白紙（Verdict Blank・Score 0）・両側の累計の押し 0（前提）。
+- T1z（対照・旗 0）：同じ盤面で戦争は続き、Score は 0（今の書き換え）＝旗 0 では T1 が赤。
+- T2：旗 1・接触なし（押し 0）・崩壊なし（両側の厭戦 0）→ 戦争は続く。
+- T3：旗 1・接触あり（両側の押し＞0・B の即応度を下げて B の押し÷A の押し≈0.1）・A が崩壊（厭戦 1.0）・B の厭戦 0。
+  → 戦争は続き（|Score|＜1・疲れ果てに入らない）、Score＝−1.5×Clamp01(2×PushB÷(PushA＋PushB＋1e-12))（試験の中で組む・数値の許し 1e-12×max(1,|x|)）。
+- T4（計器）：T1z の盤面（旗 0）で wexit_s の新しい 7 列が書かれ、exhA＝1・cumPushA＝cumPushB＝0・imposeScore＝0・見出しと行の列の数が等しい。
+- 期待値は試験の中の式から作る（エンジンの WarEnds・KOf・RevCut を呼ばない）。
+4-2 腕の門の観測量（台本 scripts/instruments/c153nx/nx_gate.py・腕 B の生の wexit_s を読むだけ）
+- G1（主・誰に届いたか）：母集合＝国どうしと内戦の全ての戦争×月で、(exhA≥cutA か exhB≥cutB) かつ cumPushA＋cumPushB≤1e-12 の行（表の最後の月を除く）。
+  その月に戦争が終わった（同じ組の次の月の行が無い）割合が 10/10 種で 1。
+  - 作る物の大きさの下限（★(1425)）：この形で終わった戦争の数を種ごとに書き、どの種も 1 以上。0 の種があれば理由を書く（門の破れではなく記録の先頭＝母集合が 0 の種は割合が定まらない）。
+    予言（基線の母集合の戦争の数）：種ごと 16〜31・合計 245〈推〉（軌道が変わるので点の予言は門にしない）。
+  - 弱さ（名乗る）：同じ組が次の月に新しい戦争を始めると〈終わらない〉に数える（崩壊の側は厭戦＞0.5 で開戦の門が閉じる＝稀〈推〉）。外れた行は 1 本ずつ wars_s で確かめて記録に書く。
+- G2（母集合の外・形に固有の誤りの量）：崩壊の側あり（列から台本が組む）かつ cumPushA＋cumPushB＞1e-12 の行で、
+  imposeScore が台本の組んだ旧の式 ±1.5×Clamp01(2×勝ち側の累計÷(両側の累計＋1e-12)) と |差|≤1e-8 で一致しない行の数＝0。
+  - 敗者の決め：片側だけ崩壊ならその側。両側が崩壊なら厭戦が大きい側・厭戦が等しい（印字で同じ）なら両方の候補のどちらかに一致すれば通す（同点の数は記録）。
+  - 数値の許し 1e-8：印字は 10 桁（Score≤1.5 で 1e-10 の刻み・reach の再計算の丸めは 1e-10 の桁）＝許しは印字の桁より広い。
+- G2b（記録）：母集合の行の imposeScore の |x|≤1e-8 の割合（予言 1）。0＜和≤1e-12 の行の数（予言 0）。
+- G3（記録）：母集合の外で旧の終わりの述語が全て 0 なのに終わった月（基線 4・N1 5・N2 4）。
+- 旗 0 で G1 が落ちることは 0 の紙の台本で確かめた。G2 は旗 0 でも通る形（今のエンジンの式そのもの）＝〈母集合の外を変えていない〉の確かめ。
+4-3 突然変異ごとの門の赤と緑（㉚・腕の前の紙の予言）
+| 変異 | T1 | T1z | T2 | T3 | T4 | G1（紙） | G2（紙） |
+| M1 新しい条件を外す（旗を読まない＝終わりの述語に足さない） | 赤 | 緑 | 緑 | 緑 | 緑 | 赤（旗 0 と同じ 0.0478） | 緑 |
+| M2 崩壊の条件を外す（接触なしは常に講和） | 緑 | 緑 | 赤 | 緑 | 緑 | 緑 | 緑（G3 が増える〈推〉） |
+| M3 押しの条件を外す（崩壊なら常に講和） | 緑 | 緑 | 緑 | 赤 | 緑 | 緑 | 緑（G3 が増える〈推〉） |
+- M2・M3 は腕の門では捕まらない＝T2・T3 が捕まえる。突然変異は使い捨ての木で試験だけ回す（scripts/instruments/c153nx/mut.sh・出力 measurements/m1429_20261128/mut_M*.txt）。
+
+5. 止める線（作者 2026-11-16 ①・この回の形をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）。
+  進行不能の線（c151lk/lk_gate.py --wars-only・0 の値）：最後まで続いた戦争の 10 種の和＞70（＝2×max(20,35,11)）か、最長の戦争＞384 か月（＝2×192）か、最後まで続いた戦争の最長＞104 か月（＝2×52）で止める。
+- 1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期は、基準とヌル腕の件数と並べる＝㊳）と 1e10 倍以上（stoplines906・1330・pxjump・popjump の台本。基準とヌル腕は measurements/m1425_20261128/readM の同じ台本の出力）。〈100 倍〉の〈それ以外〉で止める。
+- 空洞化：ピークの 1/10 未満で、規則 A2 の名簿の外（an_h2.py -v4・既定 -ex rule）。その線が原因と読めた件だけで止める＝基線 keep_1425/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めず記録の先頭へ。
+- 推定の計算量 ＞248.5 秒（.cost）。割り当て＝0 秒〈推〉（条件の 1 行・戦争が早く終わる分だけ戦争の走査が減る＝0〜負）。
+- 史実の桁の線（10 倍）。
+- 機構のテストの赤（ソースを走査する番人を含む）。
+- 記録だけ：ヌル腕の幅（nullgate.py）・NG（ng.sh・基準 ng1425_20261128）・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・英の国債の不履行の種の数（ukdef975.py）・〈壊す〉①（home_break.py）。
+
+6. 予言（記録・門にしない）
+- 接触なしの崩壊の戦争は崩壊の月に白紙で終わる＝戦争の数は同じか増え（再戦）・戦争の平均の月数は減る〈推〉。
+- 調停（ForcedPeace）の数は減る〈推〉（接触なしの戦争の主な出口が調停だった）。
+- 白紙の講和（wars_s verdictCode 0）は増える〈推〉（基線 637）。
+- 同じ組の再戦 12 か月／60 か月（q2_rematch_fix.py・基準 M 0.074／0.199）：崩壊の側の厭戦の貼り付きが外れて少し増える〈推〉。
+- 1950 年に続く接触なしの戦争・60 か月以上の接触なしの戦争：減る〈推〉。
+- 内戦の白紙＝分断が増え得る（基線の母集合の内戦 0＝ほぼ動かない〈推〉）。
+- 旗 1 の出力が旗 0 と違う行の数（成績表 M と比べる）は記録。
+
+7. ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 工業化度の読み手の許可表：工業化度を読まない＝変わらない（予言 0）。
+- new MoneyStock( の件数（SimCore 64）：足さない＝変わらない（予言 0）。
+- route_anchors.tsv（scripts/instruments/flow262/）の鍵の行：Diplomacy.cs は :43 の拿捕品の Transfer の 1 行だけ＝お金を動かす行を足さない＝変わらない（予言 0）。
+- WriterRatchetTests の宣言の表：計数の処理を足さない＝旗 0 では変わらない（予言 0）・旗 1 は 2 の★(749) のとおり。
+- ValueCountRatchet（.Value の数）：.Value を足さない（予言 0）。DerivedValueRatchet：表の導いた値の書き手と入力を足さない（予言 0）。
+- DormantIdentityTests：旗 0 の器のコミットで DormantZeroFields に "NoContactCollapseBlank" の 1 行を足し、既定を 1 にするコミットで外す（他の線の行は触らない）。
+- ㉜：旗 1 の木で旧の規則（接触なしの崩壊の戦争が続く）を固定する番人は 2 の候補の 6 本の中だけ〈推〉。
+
+8. 順と腕
+- 1 事前登録（このコミット）→ 2 旗 0 の器と計器と試験のコミット → 3 ㉘ の束＋NoContactWarExitTests → 4 ident 段 2（bash scripts/instruments/ident/ident.sh run c153nxz --tree D:/PoB_work/wt_c153nx --work D:/PoB_work/ident_c153nx --grown-ok wexit_s・
+  --tests-delta は足した試験の数）で〈判定: 恒等〉（起こす直前に 35GB＋30GB を測る・走る間はこの木にコミットしない）→ 旗 0 の ident の生で nx_gate.py を回し、G1 が落ち G2 が通ることを追記
+  → 5 突然変異（mut.sh）→ 6 既定を 1 にするコミット → 7 絞った試験（narrow.sh：NoContactWarExitTests・WarExitFromCapacityTests・WarThemeTests・MilitaryTests・CivilWar を含む試験・
+  CollapsePeaceTests・CpeaceColumnsTests・ForcedPeaceBlankTests・ImposeAndCrownSourceTests・ImposeCrownFromLoserTests・WarLuckZeroTests・InstrumentHookClosureTests・DormantIdentityTests・㉘ の束・ValueCountRatchet・DerivedValueRatchet＋savetest・leakhunt）
+  → 8 腕 B（INS=1・計器つき 10 種・種 1〜10・scripts/instruments/c153nx/arm.sh・表＝wars_s,wexit_s,cwend_s,nation_s,region_s,scalars_s,fiscal_s,casualty_s,migration_s,pxmonth_s ほか読み手が要る表・
+  起こす直前に 38GB 以上を測る）→ 9 読む（read_nx.sh）→ 10 フルスイート 1 回（suite_nx.sh・--logger trx・腕 B の後）→ 11 印 D:/PoB_work/c153nx_work/nx.mark → origin/c153nx。
+- 形の変え直しは 1 回だけ。結果を見た後に門と線を変えない。
+- 入れない物：休戦の仕組み・首都の蜂起の厭戦の継ぎ（MultiNationSim.cs:414）・lk の段 2（Hash01）・wr の検算の強化・ms の段 2（Diplomacy.cs:41 NeedMen）・rb の残り・厭戦の段 2・
+  WarExitFromCapacity の段 2 の経路・Coefficients.p04_trade.cs の他の行・App・Display・Runner。
+- 他の線との重なり：c153rg＝Coefficients.p05_port_insurance.cs・c153fb＝Fiscal.cs と Coefficients.cs・c153tp＝scripts/instruments/suite と ident.sh＝持ち主のファイルは重ならない。
+  共有のファイル（DormantIdentityTests.cs・WriterRatchetTests.cs）は自分の行だけを触る＝合流で解く（触る行は報告に列挙する）。

@@ -1,0 +1,27 @@
+== base_ins
+seed 6 wars=652 blank=71 running=1 longest=93 longestRunning=7 meanMonths=13.69
+seed 7 wars=624 blank=59 running=3 longest=86 longestRunning=12 meanMonths=13.12
+seed 8 wars=643 blank=52 running=0 longest=67 longestRunning=0 meanMonths=14.82
+seed 9 wars=435 blank=46 running=0 longest=102 longestRunning=0 meanMonths=16.22
+seed 10 wars=631 blank=50 running=0 longest=137 longestRunning=0 meanMonths=12.94
+TOTAL blank=637 running=20 wars=6711
+MAX longest=137 longestRunning=17 runningPerSeedMax=6 
+MEAN meanMonths=13.532
+== n1
+seed 6 wars=773 blank=60 running=1 longest=103 longestRunning=18 meanMonths=13.62
+seed 7 wars=1179 blank=129 running=28 longest=103 longestRunning=8 meanMonths=12.76
+seed 8 wars=679 blank=76 running=0 longest=108 longestRunning=0 meanMonths=15.43
+seed 9 wars=619 blank=62 running=1 longest=123 longestRunning=5 meanMonths=14.07
+seed 10 wars=555 blank=54 running=4 longest=110 longestRunning=5 meanMonths=15.91
+TOTAL blank=744 running=35 wars=7772
+MAX longest=123 longestRunning=52 runningPerSeedMax=28 
+MEAN meanMonths=13.321
+== n2
+seed 6 wars=806 blank=53 running=0 longest=76 longestRunning=0 meanMonths=11.99
+seed 7 wars=915 blank=89 running=0 longest=122 longestRunning=0 meanMonths=12.61
+seed 8 wars=860 blank=98 running=1 longest=142 longestRunning=13 meanMonths=13.18
+seed 9 wars=713 blank=46 running=1 longest=143 longestRunning=21 meanMonths=13.46
+seed 10 wars=538 blank=68 running=1 longest=103 longestRunning=9 meanMonths=14.28
+TOTAL blank=676 running=11 wars=7221
+MAX longest=192 longestRunning=21 runningPerSeedMax=5 
+MEAN meanMonths=13.237
