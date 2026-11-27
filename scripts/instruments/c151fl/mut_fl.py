@@ -9,13 +9,13 @@ import sys, os, subprocess, re
 TREE, ART, OUT = sys.argv[1], sys.argv[2], sys.argv[3]
 TP = 'PriceOfBread.SimCore/Fiscal.cs'
 MP = TP
-O = 'c.RepayFloorOnly > 0 ? Math.Min(w.GovDebt.Value, floorRepay) :'
+O = 'Math.Min(w.GovDebt.Value, c.RepayFloorOnly > 0 ? floorRepay : '
 MUTS = {
     'M0': [],   # 突然変異なし（対照）
-    'μ1': [(TP, O, 'c.RepayFloorOnly > 0 ? Math.Min(w.GovDebt.Value, Math.Min(spare, Math.Max(floorRepay, excess))) :')],   # 何もしない（旧の式）
-    'μ2': [(TP, O, 'c.RepayFloorOnly > 0 ? Math.Min(w.GovDebt.Value, Math.Min(spare, excess)) :')],                          # 余りだけを返す
-    'μ3': [(TP, O, 'c.RepayFloorOnly > 0 ? floorRepay :')],                                                                   # min(GovDebt) を外す
-    'μ4': [(TP, O, 'c.RepayFloorOnly > 0 ? Math.Min(w.GovDebt.Value, spare) :')],                                            # 床を外し余剰まで返す
+    'μ1': [(TP, O, 'Math.Min(w.GovDebt.Value, c.RepayFloorOnly > 0 ? Math.Min(spare, Math.Max(floorRepay, excess)) : ')],   # 何もしない（旧の式）
+    'μ2': [(TP, O, 'Math.Min(w.GovDebt.Value, c.RepayFloorOnly > 0 ? Math.Min(spare, excess) : ')],                          # 余りだけを返す
+    'μ3': [(TP, O, 'c.RepayFloorOnly > 0 ? floorRepay : Math.Min(w.GovDebt.Value, ')],                                       # 旗 1 の枝で min(GovDebt) を外す
+    'μ4': [(TP, O, 'Math.Min(w.GovDebt.Value, c.RepayFloorOnly > 0 ? spare : ')],                                            # 床を外し余剰まで返す
 }
 
 
