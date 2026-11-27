@@ -1,0 +1,7 @@
+[xUnit.net 00:00:02.36]       Assert.Equal() Failure: Strings differ
+  失敗 PriceOfBread.Tests.DiscoveryContactMechanismTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳され国は個体で引かれる [1 s]
+   Assert.Equal() Failure: Strings differ
+     at PriceOfBread.Tests.DiscoveryContactMechanismTests.接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳され国は個体で引かれる() in D:\PoB_work\wt_c152ht\PriceOfBread.Tests\DiscoveryContactMechanismTests.cs:line 82
+テストの実行に失敗しました。
+     失敗: 1
+rc=1

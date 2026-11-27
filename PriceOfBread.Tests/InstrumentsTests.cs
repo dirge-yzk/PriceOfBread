@@ -2380,6 +2380,7 @@ public class InstrumentsTests
     /// 突然変異＝<c>BilateralMarket.AccumulateDiscovery</c> の呼びを述語の外へ出す（買い手が解禁済みの行にも記帳が出る）、で赤。
     /// </summary>
     [Fact]
+    [Trait("Category", "FullLength")]   // (1420) 450 四半期の版は FullLength へ（中身は不変）。軌道に依らない機構の試験は DiscoveryContactMechanismTests
     public void 接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される()
     {
         var openNames = new HashSet<string>();   // ★(420) 開幕に居る国の名（構築時の名 BaseName＝計器の国名と同じ。分離・建国で生まれた国を見分ける）

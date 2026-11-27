@@ -1,0 +1,28 @@
+# (1420) 波152 c152ht の事前登録（恒等の線・予言 0・基線 m1418＝526586684）
+# 形＝入口ではなく試験の置き換え（SimCore 0 行）。作者の止める線に触れない。
+
+[1] 恒等の線・予言 0
+- SimCore・App・Display・Runner は 0 行。成績表（素 5 種・計器つき 10 種）は m1418 と名乗り行を除いて全行一致・.cost は +0。
+- 浮動小数の順序が変わる箇所：無し（エンジンに触れない）。
+
+[2] 消す物と残す物
+- 消す物：無し。
+- 残す物：InstrumentsTests.cs:2383 付近 接触の内訳は売り手の解禁済みと買い手の未解禁にだけ記帳される（450 四半期・DSEED 1796）＝中身は不変で [Trait("Category","FullLength")] を 1 行足す（新しい区分は作らない）。
+- 読み手：このメソッド名は Tests 以外（SimCore・Runner・App・Display・scripts・POB_COEF・SaveGame）に無い（grep 済み・docs と measurements の過去の記録だけ）。
+- 他の線との重なり：InstrumentsTests.cs:2387 の種の行は c152sd が 1796→1797 に変えている（持ち主は ht・合流が ht の形で解き、合わせた木の FullLength で種を選び直す・★(555)）。scripts/instruments/ident/ident.cfg の TESTS_FULL（3→4）は合流で他の線と数を合わせる。
+
+[3] 足す試験（PriceOfBread.Tests/DiscoveryContactMechanismTests.cs・Collection("Instruments")・Fact 1 本）
+盤面：英・日の開幕の sim。英に蒸気機関と機関車のビットを置き日は未解禁。分離で英から 2 国（x＝別名・z＝名を英に揃える）・日から 1 国（y＝名を日に揃える）を建国（親の解禁を写す＝自分の E 行無し）。
+sim.Market.AccumulateDiscovery を直に 11 回呼ぶ（記帳される 5・されない 6：買い手が知る 2・売り手が知らない 1・両方知らない 1・運び手でない財 1・額 0 1）→ Phase → Quarter → Close → disccontact_s と nation_s を読む。
+5 つの型と Assert の対応：
+- ★(420)(478) 名前で引かない → A5（個体の番号が売り手 3・買い手 2 に分かれ、同じ名の個体が潰れない・nation_s の個体 5）
+- ★(427) 建国した国が売り手 → A4（x の売りが機関車の行に額 5・carrier 機関車で記帳）
+- ★(490) 買い手は個体 → A2・A3（日本の名の 2 個体は別の buyerUid・nameOfUid と名が一致）
+- ★(499) 売り手も個体 → A2・A3（イギリスの名の 2 個体は別の sellerUid）
+- 規則そのもの → A1（行は蒸気機関と機関車だけ・7 行・額の和 67・carrier は運び手の表のとおり・知る側の買い手への呼びと知らない側の売りは 0 行）
+突然変異（使い捨て木で新しい試験だけ回す・戻す）：μ1 DiscoveryContact の呼びを述語の外へ→A1 赤／μ2 !Known(kb) を外す→A1 赤／μ3 DiscoveryContact に同じ名の最初の個体の World を渡す→A2 赤／μ4 buyerUid に売り手の番号→A3 赤。
+ソースを走査する番人（㉘）：InstrumentsTests・WriterRatchetTests・DormantIdentityTests・UnitTypeTests・IndustrializationReaderTests・ValueCountRatchetTests・DerivedValueRatchetTests を足す前後で回す。書き換える件数の予言（㉑）＝0（既存のテストの Assert は書き換えない・Trait を 1 行足すのみ）。
+テストの数の予言：NONFULL 3327（−0＋新しい 1・旧の Fact は FullLength へ移るので −1＋1）・FullLength 3→4・和 3331。
+
+[4] 計器の列の追加：無し。
+[5] 〈判定: 恒等〉なら採る。効き＝フルスイートの trx から Instruments の直列の尾の短さを m1418 の suite と比べて書く（波153 の道具の線と合わせて数える）。
