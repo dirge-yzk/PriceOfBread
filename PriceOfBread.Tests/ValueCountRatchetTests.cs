@@ -48,7 +48,8 @@ public class ValueCountRatchetTests
     // (1373) 計器（SimCore/Instruments）の .Value を足した（母集合の外だった＝(1369) の穴③）。今の数で固定。
     [Theory]
     [InlineData("Instruments", 417)]
-    [InlineData("SimCore", 752)]   // (1380) c146rf 束 1：758−6（A2-09 −4・R08 −1・A1-08 −1）＝予言（−7）より 1 多い＝PlayText の 1 か所は補間の文字列の中で元から数えられていなかった。(1369) 合わせた木で数え直した＝wr の基 755＋ut (1363) の +3（PoliticalQuantities.cs の Toward の多重定義 2・Parliament.cs:335 の 1）＝予言どおり（★(764)）
+    [InlineData("SimCore", 751)]   // (1408) c150wz 項 5：IndInvestmentFrac を Close へ（−1）
+   // (1380) c146rf 束 1：758−6（A2-09 −4・R08 −1・A1-08 −1）＝予言（−7）より 1 多い＝PlayText の 1 か所は補間の文字列の中で元から数えられていなかった。(1369) 合わせた木で数え直した＝wr の基 755＋ut (1363) の +3（PoliticalQuantities.cs の Toward の多重定義 2・Parliament.cs:335 の 1）＝予言どおり（★(764)）
     [InlineData("Display", 48)]
     public void Valueの取り出しは型の外で増やさない(string place, int baseline)
     {
