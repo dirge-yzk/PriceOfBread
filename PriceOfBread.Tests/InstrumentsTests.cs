@@ -459,7 +459,8 @@ public class InstrumentsTests
         double totalCross = 0;
         // ★(1404) 合流（pm・rn の旗 1 を重ねた木）：1789〜1792 の全てで越境 0（軌道に依る前提・(1277) と同じ型）＝試す種を 1800 まで延ばした（規則の検査・対照の Assert の文と閾値は変えない）。
         // ★(1408) 項 9：種の選びを補助 SeedPick.FirstWhere へ（選ばれる種は同じ＝1789〜1800 を前から順・越境が立つ最初の種で止まる・Assert の文と閾値は変えない）
-        var (_, tried) = SeedPick.FirstWhere(1789UL, 1800UL, seed => (totalCross = RegionAndMigrationTables(seed)) > 0);
+        // ★(1423) c152ms 試験だけの直し（㊴・区分＝軌道に依る前提・(1277)(1404) と同じ型）：旗 MilitarismStrengthBonus 1.0 の木で 1789〜1800 の全てで越境 0＝試す種を 1830 まで延ばした（規則の検査・対照の Assert の文と閾値は変えない・旗 0 の選ばれる種は同じ）
+        var (_, tried) = SeedPick.FirstWhere(1789UL, 1830UL, seed => (totalCross = RegionAndMigrationTables(seed)) > 0);
         Assert.True(tried >= 1, "種を 1 つも試していない");
         Assert.True(totalCross > 0, "越境の移民が1件も写っていない（MultiNationSim.MoveMigrants の口の写しの漏れか、盤面で越境が起きていない）");
     }

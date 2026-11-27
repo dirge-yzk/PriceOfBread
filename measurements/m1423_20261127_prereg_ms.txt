@@ -1,0 +1,110 @@
+(1423) c152ms 事前登録（挙動の線・3 回の規則の 1 回目・腕の前のコミット）
+================================================================
+形の型：入口（全ての国の毎月の戦力の同期から軍国の因子が消える）。
+出発：ORDER 上書き 4 の①・docs/202611/20261111/20261111_倍率の一掃_分類の取りまとめ.md:368（A の 17 本）・
+  作者 2026-11-11 の問い 10 の答え A〈消す〉（作者の裁定済み・新しい問いではない）。
+基線：m1418（526586684）。生は D:/PoB_work/keep_1418/base_ins（読むだけ）・ヌル腕 keep_1418/n1 と旧の keep_1411/n2（名指し）。
+
+1. 形
+- Coefficients.p08_audit_soldiers.cs:18 MilitarismStrengthBonus の既定 1.3→1.0 の 1 行だけ。新しい旗・係数・状態は作らない（既存の係数が旗＝lk と同じ形）。
+- 読み手：ArmyShape.cs:179 Quality の militarism＝1＋(係数−1)×ArmyProfessionalism(w)
+  → Diplomacy.cs:781→:784 の p.Military（LandPower・AirPower も p.Military から）・ArmyShape.ForcePotential:165（LandPotential・NeedLand の見積もり）・InstrumentsFm.cs:104 の QualityQ。
+  InstrumentsArms.cs:103（式の写し・armsfill_s の militarismMul 列）。
+- 係数 1.0 で militarism＝1＋0×練度＝1.0 ちょうど（練度が有限なら）。
+- 欄・Quality の要素・計器の列・読み手の無くなる ArmyProfessionalism（Runner Program.cs:5747・HistoricalReferenceTests.cs:109 が残る）の削除は段 2（採った次の恒等の線）。この線では触らない。
+- SimCore の差分は値の 1 行＝旗 0 の器のコミットが無い＝腕 Z（ident）は回さない（lk と同じ・指示の順に無い）。
+- 入れない物：UnityMilitaryQuality・MilitaryQualityBonus・MilitaryTier3Bonus・緊張の宗教の項・Runner の読み手・App・Display。
+
+2. 置き換える旧の規則と、それを固定する試験（grep：PriceOfBread.Tests で MilitarismStrengthBonus・Militarism・militarismMul・ArmyProfessionalism・Quality(）
+- 旧の規則：同じ兵数でも練度（識字×組織×勤務の長さ）に応じて戦力を最大 1.3 倍にする。
+- 1.3 を固定する試験は無い（MilitarismStrengthBonus を書く試験 0 件）。
+- InstrumentsArmsTests.cs:96（A2）：戦力の積に militarismMul 列を掛けて指数と比べる＝列が 1 でも成り立つ（書き換えない）。
+- TechLevelRemovalTests.cs:117：Quality().Tech だけを読む（変わらない）。
+- HistoricalReferenceTests.cs:81〜:85：NationStanding の Militarism（別の量＝成績表の軍国度）。:109 は ArmyProfessionalism の値だけ（変わらない）。
+- 予言：絞った試験で赤 0（軌道に依る試験の赤が出たら ㉜ の改めと ㊴ の区分で読む）。
+
+3. 周辺の点検（p.Military・LandPower・ForcePotential を読む機構・526586684 で grep・54 行は D:/PoB_work/c152ms_work/readers.txt）
+- 国どうしの比（両側が同じ式で縮む＝練度の差だけが効く）：
+  - 戦争の入口：Diplomacy.cs:1705 標的の順（最弱から）・:1736 勝てない相手 q.Military＞p.Military×AppeaseMilitaryRatio 2.5・:1856 WarFever の弱さの比べ・World.cs:1805 侵略の門 SelfPower.Military＜InvadeMilitaryFactor 1.2×標的。
+  - 抑止と同盟：:1437〜:1444 SideMilitary（同盟の足し算）・:1492〜:1515 側の陸軍力の取り分・:1043〜:1044 脅威の質量（:969 の平均で割る）。
+  - 戦勝点の押し：:1994 押し＝陸軍力÷前線×投射（WarLuck 0＝押しだけが Score を動かす・押しは両側の比 pushShare で読む＝比が練度の差の分だけ動く）。Military.cs:118〜:122 前線の深さ＝敵の陸軍力÷自の陸軍力。
+  - 属国の離反：:1296〜:1298 宗主の LandPower×投射×0.5 と属国の Military（属国が国なら両側が縮む）。
+  - 損耗：:1980〜:1986・:2296・:2528 接触÷p.Military（接触は敵の戦力から＝比）。
+  - 軍拡の輪と軍の需要：ArmyShape.cs:53・:156 と Discovery.cs:472 の landPress＝NeedLand÷LandPotential（NeedLand は相手の LandPotential から＝比）。SelfPlay.cs:440 到達÷陸軍力。
+- 絶対の量と比べる所（片側だけが縮む＝閾値に当たり得る）：
+  - Diplomacy.cs:2046〜:2050 侵略（植民）の屈服線＝ColonizeSubmitRatio 3.0×max(床 0.05, 標的の Military)。抽象の標的（Nation なし）の Military は静的＝練度の高い列強の ColonizeForce が最大 1/1.2 に縮む＝植民の侵略が少し遅れる〈推〉。
+  - World.cs:1782 InvadeCannedReq＝基底＋係数×標的の Military（標的が国なら縮む＝要る量が少し減る）。
+  - :1800 標的の価値÷(1＋q.Military)（＋1 の分だけ絶対の量）。
+  - 新しい物差しに合わない閾値は無いと読む〈推〉。抽象の標的との比べが少し列強に不利になる＝記録。
+- 支配の力の読み・王権と議会（CrownParliament.cs:138・:155）は政体の列挙で戦力を読まない。
+- 表示の読み手（App・Display・Runner）：Runner Program.cs:5747（ArmyProfessionalism）＝〈次の波〉5 の束へ名を報告。
+
+4. 門（採否）＝作者 2026-11-16 ①：止める線＋史実の桁＋単体の機構の試験
+4-1 単体の機構の試験（新しい PriceOfBread.Tests/MilitarismBonusRemovalTests.cs・盤面は試験の中・係数は読まない）
+- T1：練度 1（識字 1・専門官僚制・機関車の行・志願兵）の仏で Quality().Militarism＝1（ちょうど）。1.3・1.15 では赤。
+- T2：同じ国・同じ兵数で練度 0 と練度 1 の盤面を置き、SyncPowers の後の p.Military と LandPower が等しい（ちょうど）。
+  対照：練度 0 へ戻して同期した値が最初と同じ（練度の他に動いた入力が無い）。1.3・1.15 では赤。
+  ※ 指示の〈2 国〉は〈同じ国の 2 つの盤面〉で置いた＝兵数・即応度・装備・結束が同じことを盤面で保証するため（2 国では練度の他の入力が揃わない）。
+- T3（母集合の外）：練度 0 の仏の p.Military が、軍国の因子の無い式（兵÷SoldiersPerMilitary×即応度×質×結束）を試験の中で組み直した値と 12 桁で一致（係数 1.3 でも 1.0 でも緑＝外の国が変わらないことの番人）。
+4-2 腕の門の観測量（誰に届いたか）G1
+- 台本 scripts/instruments/c152ms/ms_gate.py（生を読むだけ・エンジンと係数を読まない）。
+- G1＝armsfill_s の militarismMul 列が |m−1|＞1e-6 の国×四半期の数。採る条件＝10 種の合計 0・どの種も有限の行が 1 本以上・非有限 0。
+  - 分子の母集合は〈練度＞0 の国×四半期〉だが練度の列は無い＝腕 B では全ての行（上位の集合）で読む。
+  - 数値の許し 1e-6：印字は G10（1 の付近で 1e-9 刻み）＝許しは印字の桁より広い。旧の最小の上乗せ（基線 0.0031・N1 0.0051・N2 0.0021）より狭い。
+  - 旗 0 の盤面で落ちることの確かめ（紙の台本・measurements/m1423_20261127/paper_*.txt）：
+    基線 keep_1418/base_ins off1＝52542/60120（FAIL）・N1 50255/60120（FAIL）・N2（keep_1411/n2）51868/60120（FAIL）。
+- 弱さ（名乗る）：係数 1.0 では式が 1.0 を返すので G1 は〈計器の写しの式〉も同じ係数で 1 になれば通る＝G1 は〈誰に届いたか〉の確かめで、機構の働きは T1・T2 が示す。
+4-3 突然変異ごとの門の赤と緑（㉚・腕の前の紙の予言）
+| 変異 | T1 | T2 | T3 | G1（紙） |
+| M1 係数 1.3 のまま | 赤 | 赤 | 緑 | 赤（基線の盤面＝52542） |
+| M2 係数 1.15 | 赤 | 赤 | 緑 | 赤（練度＞0 の行は全て 1 から離れる〈推〉） |
+| M3 練度を cohesion の側へ（1＋0.3×練度） | 緑 | 赤 | 緑 | 緑（militarismMul 列は 1 のまま＝計器は Quality の写しで cohesionMul は写しの式） |
+- M3 は G1 では捕まらない＝T2 が捕まえる（戦力そのものを読む）。
+- 突然変異は使い捨ての木で回す（scripts/instruments/c152ms/mut.sh・出力は measurements/m1423_20261127/mut_M*.txt）。
+
+5. 止める線（作者 2026-11-16 ①・この回の形をそのまま写す）
+- 破綻（クラッシュ・NaN・保存則・savetest・進行不能）。
+  - 進行不能の線（lk_gate.py --wars-only と同じ台本・数えた値は paper_*.txt）：
+    基線 M：最後まで続いた戦争（verdictCode −1）41・種ごとの最大 16・最長の戦争 157 か月・最後まで続いた戦争の最長 33 か月。
+    N1（keep_1418/n1）：13・4・225・39。N2（keep_1411/n2）：21・12・200・135。
+    線＝最後まで続いた戦争の 10 種の和＞82（＝2×max(41,13,21)）か、最長の戦争＞450 か月（＝2×225）か、最後まで続いた戦争の最長＞270 か月（＝2×135）で止める。
+- 1 四半期に 100 倍以上（建国の直後の型＝系列の最初の行から 4 四半期以内と、政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期は、基準とヌル腕の件数と並べる＝㊳）と 1e10 倍以上（stoplines906・stoplines1330・pxjump・plvl を基準 m1418 の readM と同じ台本で）。〈それ以外〉が 1 件でもあれば止める。
+- 空洞化：ピークの 1/10 未満で、規則 A2 の名簿の外（an_h2.py -v4・既定 -ex rule）。その線が原因と読めた件だけで止める＝基線 keep_1418/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉で止めない（記録の先頭へ）。
+- 推定の計算量 ＞248.5 秒（.cost）。割り当て＝+0〈推〉（係数の値だけ・計算の道は同じ）。
+- 史実の桁の線（10 倍）。
+- 機構のテストの赤（ソースを走査する番人を含む）。
+- 記録だけ：ヌル腕の幅（nullgate.py）・NG（ng.sh・基準 ng1418_20261127）・名目 GDP 0 の続き（gdp_zero10.py）・開幕の 1000 倍以上・英の国債の不履行の種の数（ukdef975.py）・〈壊す〉①（home_break.py）。
+
+6. 予言（記録・門にしない）
+- 練度の高い国の p.Military の減り（同じ兵数・同じ即応度のとき 1−1/m）：基線の 1880 年以後の平均 m は
+  米 1.138（−12.1%）・オスマン 1.097（−8.8%）・英 1.072（−6.7%）・日 1.072（−6.7%）・仏 1.061（−5.7%）・普 1.059（−5.6%）・清 1.051（−4.8%）・墺 1.045（−4.4%）・露 1.044（−4.2%）。
+  最大の m は 1.199（−16.7%）＝指示の〈最大 −23%〉（1/1.3）は練度 1 の上限で、今の盤面では練度が 0.67 を超えない。
+- 列強の順の入れ替わり：練度の差（米と露で約 8%）の分だけ押しと抑止の比が動く＝米・英がやや弱く、露・墺・清がやや強く出る〈推〉。
+- 戦争の数・最後まで続いた戦争・最長の月数：符号は読めない（押しの比が動く）＝記録。
+- 植民の侵略（抽象の標的）は列強の側だけが縮む＝少し減る〈推〉。
+- 英の型 R と不履行：記録。
+- 旗 1 の出力が旗 0 と違う行の数（成績表 M と比べる）は記録。
+
+7. ソースを走査する番人の点検（㉘）と変わる件数の予言（㉑）
+- 差分は値の 1 行＝工業化度の読み手の許可表・new MoneyStock( の件数・route_anchors.tsv の鍵の行・WriterRatchetTests の宣言の表・ValueCountRatchet・DerivedValueRatchet の件数は変わらない（予言 0）。
+- DormantIdentityTests：既定ゼロの係数の反射走査は 1.0 を数えない・DormantOneFields は手書きの表（載せない＝休眠の器ではない・段 2 で消す欄）＝変わらない（予言 0）。
+- scripts/instruments/r1074/anchors.py の鍵（ArmyShape.cs の MilitarismStrengthBonus）は名を読むだけ＝変わらない。
+- ㉜：旗 1 の木で旧の規則（1.3）を固定する番人は grep で 0 件。
+
+8. 順と腕
+- 1 事前登録（このコミット）→ 2 tq2.done を待つ → 3 値の 1 行と新しい試験のコミット → 4 絞った試験（scripts/instruments/c152ms/narrow.sh：
+  MilitarismBonusRemovalTests・InstrumentsArmsTests・TechLevelRemovalTests・HistoricalReferenceTests・MilitaryTests・MilitaryWarMultContactTests・WarInstrumentTests・DormantIdentityTests・㉘ の束・ValueCountRatchet・DerivedValueRatchet＋savetest・leakhunt・trx）
+  → 5 突然変異（mut.sh）→ 6 腕 B（INS=1・計器つき 10 種・種 1〜10・scripts/instruments/c152ms/arm.sh・表＝nation_s,wars_s,wexit_s,armsfill_s,fm_s,casualty_s,region_s,stock_s,scalars_s,class_s,fiscal_s,migration_s,pxmonth_s〔ng.sh が stock_s を、home_break が stock_s を読む＝指示の表に stock_s・class_s を足した〕・起こす直前に D: の空き 38GB 以上）
+  → 7 読む（read_ms.sh）→ 8 フルスイート 1 回（suite_ms.sh・--logger trx・腕 B の後）→ 9 印 D:/PoB_work/c152ms_work/ms.mark。
+- 形の変え直しは 1 回だけ。結果を見た後に門と線を変えない。
+
+9. 追記（腕 B の前・絞った試験の赤の区分・㊴ と ★(749)）
+- 絞った試験（旗 1 の木 0f9d24ef6・trx D:/PoB_work/c152ms_work/trx/narrow1.trx）：281 本のうち赤 3。原因はどれも軌道に依る数で、機構の番人の赤ではない。
+- ① WriterRatchetTests.計算量の見た件数は宣言した表を超えない（項 34 倒産の生産者×月 1481→1520〔+2.6%〕・項 11 外交の覇権の判定の国×国 2662704→3469584〔+30.3%〕）
+  区分＝★(749) 計算量の宣言の表（軌道の件数を写しただけの番人・機構の向きと大きさを主張しない）。表の 2 行を実測へ取り直す。新しい計数の処理は無い。全長の計算量は腕 B の .cost で読む（止める線 248.5 秒）。
+- ② InstrumentsTests.州の人口と移動の表が揃い流れの出と入が合う（越境の移民が 1 件も写っていない）
+  区分＝★(743) の軌道に依る前提（(1277)(1404) と同じ型＝1789〜1800 の全ての種で越境 0）。
+  旧の盤面に番人を固定する形に当たらない理由：試す種の範囲を 1830 まで延ばすだけで、規則の検査（①〜④）・対照の Assert（totalCross＞0・tried≥1）の文と閾値は変えない。旗 0 では選ばれる種が前と同じ（1789〜1800 の中で立つ＝m1418 のフルスイートが緑）。
+  直しを外す突然変異（範囲を 1800 へ戻す）＝旗 1 の木で赤（narrow1.trx が既にその形）。旗 0（係数 1.3）でも緑を確かめる。
+- savetest：savetest OK・最大相対差 0.0E+000。
+- 結果（腕 B の前）：範囲 1830 の直しは旗 1（0f9d24ef6）で緑・旗 0（係数 1.3）で緑（measurements/m1423_20261127/seedfix.txt・台本 scripts/instruments/c152ms/seedfix.sh）。直しを外す形（1800）は旗 1 で赤（narrow1.txt）。

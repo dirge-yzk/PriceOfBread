@@ -1,0 +1,10 @@
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+M2 rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.MilitarismBonusRemovalTests.T2_兵数が同じで練度だけ違うと戦力が等しい 
+  成功 PriceOfBread.Tests.MilitarismBonusRemovalTests.T3_練度0の国の戦力は軍国の因子の無い式 
+  失敗 PriceOfBread.Tests.MilitarismBonusRemovalTests.T1_練度1の国でも軍国の因子は1 
+テストの合計数: 3
+     成功: 1
+     失敗: 2
+合計時間: 3.0727 秒

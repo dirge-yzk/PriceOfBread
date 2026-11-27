@@ -1,0 +1,36 @@
+# 紙の台本 ms_gate.py keep_1418/n1（旗 0＝係数 1.3 の盤面）
+seed 1 rows=6012 finite=6012 nonfinite=0 off1=4248 above1=4248
+seed 2 rows=6012 finite=6012 nonfinite=0 off1=5362 above1=5362
+seed 3 rows=6012 finite=6012 nonfinite=0 off1=5122 above1=5122
+seed 4 rows=6012 finite=6012 nonfinite=0 off1=5372 above1=5372
+seed 5 rows=6012 finite=6012 nonfinite=0 off1=5346 above1=5346
+seed 6 rows=6012 finite=6012 nonfinite=0 off1=5296 above1=5296
+seed 7 rows=6012 finite=6012 nonfinite=0 off1=4347 above1=4347
+seed 8 rows=6012 finite=6012 nonfinite=0 off1=5142 above1=5142
+seed 9 rows=6012 finite=6012 nonfinite=0 off1=4672 above1=4672
+seed 10 rows=6012 finite=6012 nonfinite=0 off1=5348 above1=5348
+TOTAL above=50255 finite=60120 nonfinite=0 off=50255 seedsWithRows=10 maxMul=1.20203 minBonusAbove=0.00514405
+LATE1880 アメリカ meanMul=1.1213 maxMul=1.2005 militaryDropIfRemoved=0.1082 n=2810
+LATE1880 オスマン meanMul=1.0736 maxMul=1.1490 militaryDropIfRemoved=0.0686 n=2810
+LATE1880 イギリス meanMul=1.0732 maxMul=1.1270 militaryDropIfRemoved=0.0682 n=2810
+LATE1880 日本 meanMul=1.0611 maxMul=1.1022 militaryDropIfRemoved=0.0576 n=2810
+LATE1880 フランス meanMul=1.0606 maxMul=1.0981 militaryDropIfRemoved=0.0571 n=2810
+LATE1880 プロイセン meanMul=1.0503 maxMul=1.0817 militaryDropIfRemoved=0.0479 n=2810
+LATE1880 清 meanMul=1.0436 maxMul=1.0556 militaryDropIfRemoved=0.0417 n=2810
+LATE1880 オーストリア meanMul=1.0420 maxMul=1.0638 militaryDropIfRemoved=0.0403 n=2810
+LATE1880 ロシア meanMul=1.0403 maxMul=1.1055 militaryDropIfRemoved=0.0387 n=2810
+GATE G1 off1=50255 nonfinite=0 seedsWithRows=10/10 -> FAIL (accept if off1=0 and every seed has rows)
+# lk_gate.py --wars-only keep_1418/n1
+seed 1 wars=344 blank=34 running=1 longest=158 longestRunning=39 meanMonths=15.48
+seed 2 wars=952 blank=90 running=4 longest=145 longestRunning=4 meanMonths=13.5
+seed 3 wars=612 blank=65 running=2 longest=139 longestRunning=10 meanMonths=15.48
+seed 4 wars=763 blank=97 running=0 longest=83 longestRunning=0 meanMonths=13.38
+seed 5 wars=657 blank=55 running=0 longest=104 longestRunning=0 meanMonths=12.96
+seed 6 wars=593 blank=54 running=2 longest=107 longestRunning=5 meanMonths=16.8
+seed 7 wars=409 blank=36 running=0 longest=175 longestRunning=0 meanMonths=15.01
+seed 8 wars=788 blank=71 running=1 longest=137 longestRunning=16 meanMonths=14.24
+seed 9 wars=985 blank=94 running=1 longest=225 longestRunning=12 meanMonths=12.33
+seed 10 wars=1244 blank=112 running=2 longest=81 longestRunning=13 meanMonths=11.41
+TOTAL blank=708 running=13 wars=7347
+MAX longest=225 longestRunning=39 runningPerSeedMax=4 
+MEAN meanMonths=13.617
