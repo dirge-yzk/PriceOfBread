@@ -29,7 +29,6 @@ public sealed partial class Coefficients
     public double ExpansionWillBourgeois = 0.4;        // 従来は戦争熱>0.5超過分のみ＝自由主義的な英仏が構造的に植民地化不能だった
     public double ColonizeWillSuperiorityDiscount = 1.0;   // 1.0＝ちょうど屈服させられる相手で上限の50%（弱小へは半分で行ける）
     public double ColonizeValueGdpPer100k = 1.0;   // AI標的の魅力に経済規模項＝GDP10万あたり+1（植民地化の目的＝市場・税基盤。旧＝植民地数のみで実国のインド諸邦より近場の抽象小勢力が常に勝った）
-    public double RandomOnlyClimateEpidemic = 1.0;     // (1401) c149rn 旗（既定 1＝2026-11-27 腕 B の木・0＝旧の形・1＝乱数は気候と疫病だけ＝同盟と AI の植民の試行は条件だけで決め、勢力の変異・独占の押し・作物の病気の経路を通らない）
     public double TerritoryCessionScore = 1.2;     // |未クランプ戦勝点| がこれを超える圧勝（崩壊1.5寄り）で敗者の非首都州を1つ割譲（アルザス・ロレーヌ規模＝稀に・レジームチェンジ閾値1.0より厳しい）
     public double CessionSeaCrossingWeight = 1.0;   // 点火2026-08-01（上陸ゲートと同時）：渡海の摩擦
     public double CessionMaxDistanceKm = 4000;     // 圏外は割譲不可＝賠償のみ（実走で清がボストン/リガ獲得＝地理無制約の是正。全拠点アンカーは連鎖征服で無効化されたため首都のみ）
