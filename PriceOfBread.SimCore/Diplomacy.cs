@@ -218,7 +218,6 @@ public enum TensionReason
     Ideology,           // 政体の隔たり
     Ethnic,             // 民族の隔たり
     Law,                // 法体系の隔たり
-    Religion,           // 宗教の隔たり
     Protector,          // 同宗教の保護
     Threat,             // 勢力の脅威
     Proximity,          // 勢力圏への接近
@@ -624,7 +623,6 @@ public sealed class Diplomacy
         TensionReason.Ideology => "政体の隔たり",
         TensionReason.Ethnic => "民族の隔たり",
         TensionReason.Law => "法体系の隔たり",
-        TensionReason.Religion => "宗教の隔たり",
         TensionReason.Protector => "同じ宗教の住民の保護",
         TensionReason.Threat => "軍事的緊張",
         TensionReason.Proximity => "勢力圏への接近",
@@ -1146,7 +1144,7 @@ public sealed class Diplomacy
         _ => 0.50,
     };
 
-    // ★(spdip) 民族・法・宗教・保護の緊張（旧 EthnicTension・LawTension・ReligionTension・ProtectorTension の 4 本）を 1 回の組の走査で（恒等）。〔履歴 Diplomacy.cs#137〕
+    // ★(spdip) 民族・法・保護の緊張（旧 EthnicTension・LawTension・ProtectorTension の 3 本＋宗教は (1433) で消した）を 1 回の組の走査で（恒等）。〔履歴 Diplomacy.cs#137〕
     private void AffinityTensions(Coefficients c)
     {
         int n = Powers.Count;
