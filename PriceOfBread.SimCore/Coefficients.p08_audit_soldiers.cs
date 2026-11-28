@@ -80,7 +80,7 @@ public sealed partial class Coefficients
     public double CrossBorderOppGapThreshold = 0.5;    // 州機会gapの発火閾値（機会スケール1〜3に合わせた初期値＝要batch測定。旧EmigrationGapThreshold=満足度スケール0.15は不適合）
     public double MigrationDistanceScale = 10000.0;   // >0で距離を読む＝州の座標の間の距離を読む
     public RatePerQuarter ImmigrationReceiveCapPerQuarter = new(0.012);   // 2026-07-23 B-高6＝台帳一致（コメントの0.012へ・旧リテラル0.004は台帳の食い違い） // 受入国側の物理上限（/四半期・中間案(b)2026-07-10）＝アイルランド脱出級の絶対フロー年4.8%
-    public double ReceiveCapByRoom = 0.0;   // (1436) 旗：国内の受け入れの上限の量＝行き先の空き（農村の空き max(0,耕地−農村)＋職の空き）×率×(食×住居)^指数（0＝旧の形・行き先の人口×率×AbsorbCap）
+    public double ReceiveCapByRoom = 1.0;   // (1436) 旗：国内の受け入れの上限の量＝行き先の空き（農村の空き max(0,耕地−農村)＋職の空き）×率×(食×住居)^指数（0＝旧の形・行き先の人口×率×AbsorbCap）
     public double UniversalConscriptionFactor = 2.5;   // 値の根拠＝米1924年移民法は前年比で流入を約8割削った（年約70万→約16万）＝Closed≈0.2
     public double MonetaryPrefScale = 20.0;
     public double ImmigrationRestrictionPrefScale = 40.0;
