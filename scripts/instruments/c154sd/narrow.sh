@@ -14,7 +14,7 @@ dotnet build PriceOfBread.Tests -c Release --artifacts-path $A -v q -nologo > $W
 dotnet test PriceOfBread.Tests -c Release --artifacts-path $A --no-build --filter "$F" --logger "trx;LogFileName=n_$N.trx" --results-directory $WK/trx > $WK/t_n$N.txt 2>&1; R1=$?
 echo "Tests 絞り rc=$R1 $(grep -E '合計' $WK/t_n$N.txt | tail -1)" >> $O
 grep -E "^\s+失敗 " $WK/t_n$N.txt >> $O
-dotnet test PriceOfBread.Tests -c Release --artifacts-path $A --no-build --filter "Category=FullLength" --logger "trx;LogFileName=nf_$N.trx" --results-directory $WK/trx > $WK/t_nf$N.txt 2>&1; R3=$?
+if [ "${NOFULL:-0}" = 1 ]; then echo "NOFULL=1：FullLength は腕 B と並べない＝フルスイートで回す" > $WK/t_nf$N.txt; R3=0; else dotnet test PriceOfBread.Tests -c Release --artifacts-path $A --no-build --filter "Category=FullLength" --logger "trx;LogFileName=nf_$N.trx" --results-directory $WK/trx > $WK/t_nf$N.txt 2>&1; R3=$?; fi
 echo "FullLength rc=$R3 $(grep -E '合計' $WK/t_nf$N.txt | tail -1)" >> $O
 grep -E "^\s+失敗 " $WK/t_nf$N.txt >> $O
 dotnet build PriceOfBread.Tests.Ui -c Release --artifacts-path $A -v q -nologo > $WK/build_u$N.txt 2>&1
