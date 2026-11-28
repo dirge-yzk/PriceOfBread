@@ -1,0 +1,2 @@
+  失敗 PriceOfBread.Tests.ReligionTensionRemovalTests.T4_属国の統治の費用は異端の加点を読んだまま [79 ms]
+失敗!   -失敗:     1、合格:     3、スキップ:     0、合計:     4、期間: 28 s - PriceOfBread.Tests.dll (net10.0)
