@@ -8,3 +8,7 @@
 2026-11-28 12:33:51 D:/PoB_work/c153rg_work/out_c153rgB_10/ins（線 c153rg の腕 B の生・採った線＝帰属は合わせた木の M と S11 で読み終えた・成績表と読みは measurements/m1428_20261128）
 2026-11-28 12:33:51 D:/PoB_work/c153nx_work/out_c153nxB_10/ins（線 c153nx の腕 B の生・採った線＝帰属は合わせた木の M と S11 で読み終えた・成績表と読みは measurements/m1429_20261128）
 2026-11-28 12:34:31 D:/PoB_work/wt_m1432z（腕 Z の使い捨ての worktree・枝 m1432z も消した・push していない）
+# 段 2 の ident.cfg e83a4babd を push した後（KEEPNULL を keep_1432 へ移した）
+2026-11-28 13:11:48 D:/PoB_work/keep_1425/n1（旧 KEEPNULL の N1・成績表は measurements/b10_20261128_m1425_n1_ins）
+2026-11-28 13:11:49 D:/PoB_work/keep_1425/n2（旧 KEEPNULL の N2・成績表は measurements/b10_20261128_m1425_n2_ins）
+2026-11-28 13:11:49 D:/PoB_work/keep_1425（空のフォルダ）
