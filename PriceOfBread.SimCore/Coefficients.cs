@@ -98,9 +98,9 @@ public sealed partial class Coefficients   // 全体のチューニング係数�
     public double WantWeight = 0.8;                   // 不満(1-充足)の闘争度寄与（満たされた階級は穏健＝改革派）
     public double PoliticalDistanceWeight = 0.25;     // 政治の空間モデル：意識×dist(POPの理想点, 現政体座標) の闘争度寄与（旧 VoiceWeight＝参政権ギャップの一般化＝4軸全体の乖離）
     public double DiscontentLawGap = 0.0;   // 読み手は Politics.Discontent 1箇所
-    public double SatReadersToDiscontent = 0.0;   // (1371) c145rv 旗（0＝今の式・1＝不満度 D＝Clamp01(WantWeight×Pos(R−s))で声の項を抜き、参加と思想は D だけを読む）
-    public double FactionFloorByRegion = 0.0;   // (1435) c154sd 旗（0＝勢力の足切り MinSizeFraction×国の人口・1＝MinSizeFraction×組の州の人口）。読み手は FactionSnapshot.Floor 1 本
-    public double FactionStrengthByMilitancy = 0.0;   // (1435) c154sd 旗（0＝強さ Size×AvgMilitancy×結束×声の無さ・1＝FightHeads〔Σ N M〕×AvgMilitancy〔Σ N M²÷Σ N M〕×結束×声の無さ）。読み手は Politics.FactionStrength と Factions.Step
+    public double SatReadersToDiscontent = 1.0;   // (1435) c154sd で 1 に点火（3 回目・腕 B の木・(1398)・(1422) の 1・2 回目は外した）。(1371) c145rv 旗（0＝旧の式・1＝不満度 D＝Clamp01(WantWeight×Pos(R−s))で声の項を抜き、参加と思想は D だけを読む）
+    public double FactionFloorByRegion = 1.0;   // (1435) c154sd で 1 に点火（腕 B の木）。旗（0＝勢力の足切り MinSizeFraction×国の人口・1＝MinSizeFraction×組の州の人口）。読み手は FactionSnapshot.Floor 1 本
+    public double FactionStrengthByMilitancy = 1.0;   // (1435) c154sd で 1 に点火（腕 B の木）。旗（0＝強さ Size×AvgMilitancy×結束×声の無さ・1＝FightHeads〔Σ N M〕×AvgMilitancy〔Σ N M²÷Σ N M〕×結束×声の無さ）。読み手は Politics.FactionStrength と Factions.Step
     public double FiscalStressBufferMonths = 5.0;     // 国庫がこれを下回るほど逼迫度→1（旧＝絶対額50,000固定を53カ国へ一律適用＝小国が恒久破産モード・大国は無風の規模非中立）
     public double SuffrageConcession = 1.0;           // 革命脅威下でエリートが参政権拡大に譲歩する強さ（trad/modern の反対 −1 に threat×これを加算）
     public double LawPrefSinglePeaked = 1;            // (1323) c138lp 旗（2026-11-23 腕 B の木で 1）：法の好みの向き。0＝後退の好み＝拡大の好みの符号の反転。1＝単峰の一貫性＝段 k→k−1 の好み＝−（段 k−1→k の好み）＝Pref の段に依る項（Suffrage の近代エリート・Inheritance の段の大きさ・MonetaryStandard の銀）を後退の向きでは 1 段下で読む（PolicyPreferences.Pref の back）

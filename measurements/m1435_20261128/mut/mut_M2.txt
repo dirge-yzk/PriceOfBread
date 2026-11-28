@@ -1,0 +1,3 @@
+# M2（f61a1ced2）
+  失敗 PriceOfBread.Tests.FactionFloorRegionTests.T2_全ての不満度を百万分の一にすると旗1では勢力ができない [126 ms]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 4 s - PriceOfBread.Tests.dll (net10.0)

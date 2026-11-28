@@ -1,0 +1,7 @@
+# M3（f61a1ced2）
+  失敗 PriceOfBread.Tests.FactionFloorRegionTests.TA_参政権も政治意識もない不満の高い大衆は旗1で勢力から蜂起に至る [2 s]
+  失敗 PriceOfBread.Tests.FactionFloorRegionTests.T3_作った組は同じStepの中で見えないと読まれない [197 ms]
+  失敗 PriceOfBread.Tests.FactionFloorRegionTests.計器_facfloor2は同じ盤面で3つの足切りと強さの頭数を数える [196 ms]
+  失敗 PriceOfBread.Tests.FactionFloorRegionTests.T1_国の1パーセント未満でも州の人口の1パーセント以上の組は旗1で勢力になる [200 ms]
+  失敗 PriceOfBread.Tests.FactionFloorRegionTests.TA対照_闘争度0の大衆は旗1でも強さ0で蜂起しない_闘争度の段はこの線の外 [177 ms]
+失敗!   -失敗:     5、合格:     3、スキップ:     0、合計:     8、期間: 4 s - PriceOfBread.Tests.dll (net10.0)

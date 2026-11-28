@@ -1,0 +1,5 @@
+# M4（f61a1ced2）
+  失敗 PriceOfBread.Tests.FactionFloorRegionTests.TA_参政権も政治意識もない不満の高い大衆は旗1で勢力から蜂起に至る [2 s]
+  失敗 PriceOfBread.Tests.FactionFloorRegionTests.T4_選挙権の無い大衆の組は強さを持ち_同じ組でも男子普通選挙なら強さは0 [131 ms]
+  失敗 PriceOfBread.Tests.FactionFloorRegionTests.T5_旗1では不満度を半分にしても強さが変わらず_闘争度を半分にすると4分の1 [128 ms]
+失敗!   -失敗:     3、合格:     5、スキップ:     0、合計:     8、期間: 3 s - PriceOfBread.Tests.dll (net10.0)

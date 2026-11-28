@@ -1,0 +1,3 @@
+# M5（f61a1ced2）
+  失敗 PriceOfBread.Tests.FactionFloorRegionTests.T4_選挙権の無い大衆の組は強さを持ち_同じ組でも男子普通選挙なら強さは0 [147 ms]
+失敗!   -失敗:     1、合格:     7、スキップ:     0、合計:     8、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
