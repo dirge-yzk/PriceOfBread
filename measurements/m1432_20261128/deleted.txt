@@ -2,3 +2,9 @@
 2026-11-28 10:31:31 D:/PoB_work/ident_c153fb（線 c153fb の ident の生・〈判定: 恒等〉・要約は measurements/m1432_20261128/keepsum_ident_c153fb_ins.tsv と線の measurements）
 2026-11-28 10:31:37 D:/PoB_work/ident_c153tp（線 c153tp の ident の生・〈判定: 恒等〉・要約は measurements/m1432_20261128/keepsum_ident_c153tp_ins.tsv と線の measurements）
 2026-11-28 11:05:15 D:/PoB_work/ident_m1432z（合流の腕 Z の ident の生・〈判定: 恒等〉・要約は keepsum_ident_m1432z_ins.tsv・prune_manifest_m1432z.tsv）
+# 新しい ident.cfg 9add3b5d5 を push した後（INSRAW でも KEEPNULL でもない古い keep・作者 2026-11-11「再開」で答えの無かった D: の問いを推奨 (a) で採った）
+2026-11-28 12:33:51 D:/PoB_work/keep_1425/base_ins（34.2GB・旧 INSRAW・要約は measurements/b10_20261128_m1425_ins と measurements/m1425_20261128/keepsum_ident_m1425z_ins.tsv）
+2026-11-28 12:33:51 D:/PoB_work/keep_1425/a11（15.8GB・旧 KEEPNULL の S11）
+2026-11-28 12:33:51 D:/PoB_work/c153rg_work/out_c153rgB_10/ins（線 c153rg の腕 B の生・採った線＝帰属は合わせた木の M と S11 で読み終えた・成績表と読みは measurements/m1428_20261128）
+2026-11-28 12:33:51 D:/PoB_work/c153nx_work/out_c153nxB_10/ins（線 c153nx の腕 B の生・採った線＝帰属は合わせた木の M と S11 で読み終えた・成績表と読みは measurements/m1429_20261128）
+2026-11-28 12:34:31 D:/PoB_work/wt_m1432z（腕 Z の使い捨ての worktree・枝 m1432z も消した・push していない）

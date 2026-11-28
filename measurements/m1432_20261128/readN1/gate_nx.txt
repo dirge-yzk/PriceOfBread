@@ -1,0 +1,14 @@
+seed	popRows	popEnded	G1	popWarsEnded	popCivil	G2rows	G2bad	ties	G2bZero	tinyPush	G3	contNoContactEnd	noContactGe60	blankWars	badRows
+1	21	21	1.0000	21	0	1169	0	0	21	0	0	1	0	93	0
+2	32	32	1.0000	32	0	1254	0	0	32	0	0	1	0	122	0
+3	36	36	1.0000	36	0	951	0	0	36	0	1	0	1	104	0
+4	31	31	1.0000	31	0	854	0	0	31	0	0	0	1	100	0
+5	22	22	1.0000	22	0	507	0	0	22	0	2	0	1	65	0
+6	28	28	1.0000	28	0	953	0	0	28	0	0	0	2	82	0
+7	59	59	1.0000	59	0	908	0	0	59	0	0	1	1	122	0
+8	23	23	1.0000	23	0	634	0	0	23	0	0	0	2	64	0
+9	40	40	1.0000	40	0	838	0	0	40	0	1	0	1	102	0
+10	33	33	1.0000	33	0	821	0	0	33	0	0	1	0	106	0
+total	popRows=325	popEnded=325	popWars=325	popCivil=0	G2rows=8889	ties=0	G2bZero=325	tiny=0	G3=4	cont=4	ge60=9	blank=960
+G1 PASS（割合 1 の種 10/10）
+G2 PASS（一致しない行 0）
