@@ -1,0 +1,28 @@
+(1439) 合流（波154）の予言＝merge の前にコミットする（書き手 Opus 5.5・2026-11-28）
+基点：origin/main 0f019b959（04a162e34 の上に作者の BGM のコミット 1 本＝bgm-preview/ だけ・SimCore・Tests 0 行）。
+入れる順：恒等 c154rx（8aa83c3af・ident は線で未実施＝合流の腕 Z が兼ねる）→ 恒等 c154tl（590f21e82・〈判定: 恒等〉）→ 挙動 c154sd（0959277dd）→ 挙動 c154ha（f2b2b96d2）。
+重なるファイル：PriceOfBread.Tests/DormantIdentityTests.cs だけ（rx :272・sd 旗の行・ha :44）＝衝突は 0 か、この 1 ファイルの隣り合う行だけ。
+消す名前（★(773)）：rx の ReligionTensionPerMonth・ReligionAffinityRelief・TensionReason.Religion は sd・ha・tl の差分に新しい読み手 0（grep 済み）。sd の Summ・PrdsCount の形の変更は他の枝に読み手 0。
+
+[1] 腕 Z（合わせた木から挙動の旗 4 本を旧の値へ戻した使い捨ての木＝SatReadersToDiscontent 0・FactionFloorByRegion 0・FactionStrengthByMilitancy 0・ReceiveCapByRoom 0・ident 段 2・全表）
+- 予言：〈判定: 恒等〉。素の 5 種（b5_20261128_m1432）と計器つき 10 種（b10_20261128_m1432_ins）が名乗り行を除いて全行バイト一致。
+- 宣言：--removed-cols tensionwhy_s:Religion（rx）・--added-tables facfloor2_s（sd）・--tests-delta 17（sd +11〔3362−3351〕・ha +6〔3357−3351〕・rx 0・tl 0）。
+- 既知の揺れ：cfg の KNOWN の範囲（burscan_s:seconds ほか）。rx で Diplomacy.cs の行が動く＝経路の行番号の列（dep_s:callerLine・cearn_s の経路）に揺れが出るなら KNOWN の型として名乗る。宣言の無い違いは 0。
+- 外れたら：rx を外した木で腕を 1 本回して帰属を決める（rx はこの腕が唯一の恒等の判定）。
+
+[2] 合わせた木 M（旗 1・計器つき 10 種・全表・種 1〜10）・S11（種 11〜20・keep_1432/a11 の 89 表＋facfloor2）
+止める線の段（採否）：
+- 破綻 0・1 四半期 100 倍の〈それ以外〉0（stop906・stop1330・基準とヌル腕は (1432) の readM の _base・_n1・_n2 を写す＝同じ keep_1432）・1e10 倍 0・非有限 0。
+- 空洞化 1/10 未満で〈線が原因〉0 件（件ごとに keep_1432/base_ins・a11 の同じ種の同じ州が 1/4 未満かを表に書く）。
+- 名目 GDP 0 の続き 0。推定の計算量：M 225〜232 秒（sd +2.5・ha +4.4 は足し算にならない〈推〉・(1432) で rg+nx も足し算にならなかった）≦248.5。
+- 機構の試験の赤 0。WriterRatchetTests は sd の 3 行（ClaimProducers・DeadProdBankrupt・DiploHegemonScans）が ha の軌道で動く＝絞った試験で 1〜4 行が赤〈推〉＝★(749) で合わせた木の実測へ 1 回だけ取り直す（軌道の件数を写しただけの番人）。
+- 線の門（事前登録の数をそのまま・M と S11 で同じ門・S11 の基準の数は事前登録の M の基準の数を使う）：
+  sd：G1 R1 40〜670（予言 40〜120）・R2 490.1〜49010（予言 3000〜7000）・R3 2〜200（予言 5〜20）・G3 下 ≥1.10（予言 2.2〜2.8）・O1＝0・O2＝0 行。
+  ha：種ごとの国内の移民の和÷基線の同じ種 ≥0.1（M は keep_1432/base_ins・S11 は keep_1432/a11・予言 0.3〜1.0）。
+- R1 の下側 40 は sd の 1・2 回目で落ちた形＝合わせた木で ha が州の人口を動かすと R1 が 40 を割る恐れは残る〈推〉（落ちたら ㉞ のアブレーション＝旗 sd を 0・旗 ha を 0 の腕）。
+記録の段（採否に使わない）：
+- 成績表：M は m1432 と 250〜320 行違う〈推〉・nullgate〈雑音の内〉・NG 新 15〜30・外 10〜20。
+- 戦争 6300〜7600・最後まで続いた戦争 10〜40・英の国債の不履行 0〜3/10・空洞化 1/4 未満 0〜5・開幕の 1000 倍 0。
+- 労使の交渉（sbu_s kappaSum・wageGain）は sd の腕 B と同じ向き（基準の 0.4〜0.6 倍）〈推〉＝v2 の中の記録。
+- 勢力の数の平均 8〜10（sd の腕 B 9.16）。
+[3] 恒等の線の残り：tl は台本だけ＝成績表に響かない。rx は [1] の腕 Z だけが判定。
