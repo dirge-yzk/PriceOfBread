@@ -1,0 +1,4 @@
+.toolchain/
+.samples/
+.vsco-tree.json
+__pycache__/
