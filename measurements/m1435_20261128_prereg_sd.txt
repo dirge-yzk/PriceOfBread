@@ -133,3 +133,25 @@
 - c154rx：Diplomacy.cs・Coefficients.p05_port_insurance.cs・DormantIdentityTests.cs:272 ほか。c154ha：Territory.cs・Coefficients.p08_audit_soldiers.cs。c154tl：scripts/instruments/ident/ident_check.py・c151fl/fl_gate.py。
 - この線と同じファイル：Coefficients.cs（:101 の隣の 2 行だけ）・Instruments.cs（表の見出しと呼び出しの行だけ）・DormantIdentityTests.cs（自分の旗の行だけ）・WriterRatchetTests.cs（★(749) の行だけ）。持ち主の行は重ならない〈推〉＝合流で解く。
 - 持ち主の外で触る見込みの物（報告に列挙）：Instruments/InstrumentsTg.cs（Tg の 2 行）・InstrumentHookClosureTests.cs（1 行）・FactionSnapshot.cs:101〜:114（組の辞書の型）・InstrumentsPrdf.cs:16・:24（組の型）・InstrumentsPrds.cs の PrdsCount の引数（任意の州の足切り）。
+
+== 追記 1（2026-11-28・腕 B の前・器の木 f61a1ced2 の結果）
+- ident c154sdz（bash scripts/instruments/ident/ident.sh run c154sdz --tree D:/PoB_work/wt_c154sdz〔f61a1ced2 に固定した worktree〕 --work D:/PoB_work/ident_c154sd --no-ins --added-tables facfloor2_s --tests-delta 9）：
+  〈判定: 恒等〉（測った種で一致）。腕 a＝素の 5 種 180 行が全行バイト一致（名乗り行を除く）・件数の行 45 本・推定 220.2 秒・忠実度 5 行が一致。腕 t＝Category!=FullLength 3360（基準 3351＋9）・FullLength 4・H 136＋R 2992＝3128・重なり 0。出力 measurements/m1435_20261128/ident_c154sdz_at.txt。
+  腕 b（計器つき 10 種）は回さなかった：起こす直前の D: の空き 47.9GB＜床 35GB＋約 30GB。★(1362) のとおり合流の腕 Z へ申し送る。
+- 代わりの計器つきの腕 c154sdZl（同じ器の木・INS=1・10 種・表 dcont_s,facfloor2_s,coupgate_s,nation_s,parlseat_s・約 1.5GB）：
+  dcont・coupgate・nation・parlseat の生が keep_1432/base_ins と 10/10 種でバイト一致・成績表 b10 は m1432_ins と名乗り行を除き 0 行の違い（measurements/m1435_20261128/b10_c154sdZl_10.txt）＝腕 b の一部の代わり（全表ではない＝〈恒等の判定〉とは名乗らない）。
+- R2 の基準（facfloor2 riotFire・器の木）：B＝4901（5 大国 1508）。[5] の形のとおり下側 腕 ≥ 490.1（B/10）・上側 腕 ≤ 49010（10×B）。
+- G3 下の旗 0：Σ facSeenTargetK＝Σ targetAboveNK＝1.06297e8（比 1.000000）＝門 ≥1.10 で赤（旗 0 で落ちることを確かめた）。
+- G3 上：案 A の値 v＝Σ targetAboveRK÷Σ targetK＝0.970210＞0.85＝[5] の規則のとおり G3 上は記録へ下げ、O1・O2 を門にする（φP_n の値は 0.930503＝この盤面では上限で案 A と φP_n を分けられない）。
+- O1・O2 の旗 0：facBelow1P の和 0・facEngCount>0 の行 347,376 のうち φ×最小の州を下回る行 0。facSeenCount と facEngCount は全ての行で一致（エンジンが大きさを書いた勢力の見分けが働く）。
+- 同じ盤面の新÷旧（旗 0 の盤面・見えた勢力）：Σ N M²÷Σ N π M＝0.9753（下書きの 0.982 と同じ桁）。
+- 突然変異（器の木 f61a1ced2・FactionFloorRegionTests 8 本・measurements/m1435_20261128/mut/）：M0 緑 8/8。
+  μ1 赤 6（T1・T2・T3・T-A・T-A 対照〔前提の勢力が無い〕・計器）・μ2 赤 1（T2）・μ3 赤 5（T1・T3・T-A・T-A 対照・計器）・μ4 赤 3（T4・T5・T-A）・μ5 赤 1（T4）・μ6 赤 3（T3・T5・T-A）。
+  紙の表と違う所：μ1・μ3 で T1・計器も赤（足切りを φN にすると州 a の組も勢力にならない＝想定の内）・μ4 で T4（Size 10 と FightHeads 1000 を分けた盤面）と T-A も赤（旧の強さ Σ N D M は Σ N M² の 0.56/0.8＝0.7 倍で、Politics.Step の中で思想が動いた後の郷勇を越えない〈推〉＝T-A の〈郷勇 0〉は盤面を置いた時点の値）・μ6 で T3・T5 も赤（結束 0.025 の手計算を読む）。
+- 器の直し（腕 B の前・計器だけ・値は同じ）：facfloor2 の不満度の読みを Politics.Discontent から既存の FactionSnapshot.DiscontentOf（同じ文脈 MembershipContext）へ＝DiscontentReaderTests の〈Politics.Discontent の呼び手の本数〉の番人を増やさない。
+- 旗 1 の木 9548b54ff の絞った試験（narrow n1）の赤 33 件の区分と直し（試験だけ・SimCore 0 行）：
+  ① SatReadersToDiscontent 1 で赤になる旧の規則の番人（UnderconsumptionTests・CreditTests・IdeaNeedBoardTests・FiscalTests・PolicyPoliticsTests 4・DiscontentSplitTests・DiscontentReaderTests 3・IndustrializationReaderTests 1・SatReadersToDiscontentTests・Tests.Ui PlayHarnessTests）＝止めた枝 c152sd（e6a87b97f）の同じ直しを写した（main はこの 10 ファイルを merge-base 526586684 から変えていない）。RevoltIgnitionTests の武器購入の盤面の LivingRef の 1 行（(1398) c149sd の直し）も写した。
+  ② 旗 FactionStrengthByMilitancy 1 で強さが FightHeads を読む＝手で組む勢力の強さ 0（RevoltIgnitionTests 12・PoliticsUnificationC148poTests 1・DiscontentReaderTests 1）＝手で組む勢力に FightHeads＝Size を足した（RevoltIgnitionTests 8 か所・PoliticsUnificationC148poTests 1・DiscontentReaderTests 5）・:941・:971 の式を f.FightHeads×AvgMilitancy×結束へ（[2] の計画のとおり・Assert の閾値は変えない）。
+  ③ 旧の足切り φN の数え直し（PrdsShadowTests 2）＝試験が自分で足す州の人口の足切りへ（旗 0 なら国の人口）・〈N≧1 なら最大のセル ≥ φ〉は旗 1 では〈>0〉（旧の規則の番人）。
+  ④ WriterRatchetTests 3 行＝★(749) 軌道の件数の写し：ClaimProducers 1927→2049・DeadProdBankrupt 1520→1231・DiploHegemonScans 3987332→4888348。
+  ⑤ DiscontentReaderTests〈Politics.Discontent の呼び手の本数〉＝器の直し（上）で戻る。

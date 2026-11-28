@@ -1,0 +1,25 @@
+ident start：段=2（基準 befe69de1 との差 170 本・段 2 の条件に当たった 6 本・ident.cfg は基準の鍵と注だけの差＝数えない）
+ident start：ラベル=c154sdz 木=/d/PoB_work/wt_c154sdz 作業=D:/PoB_work/ident_c154sd 腕=[a t] 開始=2026-11-28 15:17:58
+ident start：腕は全て終わった（3 印）
+=== 恒等の判定（測った種で一致） c154sdz（2026-11-28 15:32:06）===
+測った木：D:/PoB_work/wt_c154sdz（HEAD f61a1ced2・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_c154sd/scripts/instruments/ident/ident.cfg
+宣言：added=['facfloor2_s'] tests_delta=9
+腕 a：rc=0 end=2026-11-28 15:32:06
+腕 t：rc=0 end=2026-11-28 15:21:30
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：0eefd1b9eb2a746e
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 0eefd1b9eb2a746e
+[素の 5 種] b5_ia_5.txt 対 b5_20261128_m1432
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261128_m1432.cost
+  ○ 件数の行 45 本・推定 220.2 秒・種ごとの忠実度 5 行が一致
+[テストの数] --list-tests
+  ○ Category!=FullLength 3360（基準 3351+9 を宣言）・FullLength 4（基準 4）
+  ○ 分けた形：H 136＋R 2992＝3128（Tests の Category!=FullLength 3128・重なり 0）
+
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 恒等
+刈らない：フォルダが無い
+刈り込みの結果：rc=0・刈らない：フォルダが無い
