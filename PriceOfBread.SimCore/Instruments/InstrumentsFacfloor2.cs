@@ -3,7 +3,7 @@ namespace PriceOfBread.SimCore;
 // (1435) c154sd 勢力の足切りと強さの計器 facfloor2_s（国×四半期 1 行）。力学の値を 1 つも書かない・乱数を引かない・新しいシミュの状態を作らない。
 // 同じ盤面（Factions.Step の終わり）で 3 つの足切り（φN・φN_r・φP_n）と 3 つの強さの頭数（Σ N π M・Σ N M²・Σ N M）を数える。
 // POP は計器が自分で回す（エンジンの足切りの関数 FactionSnapshot.Floor・組の関数 ComputeClusters・強さの関数 FactionStrength は呼ばない＝
-// 規則は事前登録 measurements/m1435_20261128_prereg_sd.txt の文から書いた）。不満度 D は dcont_s と同じく Politics.Discontent を読む。
+// 規則は事前登録 measurements/m1435_20261128_prereg_sd.txt の文から書いた）。不満度 D は既存の読み手 FactionSnapshot.DiscontentOf を読む（Politics.Discontent の呼び手を増やさない）。
 public static partial class Instruments
 {
     internal const string Facfloor2HeaderText = "quarter\tyear\tnation\tfloorFlag\tstrengthFlag\tpopK\tminRegionPopP\tpartK\tcellsAboveN\tcellsAboveR\tcellsAboveP"
@@ -29,8 +29,7 @@ public static partial class Instruments
     internal static Facfloor2Row Facfloor2Count(World w)
     {
         var c = w.Coef;
-        double[] coord = PoliticalQuantities.DriftedPolityCoord(w.Polity, w.Suffrage, c);
-        double[] gap = c.DiscontentLawGap > 0 ? PolicyPreferences.LawGap(w) : [];
+        var (coord, gap) = FactionSnapshot.MembershipContext(w);   // 不満度 D の文脈（組の回りと同じ値）
         bool dOnly = c.SatReadersToDiscontent > 0;   // エンジンの参加の規則（旗 1＝D・旗 0＝max(D, 闘争度)）
         var cells = new Dictionary<(int Region, int Bloc, int Ideo), Facfloor2Cell>();
         var regionPop = new Dictionary<int, double>();
@@ -57,7 +56,7 @@ public static partial class Instruments
                 if (p.Size <= 1e-9) continue;
                 double n = p.Size;
                 popK += n;
-                double d = Politics.Discontent(w, c, p, coord, gap.Length > 0 ? gap[PolicyPreferences.BlocOf(p)] : 0);
+                double d = FactionSnapshot.DiscontentOf(w, p, coord, gap);
                 double m = p.Militancy;
                 double eng = dOnly ? d : Math.Max(d, m);
                 double v = Math.Clamp(InterestGroups.FranchiseVoice(p, w.Suffrage, c), 0.0, 1.0);
