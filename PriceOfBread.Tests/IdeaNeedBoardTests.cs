@@ -105,7 +105,7 @@ public class IdeaNeedBoardTests
         {
             var w = Nation(Board(), "イギリス");
             w.Discovered[Discovery.FascismRow] = true;
-            foreach (var p in Civ(w)) p.Militancy = 0.6;
+            foreach (var p in Civ(w)) { p.Militancy = 0.6; p.LivingRef = p.Satisfaction + 0.75; }   // (1398) c149sd：既定（旗 SatReadersToDiscontent 1）の思想は闘争度でなく不満度 D を読む＝D＝0.8×0.75＝0.6 も置く（旗 0 では闘争度 0.6 が同じ役）
             w.IndustrialFrontier = frontier; Ideologies.UpdateShares(w); return Ideologies.National(w);
         }
         var a = Support(0.0); var b2 = Support(50.0);

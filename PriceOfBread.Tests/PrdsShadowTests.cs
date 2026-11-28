@@ -16,6 +16,17 @@ namespace PriceOfBread.Tests;
 [Collection("Instruments")]
 public class PrdsShadowTests
 {
+    /// <summary>(1435) 既定の係数の足切りの旗（FactionFloorByRegion）。</summary>
+    private static bool FloorByRegion => new Coefficients().FactionFloorByRegion > 0;
+
+    /// <summary>(1435) 組の足切りを試験が自分で出す（旗 1＝0.01×州の人口〔州の POP の和〕・旗 0＝0.01×国の人口）。</summary>
+    private static double FloorHere(World w, Region reg, double totalPop)
+    {
+        if (!(w.Coef.FactionFloorByRegion > 0)) return FactionSnapshot.MinSizeFraction * totalPop;
+        double s = 0; foreach (var p in reg.Pops) s += p.Size;
+        return FactionSnapshot.MinSizeFraction * s;
+    }
+
     private static World NewWorld() => new Simulation(new Scenario { Seed = 1, Kind = ScenarioKind.RegionalFamine, Coef = new Coefficients() }, new NullAgent()).World;
 
     [Fact]
@@ -176,10 +187,10 @@ public class PrdsShadowTests
                 foreach (var n in on.Nations)
                 {
                     double totalPop = n.World.TotalPopulation, mx = 0; int body = 0;
-                    foreach (var (_, _, ideo, size, _) in FactionSnapshot.ComputeClusters(n.World))
+                    foreach (var (reg, _, ideo, size, _) in FactionSnapshot.ComputeClusters(n.World))
                     {
                         if (ideo != (int)Ideology.Socialism && ideo != (int)Ideology.Communism) continue;
-                        if (size >= FactionSnapshot.MinSizeFraction * totalPop) body++;
+                        if (size >= FloorHere(n.World, reg, totalPop)) body++;   // (1435) 足切りは旗 FactionFloorByRegion で州の人口（試験が自分で足す）
                         if (size > mx) mx = size;
                     }
                     clusterMax[Instruments.NameOf(n.World)] = totalPop > 0 ? mx / totalPop : 0; clusterBody[Instruments.NameOf(n.World)] = body;
@@ -263,10 +274,11 @@ public class PrdsShadowTests
                     lastShares[Instruments.NameOf(n.World)] = (all > 0 ? com / all : 0, all);
                     double cw = 0; foreach (var p in n.World.AllPops()) { if (p.Size <= 1e-9) continue; cw += p.Size * p.IdeologyShares[6]; }
                     comWeightMean[Instruments.NameOf(n.World)] = all > 0 ? cw / all : 0;
-                    double totalPop = n.World.TotalPopulation, thr = FactionSnapshot.MinSizeFraction * totalPop, mx = 0;
+                    double totalPop = n.World.TotalPopulation, mx = 0;
                     int comBody = 0, comCell = 0, socBody = 0;
-                    foreach (var (_, _, ideo, size, _) in FactionSnapshot.ComputeClusters(n.World))
+                    foreach (var (reg, _, ideo, size, _) in FactionSnapshot.ComputeClusters(n.World))
                     {
+                        double thr = FloorHere(n.World, reg, totalPop);   // (1435) 足切りは旗 FactionFloorByRegion で州の人口（試験が自分で足す）
                         if (ideo == (int)Ideology.Communism) { comCell++; if (size >= thr) comBody++; if (size > mx) mx = size; }
                         else if (ideo == (int)Ideology.Socialism && size >= thr) socBody++;
                     }
@@ -323,7 +335,8 @@ public class PrdsShadowTests
                 Assert.True(Col(r, "maxCellFracComShadow") + 1e-12 >= Col(r, "maxCellFracComReal"));
                 Assert.True(Col(r, "nBodyComShadow") <= Col(r, "nCellComShadow"));
                 Assert.InRange(Col(r, "maxCellFracComShadow"), 0.0, 1.0 + 1e-9);
-                if (Col(r, "nBodyComShadow") > 0) Assert.True(Col(r, "maxCellFracComShadow") + 1e-12 >= FactionSnapshot.MinSizeFraction, "N≧1 なのに最大のセルが足切り未満");
+                // (1435) 旗 FactionFloorByRegion 1 では足切りが州の人口の φ＝国の φ 未満のセルも本体になれる＝〈N≧1 なら最大のセル ≧ φ〉は旧の規則の番人（旗 0 のときだけ読む）。旗 1 では〈N≧1 なら最大のセル > 0〉
+                if (Col(r, "nBodyComShadow") > 0) Assert.True(Col(r, "maxCellFracComShadow") + 1e-12 >= (FloorByRegion ? 1e-12 : FactionSnapshot.MinSizeFraction), "N≧1 なのに最大のセルが足切り未満");
                 if (Col(r, "maxCellFracComShadow") >= FactionSnapshot.MinSizeFraction + 1e-9) Assert.True(Col(r, "nBodyComShadow") >= 1, "最大のセルが足切り以上なのに N＝0");
             }
             Assert.Contains(last, r => Col(r, "nBodyComShadow") > Col(r, "nBodyComReal"));   // 対照：移し替えで新しく共産主義の運動体が立つ国がある（闘争度 1・組合非合法の盤面）＝影の N を検査している

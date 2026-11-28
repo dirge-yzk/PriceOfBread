@@ -251,7 +251,7 @@ public class RevoltIgnitionTests
         var f = new FactionState
         {
             Region = home, Bloc = 2, Ideo = (int)Ideology.Communism,
-            Size = 1e12, AvgMilitancy = 1.0, Cohesion = 1.0,   // 結束1.0＝1四半期の不在減衰(0.10)後も闘争閾値0.8を上回る
+            Size = 1e12, FightHeads = 1e12, AvgMilitancy = 1.0, Cohesion = 1.0,   // 結束1.0＝1四半期の不在減衰(0.10)後も闘争閾値0.8を上回る
             Mutated = true, MutantName = "幽霊の旗",   // 旗＝忘却と変異ロールの側の量（★段2で強度からは組織核ごと消えた）
             Rejections = 3.0,   // 通知の四半期には動かない（動けば「決着の枝を踏んだ」＝物差しの汚れ）
         };
@@ -301,8 +301,8 @@ public class RevoltIgnitionTests
         sim.Run(20); other.Run(20);
         var w = sim.World; var c = w.Coef;
         Assert.True(c.FactionMergeRangeKm > 0, "前提が崩れた：合流が休眠＝この番人は空洞（doc の『0で休眠』は陳腐化）");
-        var mine = new FactionState { Region = w.Regions[1], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 100, AvgMilitancy = 0.5, Cohesion = 0.4 };
-        var ghost = new FactionState { Region = other.World.Regions[1], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 100_000, AvgMilitancy = 0.5, Cohesion = 0.9 };
+        var mine = new FactionState { Region = w.Regions[1], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 100, FightHeads = 100, AvgMilitancy = 0.5, Cohesion = 0.4 };
+        var ghost = new FactionState { Region = other.World.Regions[1], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 100_000, FightHeads = 100_000, AvgMilitancy = 0.5, Cohesion = 0.9 };
         w.Factions.Add(mine); w.Factions.Add(ghost);
         string ghostRegionName = ghost.Region.Name;
         Factions.Step(w, c);
@@ -330,7 +330,7 @@ public class RevoltIgnitionTests
         var c = sim.Coef;
         var spent = new FactionState   // 内乱の主体＝本拠州が反乱国の州（親が武力で決着させた運動・結束は闘争閾値0.8を大きく超えたまま）
         {
-            Region = rw.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0,
+            Region = rw.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 1.0, FightHeads = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0,
         };
         pw.Factions.Add(spent);
         pw.RevoltingFaction = spent;
@@ -420,7 +420,7 @@ public class RevoltIgnitionTests
         var f = new FactionState
         {
             Region = home, Bloc = 2, Ideo = (int)Ideology.Communism,
-            Size = 1.0, AvgMilitancy = fight, Cohesion = 1.0,
+            Size = 1.0, FightHeads = 1.0, AvgMilitancy = fight, Cohesion = 1.0,
             Mutated = true, MutantName = "旗を掲げた運動",
             Rejections = rejections,
         };
@@ -512,7 +512,7 @@ public class RevoltIgnitionTests
         FactionState Make(int bloc) => new()
         {
             Region = w.Regions[1], Bloc = bloc, Ideo = (int)Ideology.Communism,
-            Size = 1000, AvgMilitancy = 1.0, Cohesion = 1.0,
+            Size = 1000, FightHeads = 1000, AvgMilitancy = 1.0, Cohesion = 1.0,
             Mutated = true, MutantName = "旗を掲げた運動",
         };
         var mass = Make(2); var oldRuling = Make(0);
@@ -915,13 +915,14 @@ public class RevoltIgnitionTests
         }
         Assert.True(payer is not null && payer.Size > 1e-9, "前提が崩れた：首都州に大衆POPが無い");
         payer!.Militancy = 0.9;
+        payer.LivingRef = payer.Satisfaction + 1.125;   // (1398) c149sd の写し（(1435) c154sd）：既定（旗 SatReadersToDiscontent 1）の参加は不満度 D だけ＝D＝0.8×1.125＝0.9 も置く（旗 0 では闘争度 0.9 が同じ役）
         // 参加者の財布を厚くする＝**州の他POPの貯蓄の半分を移す**（金を湧かせない＝貨幣保存の番人が黙ったまま通しで走れる）
         double pool = 0;
         foreach (var p in r.Pops) if (!ReferenceEquals(p, payer) && p.Savings.Value > 0) { pool += p.Savings.Value * 0.5; p.SetSavings(p.Savings.Value * (0.5)); }
         payer.SetSavings(payer.Savings.Value + (pool));
         Assert.True(payer.Savings.Value > 1e3, $"前提が崩れた：参加者の財布が薄い（{payer.Savings:F1}）");
         var (bloc, ideo) = FactionSnapshot.BlocIdeo(payer);
-        var f = new FactionState { Region = r, Bloc = bloc, Ideo = ideo, Size = payer.Size, AvgMilitancy = 0.9, Cohesion = 1.0 };
+        var f = new FactionState { Region = r, Bloc = bloc, Ideo = ideo, Size = payer.Size, FightHeads = payer.Size, AvgMilitancy = 0.9, Cohesion = 1.0 };
         w.Factions.Add(f);
         return (sim, f, payer);
     }
@@ -938,7 +939,7 @@ public class RevoltIgnitionTests
         // 第5因子は掛からない＝EquipFill をどう振っても4因子の積そのもの（ビット恒等）。大衆は男子普選前＝発言権0＝(1−0)=1.0
         f.EquipFill = 0.25;
         Assert.True(w.Suffrage < Suffrage.AdultMale, "前提が崩れた：この時点で男子普選に達している");
-        Assert.Equal(f.Size * f.AvgMilitancy * f.Cohesion * 1.0, Politics.FactionStrength(w, c, f));
+        Assert.Equal(f.FightHeads * f.AvgMilitancy * f.Cohesion * 1.0, Politics.FactionStrength(w, c, f));
         // 法は選好に現れない（＝綱領・要求・戦線のどこにも載らない）し、目標を置いても施行経路が動かない
         var (trad, modern, mass, net) = PolicyPreferences.Stance(w, PolicyAxis.CivilianArms, increasing: true);
         Assert.True(trad == 0 && modern == 0 && mass == 0 && net == 0, $"休眠中に民間の武器購入の法が選好に現れた（{trad}/{modern}/{mass}）");
@@ -968,7 +969,7 @@ public class RevoltIgnitionTests
         Assert.True(f.EquipFill > 0 && f.EquipFill < 1, $"装備充足 {f.EquipFill:F3} が (0,1) に無い＝新しい運動は丸腰から数年かけて武装するはず");
         // 第5因子が掛かる（国軍の即応度×装備充足と同じ物差し）
         Assert.True(w.Suffrage < Suffrage.AdultMale);
-        Assert.Equal(f.Size * f.AvgMilitancy * f.Cohesion * 1.0 * f.EquipFill, Politics.FactionStrength(w, c, f), 12);
+        Assert.Equal(f.FightHeads * f.AvgMilitancy * f.Cohesion * 1.0 * f.EquipFill, Politics.FactionStrength(w, c, f), 12);
 
         // 通しで1年走らせても貨幣保存の番人（Simulation の月次 CheckInvariants）が黙っている＋買い続けた武器庫が育つ（別の世界＝直接 Run の帳簿と混ぜない）
         // ★(1020) c95ub：遍在の財の旗で軌道が動き、種 42 は期末が 1 四半期目を 0.05% 下回る端になった（47・50 も同じ・買い付けの累計は同じ大きさ）＝種 43 で成立（(613) と同じ作法・measurements/m1020_20261110/probe_arms.tsv）。
@@ -1332,7 +1333,7 @@ public class RevoltIgnitionTests
         wa.SelfPower!.IsPlayer = true;   // 片方だけプレイヤーの印（UI と同じ）
         foreach (var w in new[] { wa, wb })
         {
-            var f = new FactionState { Region = w.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0, Rejections = 3.0 };
+            var f = new FactionState { Region = w.Regions[0], Bloc = 2, Ideo = (int)Ideology.Communism, Size = 1.0, FightHeads = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0, Rejections = 3.0 };
             w.Factions.Add(f); w.PendingFactionCrisis = f;   // 同じ危機の札（通知）
             // ★(82) で置いた潤沢の減税の明示ピン（OpulenceTaxRelief=0）は (85) で外した＝反射が門（GateAllLawTargets）の前へ移り、
             //   縮めた税の目標も危機の要求と同じ門を通る＝ピンなしでこの番人が緑であること自体が対称の証拠（(82) は門の後の倍率が段3→2 を置いて赤だった）。

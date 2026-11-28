@@ -98,42 +98,55 @@ public class PolicyPoliticsTests
     }
 
     [Fact]
-    public void 不満度の物差しは既定で旧経路であり切替で法の隔たりを読む()   // 段1-3＝モードフラグ1本（既定0＝旧の政治的距離）
+    public void 不満度は既定で法の隔たりも物差しの切替も読まない_旧の経路の切替は対照()   // 段1-3＝モードフラグ1本（DiscontentLawGap 既定0）。(1398) c149sd 点火で既定の不満度は D＝Clamp01(W×Pos(R−s))＝声の項（法の隔たり）を読まない＝旧の番人を新しい規則へ書き換えた（㉜ の改め）
     {
         var (sim, p, coord) = DiscontentBoard();
         var w = sim.World; var c = w.Coef;
-        Assert.Equal(0.0, new Coefficients().DiscontentLawGap);        // ★既定は旧経路（点火したら本アサートも直す＝表が休眠の一覧）
+        Assert.Equal(0.0, new Coefficients().DiscontentLawGap);
+        Assert.Equal(1.0, new Coefficients().SatReadersToDiscontent);  // ★既定は不満度の読み手＝D（(1398) で点火）
+        double living = System.Math.Clamp(c.WantWeight * Politics.LivingWant(p, c), 0, 1);
+        Assert.Equal(0.8 * 0.1, living, 12);                           // 手計算：0.8×失望 0.1
 
-        // 既定＝法の隔たりの引数を**一切読まない**（0でも1でも同じ値）＝4軸座標の距離のまま
+        // 既定＝物差しの切替（DiscontentLawGap）が 0 でも 1 でも、法の隔たりの引数が 0 でも 1 でも、生活の失望だけ
+        foreach (double lg in new[] { 0.0, 1.0 })
+        {
+            c.DiscontentLawGap = lg;
+            Assert.Equal(living, Politics.Discontent(w, c, p, coord, 0.0));
+            Assert.Equal(living, Politics.Discontent(w, c, p, coord, 1.0));
+        }
+
+        // 対照＝旧の経路（旗 0・焼き込みまで残る枝）：既定の物差しは隔たりの引数を読まず、切替で LawGap を読む＝この盤面は法の項に感度を持つ
+        c.SatReadersToDiscontent = 0; c.DiscontentLawGap = 0;
         Assert.Equal(Politics.Discontent(w, c, p, coord, 0.0), Politics.Discontent(w, c, p, coord, 1.0));
-
-        c.DiscontentLawGap = 1.0;                                      // 切替＝物差しだけが LawGap へ
+        c.DiscontentLawGap = 1.0;
         double zero = Politics.Discontent(w, c, p, coord, 0.0);
         double full = Politics.Discontent(w, c, p, coord, 1.0);
         Assert.True(full > zero, $"切替後も法の隔たりを読んでいない（{zero} ⇔ {full}）");
-        // 隔たり0＝生活の失望だけが残る（前2因子 wEdu×(1−発言権) は残したまま物差しだけが0になる）
-        Assert.Equal(System.Math.Clamp(c.WantWeight * Politics.LivingWant(p, c), 0, 1), zero);
+        Assert.Equal(living, zero);
     }
 
     [Fact]
-    public void 紙の参政権は不満度を宥めきれない()   // 1934拡張E5の是正が不満度側でも生きている（専制が選挙なしで参政権を発行しても満額は鎮まらない）
+    public void 紙の参政権は声の項を宥めきれない_既定の不満度は声を読まない()   // 1934拡張E5の是正（専制が選挙なしで参政権を発行しても満額は鎮まらない）。(1398) c149sd：既定の不満度は声の項を抜いた＝宥めの順は闘争度が読む声の項（DiscontentRaw の政治の項＝MilVoice と同じ PoliticalTerm）で見る（㉜ の改め）
     {
         var (sim, p, coord) = DiscontentBoard();
         var w = sim.World; var c = w.Coef;
+        const double dist = 1.0;                                       // 政治の隔たりを固定（4軸距離の変化と混ぜない）
 
-        // ⚠政体は座標も動かすので、**同じ coord を渡して**発言権の実在だけを変える（4軸距離の変化と混ぜない）
+        // ⚠政体は座標も動かすので、**同じ距離を渡して**発言権の実在だけを変える
         w.Polity = Polity.Republic; w.SecretBallot = SecretBallotLaw.Secret;
-        double secret = Politics.Discontent(w, c, p, coord, 0);
+        double secret = Politics.DiscontentRaw(w, c, p, dist), dSecret = Politics.Discontent(w, c, p, coord, 0);
         w.SecretBallot = SecretBallotLaw.Open;
-        double open = Politics.Discontent(w, c, p, coord, 0);
+        double open = Politics.DiscontentRaw(w, c, p, dist), dOpen = Politics.Discontent(w, c, p, coord, 0);
         w.Polity = Polity.Absolutist;                                  // 非議会政体＝票はあるが選挙が実在しない
-        double paper = Politics.Discontent(w, c, p, coord, 0);
+        double paper = Politics.DiscontentRaw(w, c, p, dist), dPaper = Politics.Discontent(w, c, p, coord, 0);
 
         Assert.True(open > secret, $"公開投票が秘密投票より宥まっている（公開 {open} ≦ 秘密 {secret}）");
         Assert.True(paper > open, $"非議会政体の紙の参政権が公開投票より宥まっている（紙 {paper} ≦ 公開 {open}）");
         // ⚠非議会政体では投票法は**読まれない**（reality は政体で決まる）＝ここを「秘密なら宥まる」と書くと空洞の検査になる
         w.SecretBallot = SecretBallotLaw.Secret;
-        Assert.Equal(paper, Politics.Discontent(w, c, p, coord, 0));
+        Assert.Equal(paper, Politics.DiscontentRaw(w, c, p, dist));
+        // 既定の不満度（旗 1）は声を読まない＝3 つの盤面で同じ・生活の失望だけ（手計算 0.8×0.1）
+        Assert.Equal(0.8 * 0.1, dSecret, 12); Assert.Equal(dSecret, dOpen); Assert.Equal(dSecret, dPaper);
     }
 
     // ==== 満足度の母集団＝闘争度・不満度と同じ述語（2026-09-25）==========================================================
@@ -266,29 +279,30 @@ public class PolicyPoliticsTests
     [Fact]
     public void 段3_点火すると参加は重みになり閾値が消える()   // (b) 蜂起の門と「運動に数えられる下限」の取り違えの解消
     {
-        var (w, pop) = 参加の盤面(militancy: 0.30, drop: 0);   // 不満度0＝参加は闘争度そのもの
+        // (1398) c149sd：既定の参加は不満度 D だけ＝盤面は不満度 0.3（0.8×失望 0.375）・闘争度 0.3（旧の盤面〈不満度 0・闘争度 0.3〉は旧の規則の max に依った＝㉜ の改めで盤面を新しい規則へ）
+        var (w, pop) = 参加の盤面(militancy: 0.30, drop: 0.375);
         var (size, milSum) = 参加の総和(w);
         Assert.Equal(0.30 * pop, size, 6);      // 閾値の下でも**0.3人分**が運動に数えられる（旧は0人）
         Assert.Equal(0.30, milSum / size, 9);   // 参加加重の平均闘争度＝この腕では闘争度そのもの
     }
 
     [Fact]
-    public void 段3_参加は不満度で決まり闘争度が上書きする()   // (c) 裁定1＝動力は不満度・闘争度は上書き（max）
+    public void 段3_参加は不満度だけで決まり闘争度は上書きしない()   // (c) 旧の裁定1〈動力は不満度・闘争度は上書き（max）〉を (1371) c145rv の旗 SatReadersToDiscontent が〈参加は D だけ〉へ置き換え、(1398) c149sd で点火＝旧の番人を新しい規則へ書き換えた（㉜ の改め）
     {
         // 腕1＝生活が落ちた（失望0.4→不満度 0.8×0.4=0.32）が闘争度は低い（0.20）＝**不満度が参加を決める**
         var (w1, pop1) = 参加の盤面(militancy: 0.20, drop: 0.4);
         var p1 = w1.Regions[0].Pops[0];
         double d1 = Politics.Discontent(w1, w1.Coef, p1, PoliticalQuantities.DriftedPolityCoord(w1.Polity, w1.Suffrage, w1.Coef), 0);
-        Assert.True(d1 > 0.20, $"前提が崩れた：不満度が闘争度を上回っていない（{d1:F3}）");
+        Assert.Equal(0.8 * 0.4, d1, 12);                               // 手計算
         Assert.Equal(d1 * pop1, 参加の総和(w1).Size, 6);
 
-        // 腕2＝同じ盤面で闘争度だけを上げる（0.20→0.80）＝**闘争度が上書きする**（生活は1ミリも変えていない）
+        // 腕2＝同じ盤面で闘争度だけを上げる（0.20→0.80）＝**闘争度は上書きしない**（生活は1ミリも変えていない＝参加は腕1と同じ D）
         var (w2, pop2) = 参加の盤面(militancy: 0.80, drop: 0.4);
-        Assert.Equal(0.80 * pop2, 参加の総和(w2).Size, 6);
+        Assert.Equal(d1 * pop2, 参加の総和(w2).Size, 6);
 
-        // 記憶を持たない側＝盤面（参照点）を戻せば参加もその場で戻る（ストックなら戻らない）
+        // 記憶を持たない側＝盤面（参照点）を戻せば参加もその場で戻る（ストックなら戻らない）＝D 0＝参加 0（闘争度 0.20 は残っても数えない）
         foreach (var r in w1.Regions) foreach (var p in r.Pops) p.LivingRef = p.Satisfaction;
-        Assert.Equal(0.20 * pop1, 参加の総和(w1).Size, 6);
+        Assert.Equal(0.0, 参加の総和(w1).Size, 6);
     }
 
     [Fact]
