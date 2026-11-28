@@ -1,0 +1,12 @@
+# (1439) 絞った試験（合わせた木 c7b6ff70a・scripts/instruments/m1439/narrow.sh・FullLength を除く）
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 1, declared: 19524764) [14 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 4888348) [< 1 ms]
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 6, declared: 2049) [< 1 ms]
+失敗!   -失敗:     3、合格:   889、スキップ:     1、合計:   893、期間: 25 m 7 s - PriceOfBread.Tests.dll (net10.0)
+# WriterRatchetTests 3 行を ★(749) で取り直した後（WriterRatchetTests＋UnderconsumptionTests）
+成功!   -失敗:     0、合格:    61、スキップ:     0、合計:    61、期間: 39 s - PriceOfBread.Tests.dll (net10.0)
+# 突然変異（UnderconsumptionTests の向きの Assert を capPc < workerPc へ逆にした使い捨て）＝赤を期待
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.UnderconsumptionTests.無介入の放任経済は労働者を窮乏させ脱工業化し格差を生む [144 ms]
+失敗!   -失敗:     1、合格:     2、スキップ:     0、合計:     3、期間: 1 s - PriceOfBread.Tests.dll (net10.0)
