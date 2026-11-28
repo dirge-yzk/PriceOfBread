@@ -1,0 +1,7 @@
+# (1411) suite 木=/d/PoB_work/wt_c153rg HEAD=94ae4aa6f 2026-11-28 08:46:45
+list-tests Tests(Category!=FullLength)=3115 Tests.Ui=232 和=3347 FullLength=4
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   806、スキップ:     1、合計:   807、期間: 23 m 28 s - PriceOfBread.Tests.dll (net10.0)
+Tests(Category!=FullLength) rc=0 成功!   -失敗:     0、合格:  3113、スキップ:     2、合計:  3115、期間: 20 m 47 s - PriceOfBread.Tests.dll (net10.0)
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 17 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     4、スキップ:     0、合計:     4、期間: 10 m 43 s - PriceOfBread.Tests.dll (net10.0)
+SUITEDONE 2026-11-28 09:44:09
