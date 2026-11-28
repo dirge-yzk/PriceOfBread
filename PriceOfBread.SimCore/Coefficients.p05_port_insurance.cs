@@ -47,9 +47,9 @@ public sealed partial class Coefficients
     public double EthnicTensionPerMonth = 0.06;       // 異民族グループ間の緊張（汎スラヴ/汎ゲルマン＝同グループは親近・異グループは反目）
     public double EthnicAffinityRelief = 0.12;    // 同民族グループ間の緊張低下（月・同一民族はさらに強い）
     public double LawTensionPerMonth = 0.05;          // 法のリベラル度(World.Freedom 0..1)の差による緊張（自由主義 vs 反動＝1848型）
-    public double ReligionTensionPerMonth = 0.03;     // 宗教の隔たりによる緊張（1789-1880は宗教戦争後＝小重み）
+    public double ReligionTensionPerMonth = 0;     // (1428) 0.03→0：外交の緊張の宗教の項は消す（作者 2026-11-11・宗教の例外は法制定だけ）。式と欄は段 2 で消す
     public double ReligionHeresyBonus = 0.22;     // 同ファミリー異宗派（スンナ⇔シーア・カトリック⇔プロテスタント）の摩擦加算＝「異端は異教より揉める（小さな差異のナルシシズム）」
-    public double ReligionAffinityRelief = 0.06;  // 同一宗教間の緊張低下（月）
+    public double ReligionAffinityRelief = 0;  // (1428) 0.06→0：同じ宗教の緩和も消す（同上）
     public double ProtectorTensionPerMonth = 0.02;  // 休眠側の設計値0.02目安＝EthnicTensionPerMonth 0.06/ReligionTensionPerMonth 0.03 の弟分
     public double ProtectorInterventionWeight = 0.5;  // 休眠側の設計値0.5目安
     public double VassalTributeMonthGdpPerQuarter = 0.015;      // 属国/傀儡の貢納＝従属の月の GDP×これを毎四半期 宗主国庫へ（四半期ごとに月 GDP の 1.5%＝年 GDP の 0.5%・運河通行料の両建てを流用・保存）
