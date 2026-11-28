@@ -1,0 +1,3 @@
+D:/PoB_work/c153nx_work/out_c153nxB_10/ins ALL 7992 654 1830 0.082 0.229
+D:/PoB_work/c153nx_work/out_c153nxB_10/ins blank 924 37 175 0.040 0.189
+D:/PoB_work/c153nx_work/out_c153nxB_10/ins won 7068 617 1655 0.087 0.234
