@@ -129,9 +129,10 @@ public static partial class Instruments
             for (int d = start; d < end; d++)
             {
                 var r = all[d].R;
+                double rate = Calendar.PerQuarterToPerMonth(c.ImmigrationReceiveCapPerQuarter).Value;
                 domCap[d] = c.ReceiveCapByRoom > 0   // (1436) 旗 ReceiveCapByRoom 1 の写し＝行き先の空き（計器が州の POP と売り手から自分で数える）×率×(食×住居)^指数
-                    ? Calendar.PerQuarterToPerMonth(c.ImmigrationReceiveCapPerQuarter).Value * McRoom(r) * McAbsorbFh(r, c)
-                    : Calendar.PerQuarterToPerMonth(c.ImmigrationReceiveCapPerQuarter).Value * r.SumPopulation() * McAbsorb(r, c);
+                    ? rate * McRoom(r) * McAbsorbFh(r, c)
+                    : rate * r.SumPopulation() * McAbsorb(r, c);
             }
             start = end;
         }
