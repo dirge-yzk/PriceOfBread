@@ -1,0 +1,7 @@
+元の和 rc=0（期待 0）赤になった
+μ1 重複（H を 2 度） rc=1（期待 1）赤になった
+μ2 欠け（H から 1 本） rc=1（期待 1）赤になった
+μ3 Ui を和に入れない rc=1（期待 1）赤になった
+μm1(list 段) rc=1 list-tests Tests(Category!=FullLength)=3111 H=135 R=3111 H+R=3246 Tests.Ui=232 和=3343 FullLength=4 STOP H+R が list-tests と合わない（または H が空） 
+μm2(list 段) rc=1 list-tests Tests(Category!=FullLength)=3111 H=134 R=2976 H+R=3110 Tests.Ui=232 和=3343 FullLength=4 STOP H+R が list-tests と合わない（または H が空） 
+μm4(list 段) rc=1 list-tests Tests(Category!=FullLength)=3111 H=0 R=3111 H+R=3111 Tests.Ui=232 和=3343 FullLength=4 STOP H+R が list-tests と合わない（または H が空） 

@@ -1,0 +1,21 @@
+# (1426) c153tp 事前登録（最初のコミット）。書き手 Claude Sonnet 5.5。木＝main c3290bbbd・枝 c153tp。種類＝恒等の線（道具）・予言 0（SimCore・Tests 0 行）。
+## [1] 恒等の線・予言 0
+- 触る物：scripts/instruments/suite/（新：filters.sh・split_suite.sh・split_one.sh・trx_sum.py）・scripts/instruments/ident/ident.sh（腕 t の中だけ）・ident_check.py（cmp_tests の末尾だけ）・docs/README.md:222（㉜ の 1 句）・scripts/instruments/c153tp/（台本）・measurements/m1426_*。
+- SimCore・Tests・App・Display・Runner は 0 行。成績表 b5・b10・計器の表は変わらない（走らせる物が無い）＝ident の素の 5 種と計器つき 10 種は m1425 と名乗り行を除き全行一致の予言。
+- 偏差の名乗り：割り当ての〈docs/README_線の担当.md の ㉜ の行〉には〈合計を --list-tests と突き合わせる〉の句が無い（grep 0）。句は docs/README.md:222（★(1341) ㉜ の改め）にある＝そこの 1 句だけを書き直した。
+## [2] 重い組の選び方（m1425 の suite の trx は D: に無い＝c152ht の trx〔D:/PoB_work/c152ht_work/suite/nonfull_Tests.trx・ht の後の木・壁が 57 分に伸びた混雑の回〕から取った近似）
+- 全クラスの時間（試験の期間の和・CPU 分）上位：MultiNationTests 18.7・MultiNationTests3 16.3・StartWarmupTests4 15.4・PolicyPoliticsTests 14.4・MultiNationTests2 13.8・StateDigestToolTests 13.8・MultiNationTests4 12.6 ほか。**これらは Collection に入っていない（並列の相に居る）**＝別のプロセスへ出しても直列の尾は縮まない。割り当ての〈MultiNationTests.cs:196 は Collection("Instruments")〉は SilverParityInstrumentTests（別のクラス）の宣言で、MultiNationTests 本体は Collection 外（grep）。
+- Collection は "Instruments" の 144 クラスだけ（DisableParallelization＝並列の相が終わってから 1 本ずつ直列）。時間の和 32.1（混雑の回）。上位：InstrumentsTests 8.4（37 本）・InstrumentHookClosureTests 5.7（98 本）・ScalarDeletionTests 2.1・WriterRatchetTests 1.2・ZeroPopSkipTests 1.1・FoodLedgerTests 1.0。
+- **重い組（2 クラス）＝InstrumentsTests・InstrumentHookClosureTests（和 14.1・直列の尾の 44%）**。理由：直列の尾の中で最も長い 2 本・どちらも Instruments の静的な状態を持つ（プロセスが別なら分かれる）・一時の置き場は Guid つき・クラスの境で切れて試験の中身を書き換えない。
+- 形：H＝`Category!=FullLength&(FullyQualifiedName~PriceOfBread.Tests.InstrumentsTests.|FullyQualifiedName~PriceOfBread.Tests.InstrumentHookClosureTests.)`・R＝`Category!=FullLength&FullyQualifiedName!~…InstrumentsTests.&FullyQualifiedName!~…InstrumentHookClosureTests.`（filters.sh の 1 か所）。FullLength は別に回す。
+- 衝突の表（grep の結果）：①Path.GetTempPath の固定の名 0 件（全て Guid つき）②TEMP・TMP はプロセスごとに分ける（tmpH・tmpR）③Instruments.Dir・On の静的な状態はプロセスごとに分かれる（Collection の直列は各プロセスの中だけ＝H の中の直列と R の尾の直列が重なる）④固定の絶対の道を書く試験 0（C:\x\… は文字列の引数だけで書き込まない）⑤SetCurrentDirectory・CurrentDirectory の書き換え 0 ⑥リポジトリの中へ書く試験：WriterRatchetTests:82 は一時の dir の中・InstrumentsTablesSelectTests は一時の dir。
+## [3] 予言
+- 合格の数・赤の名・スキップの名・試験の総数は、分ける前（suite_m1425.sh の形）と分けた後で同じ：Tests(Category!=FullLength) 3111（合格 3109・スキップ 2 ＝InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun と TechInstitutionTests の 1 本）＋Ui 232＝3343・赤 0・FullLength 4 合格。
+- H＋R の --list-tests の和＝3111・重なり 0。H は 135 本前後（37−FullLength 分＋98）。
+- 壁（推）：Tests の Category!=FullLength の壁が 4〜8 分短くなる（m1425 の 19 分 54 秒から。H の約 14 CPU 分が並列の相と重なる）。静かさは 推定÷実測の CPU で書く（静かな本 88〜90%）。他の線の腕と重なった本は NOT_QUIET と書く＝効きは近似。
+## [4] 門と突然変異（台本だけ・使い捨て・gate_tp.sh）
+- 門：(a) trx_sum.py の和＝--list-tests（3343）・重複 0・欠け 0 (b) 分ける前と後で合格・赤・スキップの名の集合が同じ (c) ident.sh の腕 t の H＋R 行が通る。
+- μ1：R から重い組の否定を外す（重複）→ trx_sum が重複 >0 で rc=1。 μ2：重い組の 1 本を H と R の両方から外す（欠け）→ 和が小さく rc=1。 μ3：Ui の trx を和に入れない → 和 3111≠3343 で rc=1。 μ4：H を空にする→ split_suite の STOP。 紙の台本：旗 0 に当たる形（何もしない＝全部を R に入れる）は H が空で STOP になる。
+- ㉘ の走査の番人：SimCore・Tests・Coefficients を触らない＝走査の番人の件数・許可表の書き換え 0・件数の予言 0。
+## [5] 採否
+- ident〈判定: 恒等〉（素の 5 種・計器つき 10 種）と門 (a)(b)(c) と μ1〜μ3 の赤が揃ったら採る。作者の止める線（破綻・発散・空洞化・計算量）は走らせる物が無いので当たらない。

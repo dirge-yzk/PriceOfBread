@@ -628,6 +628,19 @@ def cmp_tests(W, cfg, delta):
         ok(f'Category!=FullLength {nf}（基準 {bn}' + (f'{delta:+d} を宣言' if delta else '') + f'）・FullLength {fu}（基準 {bf}）')
     else:
         fail(f'テストの数：Category!=FullLength {nf}（基準 {bn}・宣言 {delta:+d}）・FullLength {fu}（基準 {bf}）')
+    # (1426) 2 本に分けた形（重い組 H と残り R）の --list-tests：H と R の名は重ならず、和が Tests の Category!=FullLength と一致する（出力が無い木＝分けない形の古い run は読み飛ばす）
+    names = {}
+    for k in ('T', 'H', 'R'):
+        pth = J(W, f'tests_list_split_{k}.txt')
+        if os.path.exists(pth):
+            names[k] = [l.strip() for l in open(pth, encoding='utf-8', errors='replace') if re.match(r'^ {4}\S', l)]
+    if len(names) == 3:
+        h, r_, t_ = names['H'], names['R'], names['T']
+        both = len(set(h) & set(r_))
+        if len(h) > 0 and both == 0 and len(h) + len(r_) == len(t_):
+            ok(f'分けた形：H {len(h)}＋R {len(r_)}＝{len(h) + len(r_)}（Tests の Category!=FullLength {len(t_)}・重なり 0）')
+        else:
+            fail(f'分けた形：H {len(h)}＋R {len(r_)}≠{len(t_)} か H が空か重なり {both}')
 
 
 # ---------- 6 savetest と leakhunt ----------

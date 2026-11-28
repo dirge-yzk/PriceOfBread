@@ -9,7 +9,7 @@
 # 何を回すか（腕は同時に走る＝batch.sh の上限 POB_MAX_ARMS を守る）：
 #   a ＝ 素の 5 種            batch.sh prep→run ia 5            ─ 成績表 b5 を基準の素の 5 種と全行（名乗り行を除く）で突き合わせる
 #   b ＝ 計器つきの 10 種      INS=1 batch.sh run ib 10          ─ 成績表 b10・計器の表（約 380 本×10 種）・注視の表を基準と突き合わせる（計器の国は batch.sh の 9 国の既定）
-#   t ＝ テストの数            Tests をビルドして --list-tests   ─ Category!=FullLength と FullLength の数を基準と突き合わせる（(1206) 件数だけ＝赤の試験が有っても〈判定: 恒等〉は付く・赤の有無は ㉘ とフルスイートで見る）
+#   t ＝ テストの数            Tests をビルドして --list-tests   ─ Category!=FullLength と FullLength の数を基準と突き合わせる＋(1426) 2 本に分けた形（H＋R）の --list-tests の和・重複 0 を確かめる（(1206) 件数だけ＝赤の試験が有っても〈判定: 恒等〉は付く・赤の有無は ㉘ とフルスイートで見る）
 #   s ＝ savetest と leakhunt  （--saveleak を付けたときだけ）  ─ saveleak.sh：savetest OK と leakhunt の保存則違反なし
 # 測るのは --tree の木（既定＝この台本のある木）。回す道具（batch.sh・measure.sh は木の物）。基準は ident.cfg（--cfg で替える。合流で新しい基線を作ったら cfg を書き換える）。
 #
@@ -45,7 +45,7 @@ case "$CMD" in
       b) bash "$IS/batch.sh" prep ib "dir:$TREE" plain && { unset POB_INSTRUMENTS_TABLES; [ -s "$M/small.txt" ] && export POB_INSTRUMENTS_TABLES="$(cat "$M/small.txt")"; INS=1 bash "$IS/batch.sh" run ib 10; } ;;
       t) bash "$IS/batch.sh" prep it "dir:$TREE" plain && {
            T="$W/src_it"
-           : > "$W/tests_build.txt"; rm -f "$W/tests_list_nonfull.txt" "$W/tests_list_full.txt"
+           : > "$W/tests_build.txt"; rm -f "$W/tests_list_nonfull.txt" "$W/tests_list_full.txt" "$W"/tests_list_split_*.txt
            for P in PriceOfBread.Tests PriceOfBread.Tests.Ui; do   # (1111) 試験はエンジン用と画面用の 2 プロジェクト＝合計を数える（tests_list_*.txt へ両方を足す）
              dotnet build "$T/$P/$P.csproj" -c Release --artifacts-path "$W/art_it" --disable-build-servers >> "$W/tests_build.txt" 2>&1 || exit 1
            done
@@ -53,6 +53,12 @@ case "$CMD" in
              for f in "Category!=FullLength:nonfull" "Category=FullLength:full"; do   # 数えるのは ident_check.py（出力の tests_list_*.txt の 4 空白で始まる行）
                dotnet test "$T/$P/$P.csproj" -c Release --no-build --artifacts-path "$W/art_it" --list-tests --filter "${f%%:*}" >> "$W/tests_list_${f##*:}.txt" 2>&1
              done
+           done
+           # (1426) 試験を 2 本の dotnet test（重い組 H と残り R）に分けて流す形の数：H と R の --list-tests の和が Tests の Category!=FullLength と一致するかを ident_check.py が読む
+           . "$IS/suite/filters.sh"
+           P=PriceOfBread.Tests
+           for f in "Category!=FullLength:T" "$FILTER_H:H" "$FILTER_R:R"; do
+             dotnet test "$T/$P/$P.csproj" -c Release --no-build --artifacts-path "$W/art_it" --list-tests --filter "${f%:*}" > "$W/tests_list_split_${f##*:}.txt" 2>&1
            done
          } ;;
       s) POB_WORK="$W" SAVELEAK_SRC="$TREE" bash "$IS/saveleak.sh" ;;
