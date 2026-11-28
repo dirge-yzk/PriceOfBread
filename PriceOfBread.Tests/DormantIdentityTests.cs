@@ -41,6 +41,7 @@ public class DormantIdentityTests
         "ForcedPeaceBlankOverCollapse",   // (821) c65md 列強の調停の戦争は崩壊の上書きを通らず白紙で終える旗（0＝今の形・1 ビットも変わらない・番人 ForcedPeaceBlankTests）。点火時にこの表から外す
         "WarExitFromCapacity",          // (1399) c149wx 戦争の出口・調停・動員の深さ・開戦の門を厭戦でなく持ちこたえる力と国難＝内戦だけで読む旗（0＝今の規則・番人 WarExitFromCapacityTests）。点火は次の波
         // ★NoContactCollapseBlank（(1429) c153nx 接触の無い崩壊の戦争をその月に白紙で講和）は 2026-11-28 に 1 で腕 B の木へ＝この表から外した（旗 0 の経路の番人は NoContactWarExitTests の T1z）。
+        "ReceiveCapByRoom",             // (1436) c154ha 国内の受け入れの上限の量を行き先の空きへ（0＝旧の形・行き先の人口×率×AbsorbCap）
         "SilverParityDemandWeighted",   // (807) c12sv 銀の平価の注入の対数平均を州の金鉱の需要で重みづける旗（0＝州ごとに等しい 1 票＝今の形・番人 SilverParityDemandWeightedTests）
         // ★CapitalClaimCancelFromLedger（(828) c66dw 消えた請求権の額を外資の負債の台帳の差で書く）は線の枝で 1 に**点火**＝この表から外した。旗 0 の経路の番人は CapitalCouponWriteDownTests の Theory（旗を明示）。
         "CapitalDividendFromHostRent",   // (801) c11fl 外資の利札を受け皿の投資家の工業レントの持ち分に結ぶ旗（0＝今の形・1 ビットも変わらない・番人 CapitalDividendHostRentTests）。点火時にこの表から外す

@@ -83,7 +83,9 @@ public static class Territory
 
     private static double ReceiveScale(Region dst, double planned, Coefficients c)
     {
-        double cap = (Calendar.PerQuarterToPerMonth(c.ImmigrationReceiveCapPerQuarter) * dst.SumPopulation() * AbsorbCap(dst, c)).Value;
+        double cap = c.ReceiveCapByRoom > 0
+            ? (Calendar.PerQuarterToPerMonth(c.ImmigrationReceiveCapPerQuarter) * ReceiveRoom(dst) * AbsorbFoodHousing(dst, c)).Value   // (1436) 旗 1＝行き先の空き×率×(食×住居)^指数
+            : (Calendar.PerQuarterToPerMonth(c.ImmigrationReceiveCapPerQuarter) * dst.SumPopulation() * AbsorbCap(dst, c)).Value;
         return planned <= cap ? 1.0 : cap > 0 ? cap / planned : 0.0;
     }
 
@@ -134,6 +136,34 @@ public static class Territory
     {
         if (r is null || !(c.ImmigrationAbsorbExponent > 0)) return 1.0;
         double slack = PoliticalQuantities.Clamp01(r.FoodFill) * PoliticalQuantities.Clamp01(r.HousingFill) * LandFactor(r, r.SumRuralPopulation(), c);
+        if (!(slack > 0)) return 0;
+        return Math.Pow(slack, c.ImmigrationAbsorbExponent);
+    }
+
+    /// <summary>(1436) c154ha：国内の受け入れの上限の〈量〉＝行き先の空き（千人）＝農村の空き max(0, 耕地−農村)＋職の空き。耕地 ≥1e8 は土地の制約なし（LandFactor と同じ切り）。</summary>
+    internal static double ReceiveRoom(Region r)
+        => (r.ArableLand >= 1e8 ? r.ArableLand : Math.Max(0.0, r.ArableLand - r.SumRuralPopulation())) + JobRoom(r);
+
+    /// <summary>(1436) 職の空き（千人）＝一般の労働の市場の前の清算の足りない量（LastShortage・労働の単位）を、人力の売り手の頭数÷人力の産出で頭数へ換えた物。人力の産出 0 は 0。</summary>
+    internal static double JobRoom(Region r)
+    {
+        if (Catalog.LaborId >= r.Markets.Length) return 0.0;
+        double shortage = r.Markets[Catalog.LaborId].LastShortage;
+        if (!(shortage > 0)) return 0.0;
+        double heads = 0, output = 0;
+        foreach (var s in r.Producers)
+        {
+            if (s.GoodId != Catalog.LaborId || s.Bankrupt || !EconomyStep.IsHumanLaborSupply(s) || (uint)s.LaborPopIndex >= (uint)r.Pops.Count) continue;
+            heads += r.Pops[s.LaborPopIndex].Size; output += s.Output;
+        }
+        return output > 0 ? heads * shortage / output : 0.0;
+    }
+
+    /// <summary>(1436) 旗 ReceiveCapByRoom 1 の受け入れの能力＝(食×住居)^指数（AbsorbCap の土地の項は空きの量が読む＝同じ原因を 2 回読まない）。</summary>
+    internal static double AbsorbFoodHousing(Region r, Coefficients c)
+    {
+        if (!(c.ImmigrationAbsorbExponent > 0)) return 1.0;
+        double slack = PoliticalQuantities.Clamp01(r.FoodFill) * PoliticalQuantities.Clamp01(r.HousingFill);
         if (!(slack > 0)) return 0;
         return Math.Pow(slack, c.ImmigrationAbsorbExponent);
     }
