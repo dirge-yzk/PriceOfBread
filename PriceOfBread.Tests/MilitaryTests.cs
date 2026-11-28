@@ -898,7 +898,7 @@ public class MilitaryTests
         var dip = sim.Diplomacy; var c = sim.Coef;
         var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!; var jp = sim.Nations[2].World.SelfPower!;
         c.IdeologyTensionPerMonth = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionPerMonth = 0; c.EthnicAffinityRelief = 0;
-        c.LawTensionPerMonth = 0; c.ReligionTensionPerMonth = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionPerMonth = 0;
+        c.LawTensionPerMonth = 0; c.OpiumBanTensionPerMonth = 0;
         c.TensionDecay = 0; c.ProtectorTensionPerMonth = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionPerMonth = 0;
         Ally152(dip, fr, es);
         double fe0 = dip.Tension(fr, es), fj0 = dip.Tension(fr, jp), ej0 = dip.Tension(es, jp);
@@ -1056,7 +1056,7 @@ public class MilitaryTests
             var dip = sim.Diplomacy; var c = sim.Coef;
             var fr = sim.Nations[0].World.SelfPower!; var es = sim.Nations[1].World.SelfPower!;
             c.IdeologyTensionPerMonth = 0; c.IdeologyAffinityRelief = 0; c.EthnicTensionPerMonth = 0; c.EthnicAffinityRelief = 0;
-            c.LawTensionPerMonth = 0; c.ReligionTensionPerMonth = 0; c.ReligionAffinityRelief = 0; c.OpiumBanTensionPerMonth = 0;
+            c.LawTensionPerMonth = 0; c.OpiumBanTensionPerMonth = 0;
             c.TensionDecay = 0; c.ProtectorTensionPerMonth = 0; c.ActionTensionStep = 0; c.RouteDependenceTensionPerMonth = 0;
             if (mountain) foreach (var r in sim.Nations[0].World.Regions) r.Terrain = Terrain.Mountain;
             double t0 = dip.Tension(fr, es);

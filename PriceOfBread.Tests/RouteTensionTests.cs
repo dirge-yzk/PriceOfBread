@@ -30,7 +30,7 @@ public class RouteTensionTests
         // 他の全緊張チャネルを黙らせ、増分＝経路依存だけにする（会計の単離・ProtectorTests と同作法）
         c.ThreatTensionPerMonth = 0; c.IdeologyTensionPerMonth = 0; c.IdeologyAffinityRelief = 0;
         c.EthnicTensionPerMonth = 0; c.EthnicAffinityRelief = 0;
-        c.LawTensionPerMonth = 0; c.ReligionTensionPerMonth = 0; c.ReligionAffinityRelief = 0;
+        c.LawTensionPerMonth = 0;
         c.OpiumBanTensionPerMonth = 0; c.TensionDecay = 0; c.ProtectorTensionPerMonth = 0;
         c.ActionTensionStep = 0;   // ★2026-09-28 回8-1：AI の挑発も同じ動詞＝ならしが毎月動く（旧＝押した瞬間に入り切った）＝緊張の操作も黙らせる
         sim.StartWarmup();     // 扼者の解決（StepCanals）は助走中も通る
