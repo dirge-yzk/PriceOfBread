@@ -1,0 +1,11 @@
+(1430) c153ho 読む：州の空洞化の根（コードを書かない・腕 0 本・コミットしない）
+作業の場所：D:/PoB_work/r1430_work/（台本は C:/Users/dirge/Documents/PriceOfBread/scripts/instruments/r1430/ に置く・コミットしない＝合流が写す）
+worktree と枝は作らない（main の木を読むだけ・c3290bbbd）。
+読む生（読むだけ）：
+- M＝D:/PoB_work/keep_1425/base_ins（種 1〜10・計器つき）
+- S11＝D:/PoB_work/keep_1425/a11（種 11〜20）
+- N1＝D:/PoB_work/keep_1425/n1・N2＝D:/PoB_work/keep_1425/n2
+- 使う表：region_s・migration_s・migcap_s・xmig_s・pop_s・popclose_s・landbase_s・landbasereg_s・rule_s ほか（grep で確かめる）
+- 材料：D:/PoB_work/spare_1126/hollow_facts.md・hollow_proposals_refute.md・measurements/m1418_20261127/（セントポール）
+- ソース：PriceOfBread.SimCore/Simulation.cs:2049〜・Territory.cs:84〜:88・MultiNationSim.cs:297〜:310・Instruments
+問い 1〜5 の順に表を作り、出力は D:/PoB_work/r1430_work/q*.txt へ。

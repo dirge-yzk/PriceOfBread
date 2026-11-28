@@ -1,0 +1,3 @@
+# (1432) 合流が消した物（〈判定: 恒等〉の後の ident の生は keepsum の後に消してよい＝この回の指示の D: の節）
+2026-11-28 10:31:31 D:/PoB_work/ident_c153fb（線 c153fb の ident の生・〈判定: 恒等〉・要約は measurements/m1432_20261128/keepsum_ident_c153fb_ins.tsv と線の measurements）
+2026-11-28 10:31:37 D:/PoB_work/ident_c153tp（線 c153tp の ident の生・〈判定: 恒等〉・要約は measurements/m1432_20261128/keepsum_ident_c153tp_ins.tsv と線の measurements）
