@@ -162,7 +162,8 @@ public class DormantIdentityTests
         // ★ProtectedLawsReversible（(1344) c141lr 守られた法の不可逆を外す）は 2026-11-24 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は ProtectedLawReversalTests）。
         // ★FemalePartLawFree（(1356) c143k59 構造の女性の参加率を FemalePartBase の 1 本に）は 2026-11-25 に 1 で点火し、(1379) c146kt で旗ごと焼いて消えた＝この表に無い（番人 FemalePartLawFreeTests は旗なし）。
         // ★WarWearyPoliticsCut（(1371) c145rv 厭戦の政治の側の 3 本の読みを外す旗）は 2026-11-26 に 1 で腕 B の木へ＝この表から外した。(1385) c147wb で旗ごと焼いた（番人 WarWearyPoliticsCutTests は旗なし）。(1377) c146wy
-        "SatReadersToDiscontent",       // (1371) c145rv 不満度から声の項を抜き参加と思想が D を読む旗（0＝今の式・番人 SatReadersToDiscontentTests）。点火は波146
+        // ★SatReadersToDiscontent は (1435) c154sd の腕 B の木で 1（3 回目）＝この表から外した（旗 0 と 1 の番人は SatReadersToDiscontentTests）。元の行：(1371) c145rv 不満度から声の項を抜き参加と思想が D を読む旗（0＝今の式・番人 SatReadersToDiscontentTests）。点火は波146
+        // ★FactionFloorByRegion・FactionStrengthByMilitancy（(1435) c154sd 勢力の足切りを 0.01×組の州の人口へ・強さを Σ N M²×結束×声の無さへ）は腕 B の木で 1＝この表から外した（旗 0 と 1 の番人は FactionFloorRegionTests）。
         "ArrearsOnePredicate",          // (1284) c132df 本位の停止の門を不履行の導火線と同じ述語にして判定の前へ（0＝今の形・番人 ArrearsOnePredicateTests）。点火時にこの表から外す
         // ★RepayFloorOnly（(1416) c151fl 国債の返済を床だけにする）は 2026-11-27 に 1 で腕 B の木へ＝この表から外した（(1427) c153fb で旗と旧の枝を消した＝旗 0 の経路の番人 T0 も消えた）。
         // ★LawPrefSinglePeaked（(1323) c138lp 法の好みの向き＝後退は 1 段下からの上げの好みの反転）は 2026-11-23 に 1 で腕 B の木へ＝この表から外した（旗 0 と 1 の番人は LawPreferenceDirectionTests＝旗を明示）

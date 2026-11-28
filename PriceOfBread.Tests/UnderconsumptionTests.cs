@@ -21,7 +21,8 @@ public class UnderconsumptionTests
         double capPc = r.Pops[2].Savings.Value / Math.Max(1, r.Pops[2].Size);
 
         Assert.True(workerPc < farmerPc, $"労働者が窮乏していない（労働 {workerPc:F0} vs 農民 {farmerPc:F0}）");
-        Assert.True(capPc > workerPc * 10, $"格差が出ていない（資本家 {capPc:F0} vs 労働 {workerPc:F0}）");
+        // ★(1398) c149sd：〈資本家の 1 人あたりの貯蓄が労働者の 10 倍超〉は創発の大きさの固定＝記録へ移した（作者 2026-10-17＝史実の桁・創発の桁を固定した試験の赤は止める線ではない）。
+        //   この盤面（種 12345・400 四半期）の比＝旗 SatReadersToDiscontent 0 で 10.787（資本家 5519.9・労働 511.7）・1 で 4.672（7878.9・1686.3）＝measurements/m1398_20261127_prereg_sd.txt 追記 3。窮乏と脱工業化の 2 本は残す。
         Assert.True(sim.World.UrbanShare < urban0, $"脱工業化していない（{urban0:P0}→{sim.World.UrbanShare:P0}）");
         // ★2026-08-31（StapleElasticityZero点火の随伴）：旧の第4検査「Satisfaction<0.8」は「主食が高いほど欲しがらない」
         //   誤符号が desired を人工的に絞って満足を下げていた分に依存していた（点火単独で赤＝POB_COEF二分で特定。

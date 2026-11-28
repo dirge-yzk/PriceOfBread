@@ -17,13 +17,12 @@ public static partial class Instruments
     {
         if (!Tg.Prdf) return;   // (1256) 書く表がどれも選ばれていなければ積算ごと飛ぶ
         const int com = (int)Ideology.Communism, soc = (int)Ideology.Socialism;
-        double thr = FactionSnapshot.MinSizeFraction * totalPop;
         int nBody = 0, nBodyCom = 0, nBodySoc = 0, nCellCom = 0;
         double maxCellCom = 0, maxCellSoc = 0;
         var bodyCom = new HashSet<(int Region, int Bloc)>();
         foreach (var (reg, bloc, ideo, size, _) in observed)
         {
-            bool body = size >= thr;
+            bool body = size >= FactionSnapshot.FloorOf(w, reg, totalPop);   // (1435) Factions.Step と同じ足切り
             if (body) nBody++;
             if (ideo == com)
             {

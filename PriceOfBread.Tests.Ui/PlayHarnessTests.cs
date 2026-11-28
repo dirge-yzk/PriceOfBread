@@ -493,7 +493,8 @@ public class PlayHarnessTests
             double raw = Politics.DiscontentRaw(w, c, p, Math.Sqrt(pd2) * 0.5);
             Assert.Equal(wantLiving + wantVoice, raw);
             double d = Politics.Discontent(w, c, p, regime, 0);
-            Assert.Equal(!(raw > 0) ? 0 : raw > 1 ? 1 : raw, d);
+            // (1398) c149sd：既定（旗 SatReadersToDiscontent 1）の不満度は声の項を抜いた D＝Clamp01(W×Pos(R−s))＝前クランプの和（旧の経路）は上の DiscontentRaw で残す（㉜ の改め）
+            Assert.Equal(!(wantLiving > 0) ? 0 : wantLiving > 1 ? 1 : wantLiving, d);
         }
         Assert.True(n > 50, "前提が崩れた：POP が少ない");
         // 物差しを法の隔たりに替えると距離は lawGap そのもの

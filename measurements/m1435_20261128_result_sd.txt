@@ -1,0 +1,64 @@
+# (1435) c154sd 結果：sd の 3 回目（3 回の規則の最後）＝足切りを州の人口へ（案 A）＋強さ Σ N M²（案 S2）＋SatReadersToDiscontent 1
+# 事前登録 measurements/m1435_20261128_prereg_sd.txt（c47ea2367・追記 1 は ba124877f＝腕 B の前）・腕 B の木 651de479a・基準 m1432
+
+== 判定：採る（事前登録の門は全て通った・止める線は全て 0）
+
+== 作ったフォルダ
+- D:/PoB_work/wt_c154sd（枝 c154sd）・D:/PoB_work/wt_c154sdz（器の木 f61a1ced2 に固定した ident 用の worktree・detach）・D:/PoB_work/c154sd_work・D:/PoB_work/ident_c154sd。
+
+== 腕と時刻（D: の空き）
+- ㉘ の束（器の木・未コミットの写し）13:54〜14:53：275 本のうち赤 1（DerivedValueRatchetTests の闘争度の読みの数 40/37）＝局所へ寄せて直し、器のコミット f61a1ced2 の後に回し直して 72/72 緑。
+- 突然変異（f61a1ced2）14:56〜14:58：M0 緑 8/8・μ1〜μ6 は全て赤（追記 1 の表）。
+- ident c154sdz（腕 a・t・--no-ins）15:12〜15:32：〈判定: 恒等〉（測った種で一致）。腕 b は D: の空き 47.9GB＜65GB で合流の腕 Z へ申し送り（★(1362)）。
+- 代わりの計器つきの腕 c154sdZl（器の木・5 表）15:11〜15:31：dcont・coupgate・nation・parlseat が keep_1432/base_ins と 10/10 種でバイト一致・成績表 0 行の違い。
+- 旗 1 の木 9548b54ff の絞った試験 n1 15:00〜：Tests 1011 本のうち赤 33（区分は追記 1）→ 直した後に赤だった 13 クラス 279 本＋2 クラス 58 本を回し直して全て緑（trx：D:/PoB_work/c154sd_work/trx/red2.trx・red3.trx）。
+  n1 の FullLength の段は腕 B と並ばないよう途中で止めた（腕 B を起こしたときに走っていた＝規則の外れ・フルスイートで回す）。n2（NOFULL）も腕 B の後にフルスイートと重なるので止めた。
+- 腕 B c154sdB（651de479a・INS=1・10 種・17 表）15:45〜16:12（起こす前の空き 41.87GB・重い仕事 1）。生 D:/PoB_work/c154sd_work/out_c154sdB_10/ins（2.1GB・合流の判断まで残す）。
+
+== 門（腕 B・計器の国の全て）
+- G0 止める線：
+  破綻 0（腕は rc=0・非有限 0）。1 四半期に 100 倍以上：0（建国の直後 0・それ以外 0）・1e10 倍以上 0（stoplines906・1330）。基準 keep_1432/base_ins 0・N1 0・N2 1（共和制ハワイ 1887・(iii) 産出が 0 の近く）＝measurements/m1432_20261128/readM の同じ台本の出力。
+  政府の人口が 1 四半期で 1/10 未満か 10 倍以上（popjump・㊳）：腕 6 行 5 件・基準 5 行 3 件・N1 6 行 3 件・N2 5 行 3 件（記録）。
+  空洞化：ピークの 1/10 未満 0 件（an_h2.py -v4）・1/4 未満 4 件（全て移民・基準 M は 1）。
+  推定の計算量 224.9 秒（m1432 の M 222.4・+2.5 秒・上限 248.5 秒の内）。割り当て 1.0 秒を 1.5 秒超えた＝件数の行の差は軌道の分だけ（清算の着値の充填 +0.86・生産者×月 +0.36・最低賃金の籠の走査 +0.35〔件数 +27%〕ほか・新しい件数の行 0・readB/cost_diff.txt）。
+  史実の桁（G1）：下と同じ。
+- G1：R1 勢力の蜂起 58（基準 67・門 40〜670）＝通る。上位：ダホメ王国 18・ハワイ王国 13・コンゴ王国 5・オヨ帝国 5・デリー 4（5 大国 0＝基準も 0）。
+  R2 一揆（riotFire）5025（基準 4901・門 490.1〜49010）＝通る（5 大国 1591・基準 1508）。
+  R3 首都の蜂起（route 3）11（基準 20・門 2〜200）＝通る（5 大国 5・基準 6）。
+- G2 機構の試験（FactionFloorRegionTests 8 本）：旗 1 の木で緑・突然変異 μ1〜μ6 で赤（追記 1）。
+- G3 下：Σ facSeenTargetK÷Σ targetAboveNK＝2.504163（門 ≥1.10）＝通る（旗 0 の器の腕では 1.000000）。
+- G3 上（記録・追記 1 の規則）：Σ facSeenTargetK÷Σ targetK＝0.9454（案 A の値＝同じ・φP_n の値 0.9584）。
+- O1：facBelow1P の和 0（門 0）＝通る（sd の 2 回目の φP_n の腕は 40,703）。
+- O2：facEngCount>0 の行 271,129 のうち φ×最小の州を下回る行 0＝通る。facMinSizeP（人）p1／p10／p50＝40.3／580／19,630（旗 0 の器の腕は 2,648／11,200／78,740）。
+- O3（記録）：partyQualFac の和 108,743（器の腕 126,807）・partyQualSizeMinP（人）p1／p10／p50＝36.0／627／20,610（器の腕 2,882／8,652／44,300）＝小さい州の勢力が結党の資格に入る（党の数の桁は parlseat_s で読む＝合流）。
+
+== 機構が狙いどおり働いたか
+- 足切り：組の数（州の足切りを越えた）1,277,570（φN を越えた組は 301,645＝4.24 倍）・勢力の数の平均 3.313→9.156（dcont）。見えた勢力とエンジンが大きさを書いた勢力は全ての行で一致。
+- 下限：1 人未満の勢力 0・最小の勢力は φ×最小の州以上（O1・O2）＝sd の 2 回目の〈1 人に満たない勢力〉の形は出ない。
+- 強さ：勢力の蜂起 58（sd の 1 回目 2・2 回目 3・基準 67）＝強さが D と一緒に縮む形（v）は解けた。強い行（facStrongCount>0）94（基準 134・sd の 2 回目 5）・結束の門の行 36,686（基準 56,263）。
+  同じ盤面の新÷旧（見えた勢力の強さの頭数）Σ N M²÷Σ N π M＝4.66（π＝D が小さい組が増えた分・旗 0 の器の盤面では 0.975）。
+- 作者 2026-11-25 の経路（「ただし、不満度が高いかつ、投票権がない、政治意識がない場合は、それらは暴力的なアクションを起こす経路は残したい。」）：T-A（旗 1 で勢力→結束 0.8→蜂起・旗 0 と闘争度 0 の対照で起きない）が緑。闘争度の段（U_p）は答え待ちのまま。
+- 予言との違い：強い行は予言（385 前後）より少ない 94・R1 は 8〜400 の予言の内（58）・勢力の数は予言 3.3〜9 の上の端（9.16）・G3 下は予言 1.5〜3 の内（2.50）。
+
+== 記録（採否に使わない）
+- nullgate（門 A′）：〈判定: 雑音の内〉。NG（ng.sh・基準 ng1432_20261128）：新しい NG 22・外れた NG 12。
+- 戦争 6,430（M 7,513）・最後まで続いた戦争 30（M 35）・最長 180 か月。
+- 開幕の 1000 倍以上 0・価格水準の最大 8.10（フランス 1940・基準 3.88 ラヘジ 1783）・四半期の比の最大 1.96。
+- 名目 GDP 0 の続き（gdp_zero10）：0 区間。英の国債の不履行の種：1/10（基準 1/10）。
+- 成績表 b10 の m1432_ins との違い 245 行（旗 1 の出力が旗 0 と違う行の数）。
+- 本国の破れ（home_break）：measurements/m1435_20261128/readB/home_break.txt。
+
+== 書き換えた試験（㉜ の改め・追記 1 の区分）
+- ① 写し（止めた枝 c152sd e6a87b97f の直し・main は merge-base 526586684 からこのファイルを変えていない）：CreditTests・DiscontentReaderTests・DiscontentSplitTests・FiscalTests・IdeaNeedBoardTests・IndustrializationReaderTests・PolicyPoliticsTests・SatReadersToDiscontentTests・UnderconsumptionTests・Tests.Ui PlayHarnessTests・RevoltIgnitionTests の武器購入の盤面の LivingRef の 1 行（(1398) c149sd）。
+- ② FightHeads＝Size を手で組む勢力に足した：RevoltIgnitionTests 8 か所・PoliticsUnificationC148poTests:32・DiscontentReaderTests 5 か所。RevoltIgnitionTests:941・:971 の式を f.FightHeads×AvgMilitancy×結束へ。書き換えを外す形（旧の強さ）は突然変異 μ4 で FactionFloorRegionTests の T4・T5・T-A が赤。
+- ③ PrdsShadowTests：本体の数え直しの足切り（:182・:266）を試験が自分で足す州の人口の足切りへ（旗 0 なら国の人口）・:326〈N≧1 なら最大のセル ≥ φ〉は旗 1 では〈>0〉（旧の規則の番人）。
+- ④ WriterRatchetTests（★(749)）：ClaimProducers 1927→2049・DeadProdBankrupt 1520→1231・DiploHegemonScans 3987332→4888348。
+- ⑤ DormantIdentityTests：器で 2 旗を足し、点火で 3 旗を外した。InstrumentHookClosureTests に facfloor2_s の 1 行。
+
+== フルスイート（腕 B の木・HEAD 0e4b4ea6d＝651de479a＋台本 1 本・split_suite・--logger trx）
+- 起動 16:26:17・終わり 17:25:23・起動の時に走っていた重い仕事：0 本（heavy_*.run なし・自分の腕 B は 16:12 に終わっていた）。
+- --list-tests：Tests(Category!=FullLength) 3130（H 136＋R 2994）・Tests.Ui 232・和 3362・FullLength 4（ident の 3360＝基準 3351＋9 に、写した SatReadersToDiscontentTests の 2 本）。
+- ㊴ 計器の束 807/808（スキップ 1）・H 135/136（スキップ 1・壁 512 秒）・R 2993/2994（スキップ 1・壁 893 秒）・Tests.Ui 232/232・FullLength 4/4。和：合計 3362・合格 3360・失敗 0・スキップ 2＝--list-tests と一致。
+- savetest：〈savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）〉。leakhunt：完走（seed=1789・200 四半期・保存則違反なし）。
+- 赤 0＝腕 B の後の SimCore の差分 0 行（git diff --stat 651de479a -- PriceOfBread.SimCore＝0）＝腕 B は回し直さない。形の変え直しは 0 回。
+- 出力 measurements/m1435_20261128/suite_armb.txt・trx D:/PoB_work/c154sd_work/suite/trx。

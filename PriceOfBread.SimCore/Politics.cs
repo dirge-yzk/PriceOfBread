@@ -618,7 +618,8 @@ public static class Politics
         double voice = f.Bloc == 0 ? 1.0 : InterestGroups.SuffrageGate(w.Suffrage, f.Bloc == 1, c);
         double silenced = 1.0 - voice;
         if (!(silenced >= c.RevoltVoiceFloor)) silenced = c.RevoltVoiceFloor;
-        double strength = f.Size * f.AvgMilitancy * f.Cohesion * silenced;
+        double heads = c.FactionStrengthByMilitancy > 0 ? f.FightHeads : f.Size;   // (1435) 旗 1＝戦う頭数 Σ N M（AvgMilitancy は Σ N M²÷Σ N M）
+        double strength = heads * f.AvgMilitancy * f.Cohesion * silenced;
         if (c.RebelArmsMarketEnabled > 0) strength *= f.EquipFill;
         return strength;
     }

@@ -1,0 +1,20 @@
+# (1426) split suite 木=/d/PoB_work/wt_c154sd HEAD=0e4b4ea6d 2026-11-28 16:26:17
+list-tests Tests(Category!=FullLength)=3130 H=136 R=2994 H+R=3130 Tests.Ui=232 和=3362 FullLength=4
+㊴ 計器の束 rc=0 成功!   -失敗:     0、合格:   807、スキップ:     1、合計:   808、期間: 23 m 51 s - PriceOfBread.Tests.dll (net10.0)
+Tests H rc=0 成功!   -失敗:     0、合格:   135、スキップ:     1、合計:   136、期間: 8 m 30 s - PriceOfBread.Tests.dll (net10.0) 壁 512 秒
+Tests R rc=0 成功!   -失敗:     0、合格:  2993、スキップ:     1、合計:  2994、期間: 14 m 49 s - PriceOfBread.Tests.dll (net10.0) 壁 893 秒
+Tests(H と R) 壁 893 秒
+Tests.Ui rc=0 成功!   -失敗:     0、合格:   232、スキップ:     0、合計:   232、期間: 1 m 29 s - PriceOfBread.Tests.Ui.dll (net10.0)
+FullLength rc=0 成功!   -失敗:     0、合格:     4、スキップ:     0、合計:     4、期間: 11 m 19 s - PriceOfBread.Tests.dll (net10.0)
+savetest: savetest OK：12四半期後も全62カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt: leakhunt 完走（seed=1789・200四半期・保存則違反なし） 相続の移転（★(655)）：国×四半期の最後の月に移転が正だった件数 0・その月の額の和 0 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0） 
+trx tests_H.trx：合計 136・合格 135・失敗 0・スキップ 1
+trx tests_R.trx：合計 2994・合格 2993・失敗 0・スキップ 1
+trx ui.trx：合計 232・合格 232・失敗 0・スキップ 0
+和：合計 3362・合格 3360・失敗 0・スキップ 2
+重複（同じ名が 2 度以上）0
+赤の名 なし
+スキップの名 PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun;PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する
+--list-tests の数 3362・欠け（list−和）0・一致
+trx_sum rc=0
+SUITEDONE 2026-11-28 17:25:23

@@ -19,35 +19,56 @@ public static class FactionSnapshot
     }
 
     internal static List<(Region Region, int Bloc, int Ideo, double Size, double MilSum)> ComputeClusters(World w, bool countCost = false)
+        => ComputeClusters(w, countCost, null);
+
+    /// <summary>(1435) 組の並び（大きさの降順）と同じ順に、組ごとの戦う頭数 Fight＝Σ N M・Σ N M²・組の州の人口 RegionPop（Region.SumPopulation と同じ和）を <paramref name="extras"/> へ足す。
+    /// 組の POP は参加 π&gt;0 の POP（π を掛けない）。Size と MilSum は旧のまま。</summary>
+    internal static List<(Region Region, int Bloc, int Ideo, double Size, double MilSum)> ComputeClusters(World w, bool countCost,
+        List<(double Fight, double FightSq, double RegionPop)>? extras)
     {
-        var clusters = new Dictionary<(int Region, int Bloc, int Ideo), (Region Region, double Size, double MilSum)>();
+        var clusters = new Dictionary<(int Region, int Bloc, int Ideo), (Region Region, double Size, double MilSum, double Fight, double FightSq)>();
         var order = new List<(int Region, int Bloc, int Ideo)>();
+        var regionPop = new Dictionary<int, double>();
         var (coord, lawGap) = MembershipContext(w);
         int seen = 0;
         foreach (var r in w.Regions)
         {
+            double rPop = 0;
             foreach (var p in r.Pops)
             {
+                rPop += p.Size;
                 if (p.Size <= 1e-9) continue;
                 seen++;
                 double part = Participation(w, p, coord, lawGap);
                 if (!(part > 0)) continue;
                 var (bloc, ideo) = BlocIdeo(p);
                 var key = (r.Id, bloc, ideo);
+                double mil = p.Militancy, nm = p.Size * mil;   // (1435) 闘争度は 1 回だけ読む（旧の MilSum の 2 か所の読みを同じ値の局所へ）
                 if (clusters.TryGetValue(key, out var cur))
-                    clusters[key] = (cur.Region, cur.Size + p.Size * part, cur.MilSum + p.Militancy * p.Size * part);
-                else { clusters[key] = (r, p.Size * part, p.Militancy * p.Size * part); order.Add(key); }
+                    clusters[key] = (cur.Region, cur.Size + p.Size * part, cur.MilSum + mil * p.Size * part, cur.Fight + nm, cur.FightSq + nm * mil);
+                else { clusters[key] = (r, p.Size * part, mil * p.Size * part, nm, nm * mil); order.Add(key); }
             }
+            regionPop[r.Id] = rPop;
         }
         if (countCost) w.Cost[CostLedger.ParticipationPops] += seen;
         var result = new List<(Region, int, int, double, double)>(order.Count);
         foreach (var key in SortBySizeDesc(order, clusters))
         {
-            var (reg, size, milSum) = clusters[key];
+            var (reg, size, milSum, fight, fightSq) = clusters[key];
             result.Add((reg, key.Bloc, key.Ideo, size, milSum));
+            extras?.Add((fight, fightSq, regionPop[key.Region]));
         }
         return result;
     }
+
+    /// <summary>(1435) 勢力の足切りの頭数（Factions.Step の作る側と見えたかの側・Compute・計器 dcont・prdf・prds が読む 1 本）。
+    /// 旗 FactionFloorByRegion 0＝MinSizeFraction×国の人口・1＝MinSizeFraction×組の州の人口 <paramref name="regionPop"/>。</summary>
+    internal static double Floor(World w, double regionPop, double totalPop)
+        => w.Coef.FactionFloorByRegion > 0 ? MinSizeFraction * regionPop : MinSizeFraction * totalPop;
+
+    /// <summary>(1435) 州 <paramref name="r"/> の組の足切り（州の人口は旗 1 のときだけ足す）。</summary>
+    internal static double FloorOf(World w, Region r, double totalPop)
+        => Floor(w, w.Coef.FactionFloorByRegion > 0 ? r.SumPopulation() : 0.0, totalPop);
 
     internal static (double[] Coord, double[] LawGap) MembershipContext(World w) => MembershipContext(w, true);
 
@@ -76,14 +97,16 @@ public static class FactionSnapshot
     {
         double totalPop = w.TotalPopulation;
         if (totalPop <= 1e-9) return [];
-        var clusters = ComputeClusters(w);
+        var extras = new List<(double Fight, double FightSq, double RegionPop)>();
+        var clusters = ComputeClusters(w, false, extras);
         if (clusters.Count == 0) return [];
 
         var demandsByBloc = new List<Demand>?[PolicyPreferences.BlocCount];
         var result = new List<Faction>();
-        foreach (var (reg, bloc, ideoIdx, size, milSum) in clusters)
+        for (int ci = 0; ci < clusters.Count; ci++)
         {
-            if (size < MinSizeFraction * totalPop) continue;
+            var (reg, bloc, ideoIdx, size, milSum) = clusters[ci];
+            if (size < Floor(w, extras[ci].RegionPop, totalPop)) continue;
             demandsByBloc[bloc] ??= ComputeDemands(w, bloc);
             var ideo = (Ideology)ideoIdx;
             result.Add(new Faction
@@ -100,7 +123,7 @@ public static class FactionSnapshot
 
     private static IEnumerable<(int Region, int Bloc, int Ideo)> SortBySizeDesc(
         List<(int Region, int Bloc, int Ideo)> order,
-        Dictionary<(int Region, int Bloc, int Ideo), (Region Region, double Size, double MilSum)> clusters)
+        Dictionary<(int Region, int Bloc, int Ideo), (Region Region, double Size, double MilSum, double Fight, double FightSq)> clusters)
     {
         var arr = order.ToArray();
         var idx = new int[arr.Length];

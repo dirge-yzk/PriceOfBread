@@ -29,7 +29,7 @@ public class PoliticsUnificationC148poTests
         }
         // 呼び出し側：政治の派閥の強さ（声が小さいほど silenced が大きい）が段で動く向き＝Bloc 1 は Census で声が全開
         var w = Board().Nations[0].World;
-        var f = new FactionState { Bloc = 1, Size = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };
+        var f = new FactionState { Bloc = 1, Size = 1.0, FightHeads = 1.0, AvgMilitancy = 1.0, Cohesion = 1.0 };
         w.Suffrage = Suffrage.None; double none = Politics.FactionStrength(w, w.Coef, f);
         w.Suffrage = Suffrage.Census; double census = Politics.FactionStrength(w, w.Coef, f);
         Assert.True(none > census, $"Bloc 1 は Census で声が全開＝抑えられる分が減る（None {none} ＞ Census {census}）");

@@ -33,7 +33,7 @@ public static partial class Instruments
     /// <summary>
     /// 足切りは FactionSnapshot.MinSizeFraction×totalPop（Factions.Step と同じ不等式）。〔履歴 InstrumentsPrds.cs#7〕
     /// </summary>
-    internal static PrdsCellCount PrdsCount(IEnumerable<(int Region, int Bloc, int Axis, double Size)> items, int axis, double totalPop)
+    internal static PrdsCellCount PrdsCount(IEnumerable<(int Region, int Bloc, int Axis, double Size)> items, int axis, double totalPop, Func<int, double>? floorOfRegion = null)
     {
         var cell = new Dictionary<(int Region, int Bloc), double>();
         foreach (var (reg, bloc, ax, size) in items)
@@ -45,7 +45,8 @@ public static partial class Instruments
         double thr = FactionSnapshot.MinSizeFraction * totalPop, max = 0;
         int nBody = 0;
         int topReg = -1, topBloc = -1;
-        foreach (var (key, v) in cell) { if (v >= thr) nBody++; if (v > max) { max = v; topReg = key.Region; topBloc = key.Bloc; } }   // 同点＝挿入順で先のセル
+        // (1435) 呼び手が州ごとの足切り（FactionSnapshot.Floor）を渡せる（null＝旧の MinSizeFraction×totalPop）
+        foreach (var (key, v) in cell) { if (v >= (floorOfRegion is null ? thr : floorOfRegion(key.Region))) nBody++; if (v > max) { max = v; topReg = key.Region; topBloc = key.Bloc; } }   // 同点＝挿入順で先のセル
         return new PrdsCellCount(cell.Count, nBody, totalPop > 0 ? max / totalPop : 0.0, topReg, topBloc);
     }
 
@@ -151,10 +152,13 @@ public static partial class Instruments
             shadowItems.Add((rid, c.Bloc, c.ShadowAxis, sz));
         }
         double totalPop = w.TotalPopulation;
-        var comS = PrdsCount(shadowItems, (int)Ideology.Communism, totalPop);
-        var comR = PrdsCount(realItems, (int)Ideology.Communism, totalPop);
-        var socS = PrdsCount(shadowItems, (int)Ideology.Socialism, totalPop);
-        var socR = PrdsCount(realItems, (int)Ideology.Socialism, totalPop);
+        var regionPop = new Dictionary<int, double>();   // (1435) Factions.Step と同じ足切り（旗 FactionFloorByRegion 1 で州の人口）
+        foreach (var rg in w.Regions) regionPop[rg.Id] = w.Coef.FactionFloorByRegion > 0 ? rg.SumPopulation() : 0.0;
+        double FloorAt(int rid) => FactionSnapshot.Floor(w, regionPop.TryGetValue(rid, out var rp) ? rp : 0.0, totalPop);
+        var comS = PrdsCount(shadowItems, (int)Ideology.Communism, totalPop, FloorAt);
+        var comR = PrdsCount(realItems, (int)Ideology.Communism, totalPop, FloorAt);
+        var socS = PrdsCount(shadowItems, (int)Ideology.Socialism, totalPop, FloorAt);
+        var socR = PrdsCount(realItems, (int)Ideology.Socialism, totalPop, FloorAt);
         double leftMean = Fr(a.LeftSum);
         double tMean = Fr(a.TNormSum);
         var vt = PrdsVoiceTerciles(a.Voice);   // vt〔履歴 InstrumentsPrds.cs#12〕

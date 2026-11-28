@@ -893,7 +893,8 @@ public class FiscalTests
         {
             var w = Board(years, false);
             w.GovBondRatePerYear = 2 * w.Coef.BondBaseRatePerYear;   // 国債の価格＝基礎金利÷国債の金利＝0.5
-            Credit.Step(w, w.Coef, (w.NominalGdpPerMonth.Value, 1.0));
+            // 月の写しの 2 つ目＝不穏 0 の値：旗 SatReadersToDiscontent 1 は D̄＝0・旗 0 は満足度 1（(1398) c149sd：組の意味が旗で替わる＝旧は満足度 1 を固定していた）
+            Credit.Step(w, w.Coef, (w.NominalGdpPerMonth.Value, w.Coef.SatReadersToDiscontent > 0 ? 0.0 : 1.0));
             return w.Bank!.Confidence;
         }
         var c = new Coefficients();
