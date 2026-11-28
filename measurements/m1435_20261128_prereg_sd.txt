@@ -1,0 +1,135 @@
+# (1435) c154sd 事前登録：sd の 3 回目（3 回の規則の最後）＝勢力の足切りの分母を州の人口へ（案 A）＋強さ Σ N M²×結束×声の無さ（案 S2）＋SatReadersToDiscontent 1 を同じ腕
+# 書いた日 2026-11-28・木 04a162e34（main＝origin/main・(1432) の合流）・基準 m1432（INSRAW keep_1432/base_ins・KEEPNULL keep_1432/n1・n2・a11）
+# このファイルは腕（ident・腕 B）の前にコミットする。門の数を変えるなら腕の前に理由つきで追記する。結果を見た後は門を変えない。
+
+== [0] 形の種類
+- 〈入口〉の形：勢力になる組の足切り（入口）と、勢力の強さ（蜂起の判定の入口）を替える。尾の門は置かない。
+- 材料：docs/202611/20261128/20261128_勢力の足切りと強さの物差し_下書き.md（K1-1・K2-1・K4・K5・K6・末尾の〈反証役 v の訂正〉）・_材料.md・measurements/m1431_20261128/。
+- ★(1432) Q1 は推奨の S2 で進める（作者「全て推奨で」で推奨を採った）。
+- 作者 2026-11-25（原文）：「ただし、不満度が高いかつ、投票権がない、政治意識がない場合は、それらは暴力的なアクションを起こす経路は残したい。」＝T-A で、足切り・結束・声・強さの段を試験の中で確かめる（闘争度の段＝U_p は答え待ち・この線の外）。
+- 3 回の規則の最後：落ちたら、この形は閉じて §0-2 に推奨つきで置く（合流が書く）。形の変え直しは 1 回だけ。
+
+== [1] 形（旗 2 本＋既存の旗 1 本・いずれも既定 0 で器をコミット→ident→既定 1）
+- 旗 FactionFloorByRegion（Coefficients.cs の SatReadersToDiscontent の隣・既定 0）
+  0＝今の足切り `S_k ≥ MinSizeFraction × 国の人口`（Factions.cs:35・:49・FactionSnapshot.cs:86 と計器の写し 3 か所）。
+  1＝案 A `S_k ≥ MinSizeFraction × N_r`（N_r＝組の州の人口＝Region.SumPopulation と同じ和・φ＝MinSizeFraction 0.01 のまま）。
+  作る側（:35）と見えたかの側（:49）と画面の Compute（:86）と計器 dcont・prdf・prds の写しが同じ 1 本の足切り（FactionSnapshot.FloorOf）を読む。
+  新しい係数 0・閾値 0・状態 0（分母の取り替えだけ）。
+- 旗 FactionStrengthByMilitancy（同じ隣・既定 0）
+  0＝今の強さ `F = Size × AvgMilitancy × Coh × σ`（Politics.cs:621）。
+  1＝案 S2 `F = FightHeads × AvgMilitancy × Coh × σ`＝Σ_{p∈k} N_p M_p² × Coh × σ。
+    FightHeads＝Σ_{p∈k} N_p M_p（組の POP＝参加 π_p>0 の POP・π を掛けない）・AvgMilitancy＝Σ N M² ÷ Σ N M（FightHeads が 0 なら 0）。
+    Size（＝Σ N π）は政治の大きさのまま（足切り・Kappa・合流・画面が読む）。
+  新しい状態 1 本（FactionState.FightHeads）：理由＝D の重みの Size と M の重みの和は別の和で Size と AvgMilitancy から導けない・見えない四半期にも強さを読む（蜂起の判定の順）＝器に置きセーブに載せる（SaveGame は反射で欄を拾う＝SaveGame.cs:145〜:148・SaveRoundTripTests と savetest で同じ版の往復を確かめる）。
+  旗 0 でも FightHeads は書く（読み手は旗 1 の強さだけ）。旗 0 の AvgMilitancy は今の式のまま。
+- SatReadersToDiscontent 1（(1371) の旗・既存の読み手 FactionSnapshot.cs:68・Ideology.cs:37・Politics.cs:88・Credit.cs:17・SelfPlay.cs:409・Simulation.cs:1454）。
+- 腕 B の木は 3 本とも 1。
+
+== [2] 置き換える旧の規則と、それを固定する試験（grep・04a162e34）
+- 旧の足切り φN：PrdsShadowTests.cs:182・:266（本体の数え直しの thr）・:326・:327（影の比の門）。旗 1 で PrdsShadowTests の数え直しは φN_r を読む形へ書き換える（㉜ の改め）。
+- 旧の強さ Size×AvgMilitancy：RevoltIgnitionTests.cs:941・:971（`f.Size * f.AvgMilitancy * f.Cohesion`）と FactionStrength を呼ぶ試験（RevoltIgnitionTests 12 か所・PoliticsUnificationC148poTests 2 か所）。
+- FactionState を手で組む試験＝9 ファイル 23 か所（RevoltIgnitionTests 8・DiscontentReaderTests 5・PartyTests 2・WarThemeTests 2・LawstepInstrumentTests 2・AiFirstWaveTests 1・SbBargainTests 1・SaveRoundTripTests 1・PoliticsUnificationC148poTests 1）。
+  旗 1 では FightHeads の既定 0 で強さが 0＝強さを読む試験は赤になる〈推〉。書き換えの計画：手で組む勢力に `FightHeads = <その試験の Size と同じ値>` を足す（旧の Size×AvgMilitancy と同じ強さの盤面を新しい規則で書く＝Assert の式と閾値は変えない）。:941・:971 の式は `f.FightHeads * f.AvgMilitancy * f.Cohesion` へ。強さを読まない組み立て（LawstepInstrumentTests・SbBargainTests の Kappa・PartyTests の結党）は赤のときだけ同じ形で直す。
+  旧の規則そのものを固定する番人の書き換えは、新しい規則の式で書き、書き換えを外す突然変異（旧の強さへ戻す μ4）で赤を確かめる。
+- SatReadersToDiscontent 1 で赤になった試験（(1422) c152sd・(1398) c149sd・(1406) c150sd の枝で直した物）：CreditTests・DiscontentReaderTests・DiscontentSplitTests・FiscalTests・IdeaNeedBoardTests・PolicyPoliticsTests・UnderconsumptionTests・Tests.Ui PlayHarnessTests。
+  旗 1 の木で赤ならその枝の直しを写す（cherry-pick してよい止めた枝）。写した行は verdict に列挙。
+- DormantIdentityTests：器のコミットで 2 旗を DormantZeroFields に足し、既定 1 のコミットで 3 旗を外す（SatReadersToDiscontent の行を含む）。
+
+== [3] 周辺の点検（04a162e34 で grep）
+- Kappa（UnionBargaining.cs:19〜:32）：Σ Size×Coh を読む＝S2 では変わらない・案 A で州の勢力が増えると上がる〈推〉＝sbu_s の kappaSum・facScan を記録。
+- 結党（Parliament.cs:204・:221〜:226・:230）：大きさを読まない（結束 0.3 と声 > 0）。案 A で小さい州の勢力が結党できる〈推〉＝facfloor2 の partyQualFac・partyQualSizeMinP と parlseat_s を記録（O3）。Qualifies に大きさを足さない（新しい閾値）。
+- 合流（Factions.cs:70）：小さい方の結束を大きさに依らず足す＝この線では触らない（小物・記録）。
+- CheckFactionRevolt（Politics.cs:493・:536）：FactionStrength を読む＝S2 で変わる。:499 の intensity＝強さ÷Size は RevoltIgnitionIntensity 0（既定）で読まれない＝S2 で 1 を超えうるが今の既定では効かない（記録）。
+- 郷勇 LoyalistMilitia（Politics.cs:640〜:665）：勢力の大きさを読まない（他のブロックの頭数）＝変わらない。保持力 LocalizedHold（:667〜:674）は州の割合＝案 A と同じ場所の物差し。
+- AI の不穏（SelfPlay.cs:406〜:409）・信任（Credit.cs:16〜:18）：足切りも強さも読まない（D̄ だけ）＝SatReadersToDiscontent 1 でだけ変わる。
+- 画面と Runner の読み手（触らない・〈次の波〉5 の束へ報告）：App GameViewModel.Popups.cs:189（AvgMilitancy を〈闘争度〉で出す）・GameViewModel.Politics.cs:381（FactionStrength）・:412（Compute）・Runner PlayHarness.cs:721・Program.cs:4357・:4378・:4387。旗 1 で AvgMilitancy は闘争度の重みの平均になる（画面の数の意味が変わる）。
+
+== [4] 紙の台本（今の盤面 keep_1432/base_ins・scripts/instruments/c154sd/g1_sd.py・出力 measurements/m1435_20261128/g1_base.txt）
+- R1 勢力の蜂起（dcont factionRevoltsCum の国ごとの最大の和・計器の国）：B＝67（5 大国 0）。国の集中：ダホメ王国 22・ハワイ王国 11・コンゴ王国 6・ジェノヴァ 5・ヴュルテンベルク 4（上位 3 国で 39＝58%）。
+- R3 首都の蜂起（coupgate route＝3 の行）：B＝20（5 大国 6）。
+- R2 一揆（facfloor2 riotFire の国×四半期の和）：基準の生に表が無い＝腕 Z（ident の腕 b・旗 0）で取る。
+- 勢力の数の平均 3.313・強い行（facStrongCount>0）134・結束の門の行 56,263（dcont・keep_1432/base_ins・measurements/m1435_20261128/dc_base.txt）。
+- O1 の旗 0 の確かめ：φP_n の腕（keep_1425_rej/c152sdB）は 1 人未満の勢力が 40,703（材料 M3-1・m1431 a1_floor.txt）＝μ2 の形で O1 は赤。
+- G3 の旗 0 の確かめ：旗 0 ではエンジンの足切りが φN＝facSeenTargetK＝targetAboveNK（比 1.00）＝G3 下（≥1.10）は旗 0 で赤（腕 Z の facfloor2 で全ての行を数えて追記する）。
+
+== [5] 門（作者 2026-11-16 ①・許しは印字の桁〔F＝有効 6〜9 桁〕より広く＝比は相対 1e-6・件数は整数で許しなし）
+- G0 止める線（この線は自分で読む）：
+  破綻（クラッシュ・NaN・保存則・savetest・進行不能）。
+  〈1 四半期に 100 倍以上〉の〈それ以外〉と 1e10 倍以上（stoplines906・stoplines1330・建国の直後〔系列の最初の行から 4 四半期以内〕と政府の人口が 1 四半期で 1/10 未満か 10 倍以上の四半期は区分で数え、基準 keep_1432/base_ins とヌル腕 keep_1432/n1・n2 は measurements/m1432_20261128/readM の stop906_base・_n1・_n2・stop1330_base・_n1・_n2 を同じ台本の出力として並べる）。
+  空洞化 1/10 未満で〈線が原因〉の物（下の [8]）。推定の計算量 ＞248.5 秒。機構の試験の赤（走査の番人を含む）。史実の桁 10 倍（G1）。
+- G1 史実の桁（道を 3 本に分ける・それぞれ両側・腕と基準を同じ台本 g1_sd.py で数える・計器の国の全て）：
+  R1 勢力の蜂起：B＝67≥40＝m1422 の規則〈B≥40 なら下側 40〉へ戻す（反証役 v の訂正・〈基準の桁〉の型）。下側 腕 ≥ 40・上側 腕 ≤ 10×B＝670。5 大国は B＝0＝〈元からの弱さ〉で記録。
+  R2 一揆：B は腕 Z の facfloor2 riotFire の和。下側 腕 ≥ B/10・上側 腕 ≤ 10×B（B が 40 未満なら下側は〈元からの弱さ〉の型で B/10 のまま・B＝0 なら記録）。腕 Z の後に数を追記する（形は今決める）。
+  R3 首都の蜂起：B＝20＜40＝〈元からの弱さ〉の型で下側 腕 ≥ 2（B/10）・上側 腕 ≤ 200（10×B）。
+- G2 機構の試験（PriceOfBread.Tests/FactionFloorRegionTests.cs・盤面を試験の中で置く・旗 0 で赤・突然変異で赤）：
+  T1（足切り）：仏 1789 の盤面で小さい州の大衆の組 S＝0.02 N_r（＜0.01 N）→ 旗 1 で勢力・旗 0 で無し。
+  T2（下限）：全ての POP の D を 1e-6 倍（S＝0.5 N_r の組が 5e-7 N_r へ）→ 旗 1 で勢力 0（φP_n なら勢力ができる）。
+  T3（作る側と見えたかの側）：φN_r ≤ S < φN の組が作った Step の中で減衰を受けない（結束 0.025・次の Step で 0.025＋0.025×0.975）。
+  T4（声）：選挙権の無い大衆の組は F>0（FightHeads 1000・AvgMilitancy 0.5・結束 0.9 → 450）・同じ組で AdultMale なら F＝0。
+  T5（強さの分け方）：組の D を半分（足切りの上のまま）にしても F が変わらない（旗 1）・旗 0 では半分になる。M を半分にすると F は 1/4（旗 1）。期待値は盤面の POP から試験が自分で足す Σ N M²×結束（本体の関数から作らない）。
+  T-A（作者 2026-11-25 の暴力の経路）：仏 1789 の盤面の 1 州の大衆・参政権なし・政治意識 0・識字 0・生活の失望で D≥0.5・闘争度 0.8（飢えの代わりに直に置く・MilitancySpeed 0）・強制 0（BaseCoercion 0）・郷勇 0（全ての POP を同じ思想）。毎四半期、盤面を置き直してから Politics.Step（LivingRef・FoodRef が寄る＝Politics.cs:185〜:188）。
+    期待：(i) 組が φN_r を越えて勢力になる（その組は φN 未満＝旗 0 では勢力にならない）(ii) 結束が 0.05×0.5 で育ち 80 四半期以内に 0.8 に届く (iii) w.FactionRevolts が 1 以上になる。
+    対照 1：旗 0（2 旗とも 0）＝勢力 0・蜂起 0。対照 2：同じ盤面で闘争度 0（飢え無し）＝F＝0・蜂起 0＝闘争度の段で閉じる（U_p の段・この線の外を試験の名で名乗る）。
+  計器の試験：facfloor2 の targetK・targetAboveNK・targetAboveRK・facSeenTargetK を盤面で手計算と比べる（旗 0 で facSeenTargetK＝targetAboveNK）。
+- G3〈誰に届いたか〉（facfloor2・10 種の和）：
+  下：Σ facSeenTargetK ≥ 1.10 × Σ targetAboveNK（相対 1e-6 の許し）。旗 0 で比 1.00＝赤（[4]）。
+  上：上限は腕 Z（旗 0）の facfloor2 で Σ targetAboveRK ÷ Σ targetK（案 A の値・同じ盤面）を読んでから、旗 1 の腕の前に決める。規則（今決める）：その値 v が 0.85 以下なら上限〈Σ facSeenTargetK ÷ Σ targetK ≤ 0.90〉を門にする。v が 0.85 を超えるか読めなければ G3 上は記録へ下げ、O1・O2 を門にする。
+- O 作る物の大きさの下限（★(1425)・門）：
+  O1：facBelow1P の和＝0（N_r ≥ 100 人の州の勢力のうち大きさ 1 人未満＝Size＜0.001 千人の数・w.Factions の欄をそのまま読む）。
+  O2：facMinSizeP（この四半期にエンジンが大きさを書いた勢力の最小の大きさ・人）≥ φ × minRegionPopP（その国の最小の州の人口・人）を全ての行で（許し 相対 1e-6）。
+  O3（記録）：partyQualFac・partyQualSizeMinP の分布・基準との比・parlseat_s。
+- 記録（採否に使わない）：nullgate.py（門 A′）・NG（ng.sh・基準 ng1432_20261128）・開幕の 1000 倍以上・名目 GDP 0 の続き（gdp_zero10.py）・英の国債の不履行の種の数・勢力の数・強い行・内戦・同じ盤面の新÷旧（milSumM2K÷milSumDK・cellsAboveR÷cellsAboveN）。旗 1 の出力が旗 0 と違う行の数。
+
+== [6] 突然変異と赤になる門（㉚・試験の門は使い捨ての木で回す・腕の門は紙）
+| 突然変異 | T1 | T2 | T3 | T4 | T5 | T-A | G1 R1 | G3 下 | G3 上 | O1 |
+| μ1 足切りを φN へ戻す（FloorOf が旗を読まない） | 赤 | 緑 | 緑 | 緑 | 緑 | 赤 | 記録 | 赤 | 緑 | 緑 |
+| μ2 足切りを φP_n（参加の総量）にする | 緑 | 赤 | 緑 | 緑 | 緑 | 緑 | 記録 | 緑 | 赤 | 赤 |
+| μ3 :35 だけ φN_r・:49 は φN | 赤 | 緑 | 赤 | 緑 | 緑 | 赤〈推〉 | 記録 | 記録 | 記録 | 緑 |
+| μ4 強さを Size×AvgMilitancy に戻す（旗を読まない） | 緑 | 緑 | 緑 | 緑 | 赤 | 緑 | 赤〈推〉 | 緑 | 緑 | 緑 |
+| μ5 σ を 1 に固定 | 緑 | 緑 | 緑 | 赤 | 緑 | 緑 | 記録 | 緑 | 緑 | 緑 |
+| μ6 結束の伸びの 0.5 を消す（意識だけ） | 緑 | 緑 | 緑 | 緑 | 緑 | 赤 | 記録 | 記録 | 記録 | 緑 |
+- 腕の門（G1・G3・O1）の欄は紙の予言（腕は回さない）。試験の欄は使い捨ての木で回し、出力を measurements/m1435_20261128/mut/ へ。
+- 項を消した突然変異と元の形の差が雑音の内なら、その項は〈働いていない〉＝門が緑でも採る理由にしない。
+
+== [7] 走査の番人（㉘）と件数の予言（㉑）・旗 1 の番人の grep（㉜）
+- 工業化度の読み手の許可表（IndustrializationReaderTests）：触る 4 ファイル（FactionSnapshot・Factions・Politics・Coefficients）に工業化度の読みを足さない＝予言 0 行。
+- `new MoneyStock(` の件数（SimCore）：66 のまま（予言 0）。
+- route_anchors.tsv（scripts/instruments/flow262/）：触る行に鍵の行は無い（Politics.cs の鍵は :59 の革命の没収の 1 行だけ・この線の :616〜:625 と別）＝予言 0。
+- WriterRatchetTests の宣言の表：CostLedger の行を足さない（予言 0）。旗 0 の木では ParticipationPops 297359 ほか今の値のまま緑の予言。旗 1 の木では 1 種 40 四半期の軌道が動く＝★(749)〈軌道の件数を写しただけの番人〉として絞った試験で取り直す（取り直した行を verdict に列挙）。
+- InstrumentColumnTests・InstrumentHookClosureTests：facfloor2_s の名簿と Tg の行を足す（表 1 本・Tg 1 行）。
+- ValueCountRatchetTests・DerivedValueRatchetTests：係数 2 本を足す＝係数の数の番人があれば +2（赤なら件数を取り直す＝★(764)・予言 +2）。
+- ㉜ の grep（旗 1 の木で旧の規則を固定する番人）：[2] の一覧。加えて MinSizeFraction・FactionStrength・AvgMilitancy・new FactionState を Tests/ で grep した結果を絞った試験の束に入れる。
+
+== [8] 空洞化の判定の基準（止める線の形をそのまま写す）
+- 空洞化 1/10 未満の名簿の外（規則 A2＝an_h2.py の既定 -ex rule：植民地格・緯度の絶対値 55 度以上・world.json の開幕の人口 20 千人未満＝7 州・主要国の州は例外にしない）・`python scripts/instruments/hol/an_h2.py <出力>/ins -v4`。
+- その線が原因と読めた件だけで止める：基線 keep_1432/base_ins の同じ種で同じ州がすでにピークの 1/4 未満なら〈元からの弱さ〉＝止めず記録の先頭へ。
+
+== [9] 計算量
+- 余り：S11 で約 22.2 秒（上限 248.5 秒）。
+- この線の割り当て：1.0 秒（ComputeClusters の POP の回りに掛け算 2・足し算 3〔州の人口の和を同じ回りで足す〕＝新しい回り 0・軌道の変化の分を含む）。.cost の推定を m1432 と比べて報告に書く（2 秒以下の割り当ては 1 本の腕で門にしない＝記録）。
+- CostLedger の行は足さない。
+
+== [10] 段0 の予言（主な観測量の符号と大きさ・ソースと基線の生から・〈推〉）
+- 勢力の数の平均：3.31 → 3.3〜9（案 A で多い州の国に地方の勢力・SatReadersToDiscontent 1 で π＝D が縮む分と打ち消し合う）。
+- 強い行（facStrongCount>0）：134 → 旗 1 の腕の反実仮想で 385 前後（下書き K2-1・基準 157 の 2.5 倍）〈推〉・D＝0 の POP が組に入らない分は上振れ（v の訂正）。
+- R1：sd の 2 回目は 3（下側 40 で赤の形）。S2 は強さの頭数を D で縮めない＝戻る向き〈推〉。大きさは 8〜400 の間〈推〉。
+- O1：0（N_r ≥ 100 人の州では φN_r ≥ 1 人）。O2：構成で満たす。
+- G3 下：旗 1 で比 > 1（多い州の国で φN_r ≤ S < φN の組が勢力になる）・大きさ 1.5〜3〈推〉（sd の 2 回目の φP_n は 2.50）。
+- 向きが〈悪くする〉の観測量は無い〈推〉＝腕を回す。
+- 〈それでも回す理由〉（㉗）：R1 の下側 40 を落とす恐れは残る（sd の 1 回目 2・2 回目 3）。S2 の反実仮想（強い行 385）で小さい〈推〉。3 回の規則の最後＝回して閉じるか採るかを決める。
+
+== [11] 腕と順
+- 1 このコミット → 2 旗 0 の器と計器 facfloor2_s と試験のコミット → 3 ㉘ の束＋FactionFloorRegionTests（隔離ビルド D:/PoB_work/c154sd_work/art）
+  → 4 ident 段 2（bash scripts/instruments/ident/ident.sh run c154sdz --tree D:/PoB_work/wt_c154sd --work D:/PoB_work/ident_c154sd --added-tables facfloor2_s --tests-delta <足した試験の数>・起こす直前に D: の空き 35GB＋30GB を測る・走っている間はこの worktree にコミットしない）
+  → 5 突然変異（使い捨ての木・μ1〜μ6・M0 対照）→ 追記（G3 上・R2 の数・ident の判定）
+  → 6 既定を 1（3 旗）にするコミット → 旗 1 の絞った試験（[2] の一覧・㉘ の束・㊴ の計器の束・savetest・leakhunt・trx で赤を見る）
+  → 7 腕 B（INS=1・10 種・種 1〜10・表 dcont,facfloor2,nation,cwend,coupgate,wars,scalars,region,sbu,parlseat,pxmonth＋止める線の読み手の表・--work D:/PoB_work/c154sd_work・起こす直前に D: の空き 39GB 以上・heavy_c154sd.run）
+  → 8 腕 B の木でフルスイート 1 回（split_suite・--logger trx・Category!=FullLength と =FullLength を分けて合計を --list-tests と突き合わせる）
+  → 9 読み（門・同じ盤面の新÷旧・nullgate・an_h2 -v4・100 倍と 1e10 倍・gdp_zero10・.cost・ng.sh・開幕の 1000 倍）→ 結果のコミット → 印 D:/PoB_work/c154sd_work/sd.mark → origin/c154sd。
+- 生は合流の判断まで消さない（D:/PoB_work/c154sd_work/out_c154sdB_10/ins・ident_c154sd）。
+- 腕 b（計器つき 10 種）が空きで回せない時は合流の腕 Z へ申し送る（★(1362)）。
+
+== [12] 重なり（他の線の持ち主）
+- c154rx：Diplomacy.cs・Coefficients.p05_port_insurance.cs・DormantIdentityTests.cs:272 ほか。c154ha：Territory.cs・Coefficients.p08_audit_soldiers.cs。c154tl：scripts/instruments/ident/ident_check.py・c151fl/fl_gate.py。
+- この線と同じファイル：Coefficients.cs（:101 の隣の 2 行だけ）・Instruments.cs（表の見出しと呼び出しの行だけ）・DormantIdentityTests.cs（自分の旗の行だけ）・WriterRatchetTests.cs（★(749) の行だけ）。持ち主の行は重ならない〈推〉＝合流で解く。
+- 持ち主の外で触る見込みの物（報告に列挙）：Instruments/InstrumentsTg.cs（Tg の 2 行）・InstrumentHookClosureTests.cs（1 行）・FactionSnapshot.cs:101〜:114（組の辞書の型）・InstrumentsPrdf.cs:16・:24（組の型）・InstrumentsPrds.cs の PrdsCount の引数（任意の州の足切り）。
