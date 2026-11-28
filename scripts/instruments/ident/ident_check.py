@@ -640,7 +640,7 @@ def cmp_tests(W, cfg, delta):
         if len(h) > 0 and both == 0 and len(h) + len(r_) == len(t_):
             ok(f'分けた形：H {len(h)}＋R {len(r_)}＝{len(h) + len(r_)}（Tests の Category!=FullLength {len(t_)}・重なり 0）')
         else:
-            fail(f'分けた形：H {len(h)}＋R {len(r_)}≠{len(t_)} か H が空か重なり {both}')
+            fail(f'分けた形：H {len(h)}＋R {len(r_)}≠{len(t_)} か H が空か重なり {both}＝filters.sh の H と R の filter を確かめる（scripts/instruments/suite/filters.sh）')
 
 
 # ---------- 6 savetest と leakhunt ----------
