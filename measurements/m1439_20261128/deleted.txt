@@ -4,3 +4,5 @@
 2026-11-28 21:21:42 D:/PoB_work/keep_1432/base_ins（旧の INSRAW・新しい ident.cfg 8a2c8655c を push した後・keepsum は measurements/m1432_20261128/keepsum_insraw1432.tsv）・D:/PoB_work/keep_1425_rej（c152sdB・sd の 3 回目を採った後・INSRAW でも KEEPNULL でもない・keepsum m1439_20261128/keepsum_keep_1425_rej.tsv）
 2026-11-28 21:28:27 採った線の腕の生 c154sd_work/out_c154sdB_10・out_c154sdZl_10・c154ha_work/out_c154haB_10（帰属を読み終えた後＝合わせた木の M・S11 で門が全て通った・keepsum m1439_20261128/keepsum_c154sdB_ins.tsv・_c154sdZl_ins.tsv・_c154haB_ins.tsv）・線 c154sd の ident の生 ident_c154sd（腕 a と t だけ・〈判定: 恒等〉・1.4GB）＝フォルダの残りは線の物＝触っていない
 2026-11-28 21:54:41 D:/PoB_work/wt_m1439z（腕 Z の使い捨ての worktree・枝 m1439z＝push していない）
+2026-11-28 22:19:09 D:/PoB_work/keep_1432（旧の KEEPNULL n1・n2・a11・新しいヌル腕と ident.cfg 段 2 の 6986f3425 を push した後・keepsum は measurements/m1432_20261128/keepsum_n1_1432.tsv・_n2_1432.tsv・_a11_1432.tsv）
+2026-11-28 22:19:09 D:/PoB_work/m1439_work（合流の作業フォルダ・表と出力は measurements/m1439_20261128/ へ写した後）・D:/PoB_work/wt_m1439（worktree・枝 m1439＝main へ合流済み）
