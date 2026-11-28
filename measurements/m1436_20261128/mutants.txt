@@ -1,0 +1,7 @@
+M0 赤: なし | 成功!   -失敗:     0、合格:     6、スキップ:     0、合計:     6、期間: 3 s - PriceOfBread.Tests.dll (net10.0)
+M1 赤: T1 T2 T3 T3b  | 失敗!   -失敗:     4、合格:     2、スキップ:     0、合計:     6、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+M2 赤: T1 T3  | 失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 5 s - PriceOfBread.Tests.dll (net10.0)
+M3 赤: T3b T4  | 失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+M4 赤: T3b  | 失敗!   -失敗:     1、合格:     5、スキップ:     0、合計:     6、期間: 6 s - PriceOfBread.Tests.dll (net10.0)
+M5 赤: T3b T4  | 失敗!   -失敗:     2、合格:     4、スキップ:     0、合計:     6、期間: 4 s - PriceOfBread.Tests.dll (net10.0)
+MUTDONE
