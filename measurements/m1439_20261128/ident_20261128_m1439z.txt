@@ -1,0 +1,41 @@
+=== 恒等の判定（測った種で一致） m1439z（2026-11-28 19:37:24）===
+測った木：D:/PoB_work/wt_m1439z（HEAD a5773fdd2・未コミット 0 本）
+基準の設定：D:/PoB_work/wt_m1439z/scripts/instruments/ident/ident.cfg
+宣言：added=['facfloor2_s'] removed_cols=['tensionwhy_s:Religion'] tests_delta=17
+腕 a：rc=0 end=2026-11-28 19:23:56
+腕 b：rc=0 end=2026-11-28 19:37:24
+腕 t：rc=0 end=2026-11-28 19:10:26
+腕 s：rc=0 end=2026-11-28 19:23:54
+判定の段：段 2（全表）
+測る木の SOURCE-HASH：91b7b314d4accfdb
+
+SOURCE-HASH（素の 5 種）SOURCE-HASH: 91b7b314d4accfdb
+[素の 5 種] b5_ia_5.txt 対 b5_20261128_m1432
+  ○ 全行バイト一致（180 行・名乗り行を除く）
+[素の 5 種の .cost] b5_ia_5.txt.cost 対 b5_20261128_m1432.cost
+  ○ 件数の行 45 本・推定 220.2 秒・種ごとの忠実度 5 行が一致
+SOURCE-HASH（計器つき 10 種）SOURCE-HASH: 91b7b314d4accfdb
+[計器つき 10 種] b10_ib_10.txt 対 b10_20261128_m1432_ins
+  ○ 全行バイト一致（181 行・名乗り行を除く）
+[計器つき 10 種の .cost] b10_ib_10.txt.cost 対 b10_20261128_m1432_ins.cost
+  ○ 件数の行 45 本・推定 222.4 秒・種ごとの忠実度 10 行が一致
+[計器の表] 腕 D:/PoB_work/ident_m1439z/out_ib_10/ins  対  基準 D:/PoB_work/keep_1432/base_ins
+  基準 1824 本・腕 1834 本・バイト一致 1764 本
+  腕にだけある 10 本（うち宣言 10）
+  列が消えた表（--removed-cols の宣言・残りの列は全行バイト一致）10 本：tensionwhy_s:Religion
+  既知の揺れの列だけが違う表 50 本：burscan_s:seconds×10・cearn_s:経路の行番号だけ（写して一致 3816 欄）×1・cearn_s:経路の行番号だけ（写して一致 4632 欄）×1・cearn_s:経路の行番号だけ（写して一致 4740 欄）×1・cearn_s:経路の行番号だけ（写して一致 4803 欄）×1・cearn_s:経路の行番号だけ（写して一致 4984 欄）×1・cearn_s:経路の行番号だけ（写して一致 5509 欄）×1・cearn_s:経路の行番号だけ（写して一致 5693 欄）×1・cearn_s:経路の行番号だけ（写して一致 5796 欄）×1・cearn_s:経路の行番号だけ（写して一致 5864 欄）×1・cearn_s:経路の行番号だけ（写して一致 5911 欄）×1・clock_s:worldTotalPerMonth@kind=C×10・dep_s:callerLine×10・flow_s:呼び出し位置だけ×10
+  ○ 計器の表は恒等（バイト一致 1764・既知の揺れ 50・宣言された増減 20）
+  内訳：共通の表 1824 本＝バイト一致 1764＋既知の揺れ 50＋列が増えた 0＋行が増えた 0＋列が消えた 10＋検算の台本で通った表 0＋宣言の無い違い 0＋その他 0（和 1824）・1 表は優先順〔宣言の無い違い→列が増えた→行が増えた→列が消えた→既知の揺れ→検算の台本〕の最初の区分にだけ数える
+[注視の表] mon_ib_10.txt 対 mon_20261128_m1432.txt（タグの行を除く）
+  ○ タグの行以外が一致（4769 行）
+[NG の集合] ng.sh（読み手の出力は D:/ の形で渡す）
+  ○ NG 79 件・新しい 0・外れた 0（基準 rd:D:/PoB_work/wt_m1439z/measurements/ng1432_20261128:m1432）
+[テストの数] --list-tests
+  ○ Category!=FullLength 3368（基準 3351+17 を宣言）・FullLength 4（基準 4）
+  ○ 分けた形：H 136＋R 3000＝3136（Tests の Category!=FullLength 3136・重なり 0）
+[savetest と leakhunt]
+  ○ savetest OK
+  ○ leakhunt 完走・保存則違反なし・世界の台帳の説明できない増減 0
+
+試験の腕は件数だけ（--list-tests）＝赤の有無は見ていない・赤の有無は ㉘ とフルスイートで見る（(1206)）
+判定: 恒等

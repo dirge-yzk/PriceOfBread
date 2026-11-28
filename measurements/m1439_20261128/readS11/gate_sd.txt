@@ -1,0 +1,8 @@
+ins=D:/PoB_work/m1439_work/out_m1439S_10_s11/ins 種=11..20 表なし=0 行=407617 旗(floor,strength)=[('1', '1')]
+G3下	ΣfacSeenTargetK=1.76751e+08	ΣtargetAboveNK=7.02428e+07	比=2.516282	門≥1.10：通る
+G3上	案Aの値 v=ΣtargetAboveRK÷ΣtargetK=0.946266	腕の値 ΣfacSeenTargetK÷ΣtargetK=0.946266	φP_n の値 ΣtargetAbovePK÷ΣtargetK=0.957677	（記録）
+O1	facBelow1P の和=0	門＝0：通る
+O2	facEngCount>0 の行=262235	φ×最小の州を下回る行=0	門＝0：通る	facMinSizeP（人）p1/p10/p50=['40.1', '567.1', '1.99e+04']
+O3（記録）	partyQualFac の和=109245	partyQualSizeMinP（人）p1/p10/p50=['54.86', '852.2', '2.056e+04']
+記録	組の数 φN=293832・φN_r=1273948・φP_n=1817825	見えた勢力=1273948・エンジンが書いた勢力=1273948・不一致の行=0	勢力の数の平均=5.1432
+記録	強さの頭数（見えた勢力）ΣNπM=2.83028e+07・ΣNM²=1.25758e+08・ΣNM=2.98217e+08	新÷旧（ΣNM²÷ΣNπM）=4.4433	riotFire の和=4948

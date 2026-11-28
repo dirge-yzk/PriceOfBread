@@ -1,0 +1,3 @@
+2026-11-28 19:06:34 D:/PoB_work/ident_c154tl（線 c154tl の ident の生・PRUNE=0・34.6GB・〈判定: 恒等〉・keepsum measurements/m1439_20261128/keepsum_ident_c154tl_ins.tsv の後）
+2026-11-28 19:49:42 D:/PoB_work/ident_m1439z（合流の腕 Z の ident の生・〈判定: 恒等〉・刈った後の 140 本を keepsum measurements/m1439_20261128/keepsum_ident_m1439z_ins.tsv の後）
+2026-11-28 19:49:42 D:/PoB_work/r1437_work/out_r1437z0_10（読む線 c154rl の旗 0 の腕の生 3.8GB・読む線の表 out/ と報告を measurements/m1437_20261128/ へ写した後・反証役 v も読み終えた）

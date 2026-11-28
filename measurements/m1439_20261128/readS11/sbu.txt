@@ -1,0 +1,5 @@
+arm	seeds	kappaSum	wageGain
+arm	10	4270.5	685479.1
+base	10	12335.9	1999860.0
+n1	0	0.0	0.0
+n2	0	0.0	0.0
