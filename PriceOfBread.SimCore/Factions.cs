@@ -7,6 +7,7 @@ public sealed class FactionState
     public int Ideo;
     public double Size;
     public double AvgMilitancy;
+    public double FightHeads;   // (1435) 戦う頭数 Σ_{p∈組} N_p M_p（π を掛けない・Factions.Step が書く・旗 FactionStrengthByMilitancy 1 の強さが読む）
     public double Cohesion;
     public bool Mutated;
     public string MutantName = "";
@@ -28,15 +29,19 @@ public static class Factions
         double totalPop = w.TotalPopulation;
         if (totalPop <= 1e-9) return;
 
-        var observed = FactionSnapshot.ComputeClusters(w, countCost: true);
+        var extras = new List<(double Fight, double FightSq, double RegionPop)>();
+        var observed = FactionSnapshot.ComputeClusters(w, true, extras);
         var consciousnessByBloc = new double?[PolicyPreferences.BlocCount];
-        foreach (var (reg, bloc, ideo, size, milSum) in observed)
+        for (int ci = 0; ci < observed.Count; ci++)
         {
-            if (size < FactionSnapshot.MinSizeFraction * totalPop) continue;
+            var (reg, bloc, ideo, size, milSum) = observed[ci];
+            if (size < FactionSnapshot.Floor(w, extras[ci].RegionPop, totalPop)) continue;
             FactionState? st = null;
             foreach (var f in w.Factions) if (ReferenceEquals(f.Region, reg) && f.Bloc == bloc && f.Ideo == ideo) { st = f; break; }
             if (st is null) { st = new FactionState { Region = reg, Bloc = bloc, Ideo = ideo }; w.Factions.Add(st); }
             st.Size = size; st.AvgMilitancy = milSum / size;
+            double fight = extras[ci].Fight; st.FightHeads = fight;
+            if (c.FactionStrengthByMilitancy > 0) st.AvgMilitancy = fight > 0 ? extras[ci].FightSq / fight : 0.0;   // (1435) 旗 1＝闘争度の重みの平均
             double consc = consciousnessByBloc[bloc] ??= BlocConsciousness(w, bloc);
             double growth = c.FactionCohesionGrowth * (0.5 + consc) * (st.Mutated ? 2.0 : 1.0);
             st.Cohesion = PoliticalQuantities.Clamp01(PoliticalQuantities.Toward(st.Cohesion, 1.0, growth));
@@ -45,8 +50,11 @@ public static class Factions
         {
             var f = w.Factions[i];
             bool seen = false;
-            foreach (var (reg, bloc, ideo, size, _) in observed)
-                if (ReferenceEquals(f.Region, reg) && f.Bloc == bloc && f.Ideo == ideo && size >= FactionSnapshot.MinSizeFraction * totalPop) { seen = true; break; }
+            for (int ci = 0; ci < observed.Count; ci++)
+            {
+                var (reg, bloc, ideo, size, _) = observed[ci];
+                if (ReferenceEquals(f.Region, reg) && f.Bloc == bloc && f.Ideo == ideo && size >= FactionSnapshot.Floor(w, extras[ci].RegionPop, totalPop)) { seen = true; break; }
+            }
             if (seen) continue;
             f.Cohesion *= 1.0 - c.FactionCohesionDecay;
             if (f.Cohesion < ForgetCohesionFloor) w.Factions.RemoveAt(i);
@@ -74,7 +82,7 @@ public static class Factions
                     w.LogAdd($"{w.Year} {DisplayName(small)}が{DisplayName(big)}に合流した");
                 }
         }
-        if (Instruments.On) Instruments.PrdfObserve(w, observed, totalPop);
+        if (Instruments.On) { Instruments.PrdfObserve(w, observed, totalPop); Instruments.Facfloor2Observe(w); }   // (1435) facfloor2_s
     }
 
     public static string DisplayName(FactionState f) =>

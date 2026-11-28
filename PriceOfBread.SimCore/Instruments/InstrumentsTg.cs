@@ -39,6 +39,7 @@ internal static class Tg
     internal static bool Paysale = true;
     internal static bool Portch = true;
     internal static bool Prdf = true;
+    internal static bool Facfloor2 = true;   // (1435)
     internal static bool Prds = true;
     internal static bool Pxstep = true;
     internal static bool RailSpend = true;
@@ -97,6 +98,7 @@ internal static class Tg
         Paysale = Instruments.Wants("paysale2_s");
         Portch = Instruments.Wants("portch_s") || Instruments.Wants("portlm_s");
         Prdf = Instruments.Wants("prdf_s");
+        Facfloor2 = Instruments.Wants("facfloor2_s");   // (1435)
         Prds = Instruments.Wants("prds_s");
         Pxstep = Instruments.Wants("csc_s") || Instruments.Wants("cscx_s") || Instruments.Wants("pxstep_s");
         RailSpend = Instruments.Wants("railspend_s");

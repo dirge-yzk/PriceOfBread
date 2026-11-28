@@ -64,16 +64,18 @@ public static partial class Instruments
                 if (pMil > 0) { milCl.TryGetValue(key, out var cur); milCl[key] = (cur.Size + p.Size * pMil, cur.MilSum + p.Militancy * p.Size * pMil); }
             }
         }
-        double totalPop = w.TotalPopulation, floor = FactionSnapshot.MinSizeFraction * totalPop;
-        static (int Count, double AvgMil, double MilSum) Summ(Dictionary<(int, int, int), (double Size, double MilSum)> cl, double floor)
+        double totalPop = w.TotalPopulation;
+        var regionPop = new Dictionary<int, double>();   // (1435) 足切りは FactionSnapshot.Floor（Factions.Step と同じ 1 本・旗 FactionFloorByRegion 1 で州の人口）
+        foreach (var r in w.Regions) regionPop[r.Id] = c.FactionFloorByRegion > 0 ? r.SumPopulation() : 0.0;
+        (int Count, double AvgMil, double MilSum) Summ(Dictionary<(int, int, int), (double Size, double MilSum)> cl)
         {
             int n = 0; double sz = 0, ms = 0;
-            foreach (var v in cl.Values) if (v.Size >= floor) { n++; sz += v.Size; ms += v.MilSum; }
+            foreach (var (k, v) in cl) if (v.Size >= FactionSnapshot.Floor(w, regionPop[k.Item1], totalPop)) { n++; sz += v.Size; ms += v.MilSum; }
             return (n, sz > 0 ? ms / sz : 0.0, ms);
         }
-        var (nOld, avgOld, msOld) = Summ(oldCl, floor);
-        var (nNew, avgNew, msNew) = Summ(newCl, floor);
-        var (nMil, _, msMil) = Summ(milCl, floor);
+        var (nOld, avgOld, msOld) = Summ(oldCl);
+        var (nNew, avgNew, msNew) = Summ(newCl);
+        var (nMil, _, msMil) = Summ(milCl);
         int fMut = 0, fGate = 0, fMutGate = 0, fStrong = 0; double fMaxCoh = 0, ratioMax = 0;
         double coerce = PoliticalQuantities.EffectiveCoerce(w, c);
         foreach (var f in w.Factions)

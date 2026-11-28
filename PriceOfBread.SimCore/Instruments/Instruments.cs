@@ -1948,6 +1948,7 @@ public static partial class Instruments
         PortlmTable(sim, seed, q);         // PortlmTable〔履歴 Instruments.cs#308〕
         InheritIntentTable(sim, seed, q);  // InheritIntentTable〔履歴 Instruments.cs#309〕
         PrdfTable(sim, seed);              // PrdfTable〔履歴 Instruments.cs#310〕
+        Facfloor2Table(sim, seed);         // (1435) facfloor2_s
         DivhostTable(sim, seed, q); RdhTable(sim, seed, q);            // DivhostTable〔履歴 Instruments.cs#311〕
         PrdsTable(sim, seed);              // PrdsTable〔履歴 Instruments.cs#312〕
         CpwdTable(sim, seed, q);           // CpwdTable〔履歴 Instruments.cs#313〕
@@ -2058,6 +2059,7 @@ public static partial class Instruments
         CearnClose(sim);     // CearnClose〔履歴 Instruments.cs#361〕
         InheritIntentClose(sim);   // InheritIntentClose〔履歴 Instruments.cs#362〕
         PrdfClose(sim);  // PrdfClose〔履歴 Instruments.cs#363〕
+        Facfloor2Close(sim);   // (1435) facfloor2_s
         RdhClose(sim);   // RdhClose〔履歴 Instruments.cs#364〕
         PopCloseClose(sim);   // (1261) popclose_s
         PrdsClose(sim);  // PrdsClose〔履歴 Instruments.cs#365〕
