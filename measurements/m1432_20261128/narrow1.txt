@@ -1,0 +1,3 @@
+  失敗 PriceOfBread.Tests.WriterRatchetTests.計算量の見た件数は宣言した表を超えない(item: 11, declared: 3570444) [1 ms]
+  スキップ PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun [1 ms]
+失敗!   -失敗:     1、合格:   492、スキップ:     1、合計:   494、期間: 27 m 41 s - PriceOfBread.Tests.dll (net10.0)
