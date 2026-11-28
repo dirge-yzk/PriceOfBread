@@ -130,7 +130,7 @@ public class FsxTests(ITestOutputHelper output)
     [InlineData(true)]
     public void 線を超えた国庫でも返済は年1パーセントの床だけで_余りは国庫に残り_台帳は閉じる(bool ai)
     {
-        // (1416) c151fl 旗 RepayFloorOnly＝1：旧の番人〈線を超えた分まで返し国庫は線に着く〉を新しい規則（返済は床だけ）へ書き換えた。台帳が閉じる性質は残す。
+        // (1416) c151fl〔(1427) c153fb で旗を焼いた〕：旧の番人〈線を超えた分まで返し国庫は線に着く〉を新しい規則（返済は床だけ）へ書き換えた。台帳が閉じる性質は残す。
         var b = Board(ai);
         double line = UtilityAgent.OpulenceLineOf(b), d0 = b.GovDebt.Value;
         b.SetTreasuryRaw(line + 0.4 * d0);
@@ -145,7 +145,7 @@ public class FsxTests(ITestOutputHelper output)
     [Fact]
     public void 国庫が債務を大きく越えても返済は床だけで_残高は負にならない()
     {
-        // (1416) c151fl 旗 RepayFloorOnly＝1：旧の番人〈国債は全て返る〉を新しい規則へ書き換えた。残高が負にならない性質と台帳は残す。
+        // (1416) c151fl〔(1427) c153fb で旗を焼いた〕：旧の番人〈国債は全て返る〉を新しい規則へ書き換えた。残高が負にならない性質と台帳は残す。
         var b = Board(false);
         double line = UtilityAgent.OpulenceLineOf(b), d0 = b.GovDebt.Value;
         b.SetTreasuryRaw(line + 5.0 * d0);

@@ -168,10 +168,13 @@ public static class Fiscal
         if (w.GovDebt.Value > 1e-9 && payRate >= 1 && spare > 0 && !w.WarmupFrozen)
         {
             double floorRepay = Math.Min(w.GovDebt.Value * c.BondRepayFracPerMonth.Value, spare);
-            double excess = w.Treasury.Value - UtilityAgent.OpulenceLineOf(w);
-            if (!(excess > 0)) excess = 0;
-            double repay = Math.Min(w.GovDebt.Value, c.RepayFloorOnly > 0 ? floorRepay : Math.Min(spare, Math.Max(floorRepay, excess)));   // (1416) 旗 RepayFloorOnly＞0＝床だけ（余りは国庫に残る）
-            if (Instruments.On) Instruments.FsxRepay(w, floorRepay, repay, excess);
+            double repay = Math.Min(w.GovDebt.Value, floorRepay);   // (1427) c153fb 旗 RepayFloorOnly を焼いた＝返済は床（残高×BondRepayFracPerMonth・余剰で頭打ち）だけ。豊かさの線の上の余りでは返さない（余りは国庫に残り減税と歳出の読み手へ）
+            if (Instruments.On)   // 計器の fsx_s の excessWouldSum 専用（旧の規則なら余りで返した額＝計器の列として残す・計器の無い走りでは求めない）
+            {
+                double excess = w.Treasury.Value - UtilityAgent.OpulenceLineOf(w);
+                if (!(excess > 0)) excess = 0;
+                Instruments.FsxRepay(w, floorRepay, repay, excess);
+            }
             double shareNow = PoliticalQuantities.Clamp01(w.ForeignDebt / w.GovDebt);
             double frForeign = repay * shareNow;
             MoneyStock domBefore = w.GovDebt - w.ForeignDebt;

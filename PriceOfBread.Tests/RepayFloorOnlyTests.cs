@@ -3,7 +3,7 @@ using Xunit;
 
 namespace PriceOfBread.Tests;
 
-/// <summary>(1416) 線 c151fl 旗 RepayFloorOnly（国債の返済を床＝残高×BondRepayFracPerMonth だけにし、豊かさの線の上の余りでは返さない）の機構の番人。
+/// <summary>(1427) 線 c153fb（旧の旗 RepayFloorOnly を焼いた＝国債の返済を床＝残高×BondRepayFracPerMonth だけにし、豊かさの線の上の余りでは返さない）の機構の番人。
 /// 事前登録 measurements/m1416_20261127_prereg_fl.txt。盤面は試験の中で置く（英を 1 四半期温め、税・福祉・年金・外債を止めて 1 回起債・国債は全て国内の持ち手）。
 /// 期待値は式の写しでなく、盤面に置いた量（起債の額×率・置いた国庫・線）から作る。AI とプレイヤー（NullAgent）の両方で踏む。</summary>
 public class RepayFloorOnlyTests
@@ -16,7 +16,7 @@ public class RepayFloorOnlyTests
         Fiscal.Borrow(w, w.Coef, spare);
     }
 
-    private static World Board(bool ai, double flag)
+    private static World Board(bool ai)
     {
         var sim = new Simulation(NationConfig.Britain().ToScenario(41), ai ? new UtilityAgent() : new NullAgent());
         sim.Run(1);
@@ -29,18 +29,17 @@ public class RepayFloorOnlyTests
         w.LastTariffRevenuePerClearing = (w.Coef.MonthsPerClearing * w.NominalGdpPerMonth).Value;
         Month(w, 0.5, -Ample);   // r＜1 の月に起債
         Assert.True(w.GovDebt.Value > 2e3, $"前提が崩れた：起債が立っていない（{w.GovDebt}）");
-        w.Coef.RepayFloorOnly = flag;
         return w;
     }
 
-    /// <summary>T1：国庫が線の上（線＋起債の 0.4 倍）・支払い率 1・余剰は十分 → 旗 1 で返済は起債×率ちょうど、余りは国庫に残り、台帳は閉じる。
-    /// 突然変異 μ1（旗 1 の枝を旧の式に）・μ2（余りだけを返す）・μ4（余剰まで返す）で赤。</summary>
+    /// <summary>T1：国庫が線の上（線＋起債の 0.4 倍）・支払い率 1・余剰は十分 → 返済は起債×率ちょうど、余りは国庫に残り、台帳は閉じる。
+    /// 突然変異 μ1（余りでも返す旧の式へ戻す）・μ2（余りだけを返す）・μ4（余剰まで返す）で赤。</summary>
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void 旗1では線の上の国庫でも返済は床ちょうどで_余りは国庫に残る(bool ai)
+    public void 線の上の国庫でも返済は床ちょうどで_余りは国庫に残る(bool ai)
     {
-        var b = Board(ai, 1);
+        var b = Board(ai);
         double line = UtilityAgent.OpulenceLineOf(b), d0 = b.GovDebt.Value;
         Assert.True(line > 1.0, "前提が崩れた：線が立っていない");
         b.SetTreasuryRaw(line + 0.4 * d0);
@@ -58,7 +57,7 @@ public class RepayFloorOnlyTests
     [Fact]
     public void 床が国債を越える盤面でも国債は負にならず返した額は国債ちょうど()
     {
-        var b = Board(false, 1);
+        var b = Board(false);
         double line = UtilityAgent.OpulenceLineOf(b), d0 = b.GovDebt.Value;
         b.Coef.BondRepayFracPerMonth = new RatePerMonth(2.0);
         b.SetTreasuryRaw(line + 5.0 * d0);
@@ -70,11 +69,11 @@ public class RepayFloorOnlyTests
         new BondLedger().Check(b);
     }
 
-    /// <summary>T3：余剰が床より小さい月は、旗 1 でも返済は余剰で頭打ち（余剰を越えない・余剰の半分より多い）。</summary>
+    /// <summary>T3：余剰が床より小さい月は、返済は余剰で頭打ち（余剰を越えない・余剰の半分より多い）。</summary>
     [Fact]
     public void 余剰が床より小さい月は余剰で頭打ち()
     {
-        var b = Board(false, 1);
+        var b = Board(false);
         double line = UtilityAgent.OpulenceLineOf(b), d0 = b.GovDebt.Value;
         double spare = 0.5 * d0 * b.Coef.BondRepayFracPerMonth.Value;
         b.SetTreasuryRaw(line + 5.0 * d0);
@@ -82,19 +81,6 @@ public class RepayFloorOnlyTests
         double repaid = d0 - b.GovDebt.Value;
         Assert.True(repaid <= spare * (1 + 1e-9) + 1e-9, $"返済 {repaid} が余剰 {spare} を越えた");
         Assert.True(repaid > 0.5 * spare, $"返済 {repaid} が余剰 {spare} まで届いていない");
-        new BondLedger().Check(b);
-    }
-
-    /// <summary>T0：旗 0 の経路の番人（焼き込みまで）＝旗 0 では線の上の余りまで返す（床の 10 倍より多い）。</summary>
-    [Fact]
-    public void 旗0では線の上の余りまで返す()
-    {
-        var b = Board(false, 0);
-        double line = UtilityAgent.OpulenceLineOf(b), d0 = b.GovDebt.Value;
-        b.SetTreasuryRaw(line + 0.4 * d0);
-        Month(b, 1.0, Ample);
-        double repaid = d0 - b.GovDebt.Value;
-        Assert.True(repaid > 10 * d0 * b.Coef.BondRepayFracPerMonth.Value, $"旗 0 の返済 {repaid} が余りまで届いていない（床 {d0 * b.Coef.BondRepayFracPerMonth.Value}）");
         new BondLedger().Check(b);
     }
 }

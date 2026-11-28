@@ -1,0 +1,15 @@
+(1427) 線 c153fb 事前登録（恒等・予言 0）— 基準 m1425（c3290bbbd）
+[1] 恒等の線。fl の段 2＝旗 RepayFloorOnly（既定 1）と旧の枝（余りでも返す式）を消し、返済を床だけの式に固定する。挙動は変えない。
+    浮動小数の順序が変わる箇所：なし。repay＝Math.Min(GovDebt, floorRepay)（旗 1 の三項の真の枝と同じ式・同じ 2 つの double の min）。
+    紙の台本：旧と新で同じ盤面の食い違い＝旗 1 の経路は floorRepay を返す式そのもの＝0 件。
+[2] 消す物と残す物
+  消す：Coefficients.cs:138 RepayFloorOnly／Fiscal.cs:173 の三項の偽の枝（Math.Min(spare, Math.Max(floorRepay, excess))）／RepayFloorOnlyTests の旗の引数と T0（旗 0 の経路の番人）。
+  残す：Fiscal.cs の excess は FsxRepay の引数だけが読む＝Instruments.On の時だけ求める（On でない時は求めない）。FsxRepay の excessWouldSum・fsx_s の列は旧の規則の列として残す（値は今と同じ）。
+  読み手の grep（RepayFloorOnly）：SimCore＝Fiscal.cs・Coefficients.cs のみ／Runner・App・Display＝0／Tests＝RepayFloorOnlyTests（flag 引数）・注（DormantIdentityTests:166・FsxTests:133,148・WriterRatchetTests:414,424,544 の注）／scripts＝c151fl/fl_gate.py（名前なし・コメント）・mut_fl.py（使い捨ての突然変異の台本・旧の文字列＝そのまま履歴）・ident.cfg と m1418/*.py（履歴の文）／POB_COEF の名前＝ident の腕 Z の台本（m1418/identz.sh・履歴・今は走らせない）のみ／SaveGame＝全欄リフレクション（旧版との互換は要らない・欄が減るだけ）。
+  他の線との重なり：c153tp＝Fiscal・Coefficients に触れない／c153rg＝Coefficients.p05／c153nx＝Diplomacy.cs・p04。Coefficients.cs は本線が :138 の 1 行を消すだけ・WriterRatchetTests・DormantIdentityTests は本線が注の文だけ（他の線は別の行）。
+[3] 足す試験：なし（消すだけ）。RepayFloorOnlyTests は旗の引数を外して [Theory] ai=false/true・[Fact] 2 本へ（旧の Assert は弱めない）。テストの数：Tests 3111→3110（T0 を消す＝−1）・合計 3343→3342。ident.cfg の TESTS_NONFULL は --tests-delta -1。
+  突然変異（使い捨ての木・RepayFloorOnlyTests と FsxTests だけ）：μ1 余りでも返す旧の式（Math.Min(spare, Math.Max(floorRepay, excess)) へ戻す）→ 赤（T1 と FsxTests の線を超えた国庫の番人）。μ2 Math.Min(GovDebt, …) を外す → 赤（T2 の国債が負にならない）。μ3 On でない時の excess の除外を外す（常に求める）→ 値は同じ＝試験は赤にならない（計算量は WriterRatchetTests の宣言の表の件数で見る＝宣言どおりなら緑・DiploHegemon 型の件数は不変）。
+  ソースを走査する番人（㉘）：IndustrializationReaderTests・UnitTypeTests・InstrumentsTests・WriterRatchetTests・DormantIdentityTests・ValueCountRatchetTests・DerivedValueRatchetTests を回す。.Value の数：Fiscal.cs は excess の 1 行が On の枝へ移るだけで数は同じ（予言：ValueCountRatchet の件数は不変）。書き換える件数の予言：0（WriterRatchetTests は注の文だけ＝触らない）。`new MoneyStock(` の件数は不変・route_anchors の鍵の行・工業化度の読み手の許可表は触れない。
+  門の台本：scripts/instruments/c151fl/fl_gate.py を fsx_s が無くても読む形へ（台帳 treasledger の DebtRepay の列で返済の額を数える＝既にある列なので計器は足さない）。G1〜G3 は fsx_s がある時だけ。
+[4] 素の 5 種・計器つき 10 種は m1425（b5_20261128_m1425・b10_20261128_m1425_ins）と名乗り行を除いて全行一致。.cost は 0〜負（On でない走りで excess を求めなくなる分だけ）。計器の表（fsx_s など）は同じ＝段 1。違えば段 2（--work D:/PoB_work/ident_c153fb）。
+[5] 〈判定: 恒等〉なら採る（測った種で一致と名乗る）。一致しなければこの変更を外して報告に回す。
