@@ -280,6 +280,7 @@ public class DormantIdentityTests
     /// 消す前の恒等は帯3本の全行バイト一致で示した（(253)）。復活させたいときは、この名簿から外す前に tsv と docs の裁定を読むこと。</summary>
     private static readonly string[] RetiredFields =
     [
+        "ReligionTensionPerMonth", "ReligionAffinityRelief",   // (1433) c154rx：外交の緊張の宗教の枝（(1428) で係数 0）・欄・TensionReason.Religion を削除（合流 (1439) が反証役 v の低で足した）
         "ServiceUnemployment",   // (1263) c129k12 K12：役務専任 pop の失業の強度（既定 1.0＝×1.0）の旗を焼いた（式は残す）
         "RevoltMilitiaRaise", "MilitiaCombatValue",   // (1338) c140dz：民兵の札を立てる器と戦力の重み（既定 0＝休眠）を削除。Pop.MilitiaShare の欄と読み手は残る（書き手は無くなった＝別の線で畳む）
         "DevelopmentMemory",   // (1338) c140dz：開発度の記憶（既定 0.4 だが IndustrializationOff＝1 の下で枝が通らなかった）を枝・Region.DevelopmentPeak・係数ごと削除（焼きの表の 4 番目の欄は 0.0 の穴にした）
