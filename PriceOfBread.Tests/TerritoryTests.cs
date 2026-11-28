@@ -77,9 +77,9 @@ public class TerritoryTests
     }
 
     /// <summary>★(125) 受け入れの上限（越境移民と同じ規則）：人口の小さな州が最大機会になっても、1か月の流入は
-    /// ImmigrationReceiveCapPerQuarter÷3×その州の人口×<see cref="Territory.AbsorbCap"/> を超えない（旧＝全ての州が同じ月に流し込み、
+    /// ImmigrationReceiveCapPerQuarter÷3×その州の空き（(1436) 旗 ReceiveCapByRoom 1＝農村の空き max(0, 耕地−農村)＋職の空き）×(食×住居)^指数 を超えない（旧＝全ての州が同じ月に流し込み、
     /// 人口数万の州が1四半期で10倍以上に膨れ、膨れた分が土地の逓減で何十年もかけて流れ出た）。縮んだ分は出る州に残る（人口は保存）。
-    /// ⚠突然変異「縮めない（比≡1）」で赤。</summary>
+    /// ⚠突然変異「縮めない（比≡1）」で赤。(1436) で上限の量を〈その州の人口×AbsorbCap〉から新しい規則へ書き換えた（measurements/m1436_20261128_prereg_ha.txt の 9）。</summary>
     [Fact]
     public void 小さな州への流入は受け入れの上限を超えない_超えた分は出る州に残る()
     {
@@ -88,7 +88,10 @@ public class TerritoryTests
         Region core = w.Regions[0], fr = w.Regions[1];
         // 辺境＝人口10（千人）・生産性2.5＝最大機会
         double frPop = fr.SumPopulation(), total = core.SumPopulation() + frPop;
-        double cap = c.ImmigrationReceiveCapPerQuarter.Value / Calendar.MonthsPerQuarter * frPop * Territory.AbsorbCap(fr, c);
+        Assert.True(Catalog.LaborId >= fr.Markets.Length, "前提が崩れた：辺境に一般の労働の市場がある（職の空き 0 の前提）");
+        double rural = 0; foreach (var p in fr.Pops) if (!p.IsUrban) rural += p.Size;
+        double fh = Math.Pow(Math.Clamp(fr.FoodFill, 0.0, 1.0) * Math.Clamp(fr.HousingFill, 0.0, 1.0), c.ImmigrationAbsorbExponent);
+        double cap = c.ImmigrationReceiveCapPerQuarter.Value / Calendar.MonthsPerQuarter * Math.Max(0.0, fr.ArableLand - rural) * fh;
         Assert.True(cap > 0, "前提が崩れた：受け入れの能力が0");
         Territory.Step(w, c);
         double inflow = fr.SumPopulation() - frPop;

@@ -128,10 +128,11 @@ public class DestFoodSymmetryTests
     [Fact]
     public void T3_受け入れの上限の量は旗に依らない()
     {
-        const double fB = 0.5, capQ = 1e-3;
+        const double fB = 0.5, capQ = 1e-4;   // (1436) 1e-3→1e-4：上限の量が B の空き（農村×9＞人口）になり 1e-3 では B で上限が効かない＝前提を戻す（m1436 事前登録の 9）
         var free0 = DomGains(0.0, fB, 1e9); var free1 = DomGains(1.0, fB, 1e9);
         var cap0 = DomGains(0.0, fB, capQ); var cap1 = DomGains(1.0, fB, capQ);
         Assert.True(cap0.B > 0 && cap0.B < 0.1 * free0.B && cap1.B < 0.1 * free1.B, $"前提が崩れた：B で上限が効いていない（{cap0.B}・{free0.B}・{cap1.B}・{free1.B}）");
+        Assert.True(cap1.B > 0, $"前提が崩れた：上限の効いた B へ流れない（旗 1 {cap1.B:R}）");   // (1436) 対照
         Assert.True(Math.Abs(cap1.B - cap0.B) <= 1e-9 * cap0.B, $"上限の効いた B の流入が旗で変わった（旗 0 {cap0.B:R}・旗 1 {cap1.B:R}）＝上限の式が旗を読んだ");
         Assert.True(Math.Abs(free1.B - free0.B) > 1e-6 * free0.B, "前提が崩れた：上限の無い盤面で旗が流れを変えない");
     }
