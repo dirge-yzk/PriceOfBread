@@ -41,3 +41,8 @@
 5. 順の食い違い（名乗る）
 - 腕 B を ident（旗 0 の器の恒等の判定）より先に回した。D: の空きが 35GB＋30GB に足りず（45〜55GB）、重い仕事の枠を他の線が使っていた。
   ident は使い捨ての木 D:/PoB_work/wt_c153nx_mut（8734c9e9b＝旗 0 の器）で回す＝この木のコミットと重ならない（㉙）。
+- ident（旗 0 の器 8734c9e9b・木 D:/PoB_work/wt_c153nx_mut・SOURCE-HASH c77f8bcff6213812・段 2）は D: の空きが 49〜55GB で〈35GB＋30GB〉に届かず、計器つき 10 種の腕 b を回せなかった。
+  回した物（--no-ins・腕 a と t）：素の 5 種 b5 が b5_20261128_m1425 と全行バイト一致（181 行）・.cost の件数の行 45 本と推定 220.0 秒が一致・
+  --list-tests 3348（基準 3343＋足した 5 を宣言）・FullLength 4。判定の文は〈判定: 恒等〉だが腕 b（10 種・計器つき 10 種）が無い＝恒等の判定は未完（measurements/m1429_20261128/ident_a_t_check.txt）。
+  残り：`bash scripts/instruments/ident/ident.sh run c153nxz --tree <8734c9e9b の木> --work D:/PoB_work/ident_c153nx --grown-ok wexit_s --tests-delta 5`（空き 65GB 以上で）。
+- フルスイート（腕 B の木 0c5fedb0b・09:00〜09:53・同時の重い仕事 0〜1）：Tests 3114＋スキップ 2（=3116）・Ui 232・FullLength 4・赤 0＝--list-tests 3348＋4 と一致（suite.txt）。
