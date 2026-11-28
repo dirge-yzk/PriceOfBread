@@ -1,0 +1,13 @@
+(1437) c154rl 読む線：内陸の州へ線路と機関車が届かない根（コードを書かない・コミットしない）
+作業の場所：D:/PoB_work/r1437_work/（台本・表・下書き）。台本の写しは scripts/instruments/r1437/ に置く予定（コミットしない＝合流が写す）。
+木：main 04a162e34（worktree は作らない＝読むだけ・ソースは main の作業ツリーを読むだけ）。
+読む生（読むだけ・消さない・移さない）
+  INSRAW D:/PoB_work/keep_1432/base_ins（M・旗 RailProcureNational 1・種 1〜10）
+    trrail_s{1..10}.tsv・sellr_s{1..10}.tsv・trroute_s{1..10}.tsv・trnation_s{1..10}.tsv
+    region_s{1..10}.tsv・railspend_s{1..10}.tsv・stproc_s{1..10}.tsv
+  D:/PoB_work/keep_1432/a11（種 11〜20・同じ旗 1・必要なら照合だけ）
+材料：measurements/m1407_20261127_*・measurements/m1374_20261126/report.txt
+ソース（04a162e34）：Transport.cs（BuyToward・ProcureNational・ShareBasis・RegionShare）
+  InternationalMarket.cs:97〜:113 Procure・BilateralMarket.cs（:365〜:410 cap・:731 thin・:771 財の順・:858〜:921 行の門・:1097 capLeft・:1212〜:1217）
+  EconomyStep.cs:1633（LastDemand の上書き）・Simulation.cs:2001（Transport.Step の位置）・MultiNationSim.cs:648〜:693（清算の位置）
+腕：旗 0 の腕は必要が出たときだけ 1 本（POB_COEF RailProcureNational=0・10 種・表を絞る・起こす直前に 38GB 以上）。

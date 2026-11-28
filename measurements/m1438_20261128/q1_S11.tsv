@@ -1,0 +1,52 @@
+# D:/PoB_work/keep_1432/a11 seeds 11-20
+any12	727
+any12_ally	40
+any12_civil	1
+any12_declare	392
+any12_main	2
+any12_mediation	13
+any12_secession	1
+any12_subjugate	17
+any12_suzerain	261
+any60	1775
+any60_ally	344
+any60_civil	1
+any60_declare	577
+any60_main	207
+any60_mediation	42
+any60_secession	1
+any60_subjugate	34
+any60_suzerain	569
+blank12	43
+blank12_ally	2
+blank12_declare	36
+blank12_mediation	2
+blank12_subjugate	2
+blank12_suzerain	1
+blank60	234
+blank60_ally	46
+blank60_declare	128
+blank60_main	17
+blank60_mediation	6
+blank60_subjugate	3
+blank60_suzerain	34
+nx12	1
+nx12_mediation	1
+nx60	46
+nx60_ally	20
+nx60_main	10
+nx60_mediation	2
+nx60_suzerain	14
+wars	7840
+E:blank_ended	594
+E:blank_re12	36
+E:blank_re60	125
+E:nxblank_ended	352
+E:nxblank_re12	1
+E:nxblank_re60	44
+E:won_ended	6873
+E:won_re12	690
+E:won_re60	1606
+R:nxblank	ended=352	re12=0.003	re60=0.125
+R:blank	ended=594	re12=0.061	re60=0.210
+R:won	ended=6873	re12=0.100	re60=0.234

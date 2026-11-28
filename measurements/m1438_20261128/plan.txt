@@ -1,0 +1,10 @@
+(1438) c154wi 読む線の計画（2026-11-28・腕 0 本・コミットしない）
+作業の場所：D:/PoB_work/r1438_work/（出力）・scripts/instruments/r1438/（台本・コミットしない・種の範囲を引数で受ける）
+worktree と枝は作らない（読むだけ・main の木の台本と生を読む）。
+読む生（読むだけ）：
+ M   = D:/PoB_work/keep_1432/base_ins（種 1〜10）
+ S11 = D:/PoB_work/keep_1432/a11（種 11〜20）
+ N1  = D:/PoB_work/keep_1432/n1・N2 = D:/PoB_work/keep_1432/n2（種 1〜10）
+ 表：wars_s・wexit_s・warentry_s・warpair_s・tensionwhy_s・unifwar_s・cwend_s・nation_s
+m1425 の側（生は消えた＝glob しない）：measurements/m1425_20261128/read*・m1428_20261128/wars_*・m1429_20261128/*・成績表 b10_20261128_m1425_ins
+問い 1〜5 の順に表を作る→根ごとの形→次の波の素案。

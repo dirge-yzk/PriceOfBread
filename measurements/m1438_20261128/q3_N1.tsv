@@ -1,0 +1,19 @@
+# D:/PoB_work/keep_1432/n1 seeds 1-10
+entry_ally	2955
+entry_civil	55
+entry_declare	1027
+entry_main	1625
+entry_mediation	337
+entry_subjugate	336
+entry_suzerain	1839
+allyMargin_ge60	718.0
+allyMargin_lt-16	78.0
+allyMargin_lt0	70.0
+allyMargin_lt20	274.0
+allyMargin_lt5	77.0
+allyMargin_lt60	518.0
+allyMargin_n	1735.0
+allyMargin_noRow	1220.0
+allyMargin_sum	87429.1
+allyMargin_mean	50.39
+warentry_rows	0

@@ -1,0 +1,94 @@
+(1437) c154rl 読む線：内陸の州へ線路と機関車が届かない根（コードを書かない・コミット 0・worktree なし）
+木：main 04a162e34。基準の生：D:/PoB_work/keep_1432/base_ins（M・旗 RailProcureNational 1・種 1〜10）。旗 0 の腕：D:/PoB_work/r1437_work/out_r1437z0_10/ins（同じ木・POB_COEF RailProcureNational=0・10 種・表 9 枚）。
+台本：D:/PoB_work/r1437_work/scripts/instruments/r1437/（q1_roster・q1b_core・q1c_roster・q2_demand・q3_route・q3b_lock・q4_sinks・q5_tskip）。出力：D:/PoB_work/r1437_work/out/（M_＝基準・Z_＝旗 0）。
+
+■ 問い1 名簿（q1c_roster.txt・q1c_rows.tsv）
+選び方：trstat の portFlag が 10 種のどれでも 0（内陸）・trrail の waterFlag 0・1870〜1950 年（機関車の発見の後〈推〉）・needEnd>0 の年のうち railTrackEnd÷needEnd<0.25 の年が半分以上の州×種＝〈止まった州×種〉78（本国格 35・植民地格 41）。
+2 つの型に割れた。
+- 型 K（本国格・弱い国の内陸）：開城・全州（朝鮮）・フェズ（モロッコ）・テヘラン・シーラーズ（ペルシャ）・バンガロール（マイソール）ほか。
+  調達の財×月の内訳：在庫 0 が 0.01・貯蓄で削った 0.97。届いた量÷want 0.003。在庫は州にある（テヘラン 種 1 1900 年：線路の在庫 872・lastDemand 27.8）。投資家の貯蓄が負（テヘラン 1910 年 −4156・1930 年 −1692）。
+- 型 C（植民地格の内陸）：アクモラ・カンパラ・センナール・パナマ・シンゲッティ・アベシェ・クルマン・ソルトレークシティほか。
+  在庫 0 が 0.76・貯蓄 0.03。州の線路の産出は 0（生産者の行はあるが作らない）。国の中の買い（ProcureNational）の届き÷deficit 0.14（持ち主の国の本国が海の向こう＝陸の道が無い〈推〉）。
+- 英仏普露墺米清の内陸の本国の州は、railTrackEnd÷needEnd の中央値が大半で 0.7〜3（q1b_core.tsv）＝この回の名簿には入らない。
+
+■ 横断の所見（q4：M_q4_sinks.txt）＝線路と機関車の行き先の 90〜97% は線路を増やさない使い道
+- 使い道 1：EconomyStep の〈鉄道インフラ〉＝建設 ConsRail 0.25・ConsLoco 0.12（EconomyStep.cs:1057〜:1058）と保守 InfraMaintRate 0.4×TotalIndustrialization（:1076・:1081〜:1082）。決済は :2030〜:2039 と :2077。RailTrack を増やさない。
+- 使い道 2：Transport.BuyToward の敷き（Transport.cs:154〜:217）＝RailTrack を増やす。
+- 10 種の和：使い道 1÷(1＋2)＝1850 年代 0.969・1900 年代 0.926・1940 年代 0.908。国別（1870〜1949）：清 0.977・英 0.876・露 0.789・朝鮮 0.651。
+- 順：同じ月に EconomyStep.Run（Simulation.cs:1975）が先・Transport.Step（:2001）が後。同じ州の在庫と、同じ投資家の貯蓄（EconomyStep の budget＝IndInvestmentFrac×貯蓄・:1014）を、使い道 1 が先に取る。
+- ＝鉄道の社会資本が 2 回数えてある（思想⑨の疑い〈推〉）。使い道 1 は工業化度（TotalIndustrialization＝Model.cs:674）の読み手。
+
+■ 問い2 (a) 調達の want は州の lastDemand に入るか（M_q2a.txt）
+- ソース：Procure は在庫を見る前に m.LastDemand += want（InternationalMarket.cs:99）。月の順は EconomyStep の m.LastDemand = totalDemand（EconomyStep.cs:1633）→ Transport.Step の += → 月末の Market.Step（MultiNationSim.cs:673・:693）が読む。＝入る。
+- 生：sellr の線路・機関車の lastDemand÷(want÷月÷2) は 1870 年以後で中央 6.4（線路）・3.7（機関車）（旗 0 は 5.4・3.1）。1 未満の行は 8〜10%（標本の月の want が年の平均より小さい月〈推〉）。lastDemand の大半は使い道 1 の investDemand。
+- 覆い：旗 0 の腕で want>0 の州×年（10 年ごと）30,374 の全てに sellr の線路の行がある（生産者の行は産出 0 の州にもある）。基準 M も直した台本で 30,077 の全て。
+- 名簿の州（out/M_q2b_roster.txt・線路・1870 年以後）：
+  - 型 K（317 行）：lastDemand÷want 1.05・在庫の中央 519（売れずに積もる）・輸入 0 が 0.98・生産の中央 6.1・値段の中央 1.73。
+  - 型 C（390 行）：lastDemand÷want 1.23・在庫 0・輸入 0 が 0.97・生産 0・値段の中央 55.2（型 K の約 32 倍）。＝需要も値段の差も立っているのに、清算は運ばない。
+
+■ 問い3 (b) 清算の組にその州が買い手として入るか（M_q3_sum.txt・M_q3_track.tsv・M_q5_tskip.txt）
+- ソース：清算は lastDemand を買い手の行の門に使う（xNeed＝TargetStock＋LastDemand−LastProduced−Stock・BilateralMarket.cs:915・:1088）。払い手は州の商人（手形＝負債が無ければ予算は無限・:700〜:703）。＝〈需要を立てる→その州に運ばれる〉の道はもうある。
+- 型 K：買い手の組の中央 3〜8（全ての財）・throttle 1.00・regionShare÷gdpOutShare 0.84〜0.97（国の中央 0.96〜1.05）。容量は縛っていない。止めているのは投資家の貯蓄。
+- 型 C：10 年ごとの標本で、買い手の組が 0 の州×年 0.49〜0.91（何の財も入らない）・throttle の中央 0.46〜0.75。
+- 国の層の線路の行（tradeskip・10 種）：行の 41〜46% が眠る行の飛ばし（ClearingIdleSearchQuarters 4・:862〜:870）・組の 54〜59% が容量（xCap）で落ちる（小麦粉は 34〜35%）・国内の組は 5〜7%・国内だけの成約は行の 1%。
+- 容量の形：内陸の cap＝min(線路＋PreRail×share, 船×share)÷(1＋港までの km÷DistanceNormKm)＋港（BilateralMarket.cs:373〜:409）。share＝LastTradePotential÷Σ（Transport.cs:93〜:94）。＝線路を敷いても cap は船×share を超えない。線路と機関車は重さ 6（Catalog.cs:387）で、財の順は値段÷重さの高い順（BilateralMarket.cs:759〜:764）＝残りの容量の後ろに回る〈推〉。
+- 州×財の層は数えられない（tsreg_s は主食の 7 財だけ・trroute に財の列が無い）。
+
+■ 問い4 輪の疑い ②（M_q3b_lock.txt）
+- 〈錠〉＝regionShare÷gdpOutShare が国の中央の 1/10 未満。本国格 3/385（0.01）・10 年後も錠 0/3。植民地格 80/395（0.20）・10 年後も錠 35/80・錠の年に入った重さが 0 は 0.99。
+- 旗 0 の腕（Z_q3b_lock.txt）：本国格 10/385・10 年後も 2/10。植民地格 96/393（0.24）・10 年後も 36/96＝旗に依らない（ProcureNational は清算の取り分の輪に触れない）。
+- ＝輪は型 C で固まる（アクモラ 種 2：人口 864 千・産出の取り分 0.0019・取引の取り分 1e-5・cap 0.076）。型 K では固まらない。
+
+■ 問い5 (c) rp の旗 0 と 1 と二重の記帳
+- 二重の記帳（M_q2a.txt・M_q2dbl.tsv・旗 1）：買い手の州は want の全てを lastDemand に足し、売り手の州で Procure を呼ぶ時に take をもう一度足す（Transport.cs:250）。take の和は natGot 以上・deficit 以下＝10 種の和で want の 0.067〜0.679。natGot は届いた量の 0.172。take そのものは数えられない（計器の列が無い）。
+- 運賃：ProcureNational はお金だけを払う（World.Transfer・Transport.cs:260・:268）。清算の容量（capLeft）を使わず、運ぶ時間も無い。
+- 旗 0 の腕（r1437z0・out/q6_flag.txt・1870〜1950 の 10 種の和・M÷Z）：届いた量（州の在庫＋国の中）は全て 0.985（種ごと 0.82〜1.18）・内陸 1.017・型 K 0.820・型 C 1.176（種ごと 0.30〜1.91）。州の在庫からの got は旗 1 で 0.848 に減る＝国の中の買いは、他の州の在庫を取るだけで、届く量の和をほとんど増やさない〈推〉。1950 年の線路の和は全て 0.907・内陸 1.006。
+- 旗 0 でも、使い道 1 の割合（Z_q4_sinks.txt）と線路の組の止まり方（Z_q5_tskip.txt）は旗 1 とほぼ同じ（1900 年代 0.923・組の xCap 0.53〜0.57）。
+- 腕の成績表 b10_r1437z0_10.txt：推定 222.6 秒（M 222.4）。判定の行の〈硬性ゲートに赤〉は基準 M と N1 にも同じ行がある＝この腕の採否には使わない（読む腕）。
+
+■ 根ごとの形（〈推〉を含む）
+根 1（型 C・既存の道を直せば届く〈推〉）：清算の容量の取り分が前の清算の取引の見込み（LastTradePotential）に比例する輪。
+- 内陸の cap は船×share で頭を押さえられ、線路を敷いても上がらない（BilateralMarket.cs:409 の min）。取引が無い州は share≒0 → cap≒0 → 何も入らない → 見込み≒0（Transport.cs:93〜:94・BilateralMarket.cs:1216〜:1217）。植民地格の錠は 20%・10 年後も 44%。
+- 線路・機関車は重さ 6 で財の順の後ろ＝容量の残りで落ちる（国の層の組の 54〜59% が xCap）〈推〉。
+- 需要は既に州の lastDemand にある（問い2）＝輪を解けば清算が運ぶ（運賃を払い、容量を使い、時間がかかる＝思想⑪に沿う）〈推〉。
+根 2（型 K と型 C の両方・運びの問題ではない）：州の投資家の貯蓄。φ<0.05 の束の国の中の買いの呼びで、買い手の投資家の貯蓄が 0 以下＝型 K 0.99（18,487/18,714）・型 C 0.68（15,071/22,028）（out/M_q7_invsav.txt）。型 K は在庫はあり（テヘランの 872）、容量も縛らない（throttle 1）。調達の 97% の財×月が貯蓄で削られる。投資家の貯蓄が負の年がある。
+根 3（横断・思想⑨の疑い）：線路と機関車の 90〜97% が EconomyStep の〈鉄道インフラ〉（工業化度の読み手）で消え、RailTrack を増やさない。同じ月に先に在庫と投資家の予算を取る。根 2 の貯蓄の不足と、m1374 のバーミンガムの〈作っても在庫が残らない〉の行き先の候補〈推〉。
+
+■ 推奨（AI の案・確証なし）
+- 根 1 だけを直しても、型 C の 68% の呼びは投資家の貯蓄 0 以下で買えない〈推〉＝根 1 の線の狙いの数字は〈清算で州の在庫に入った線路の量〉にし、敷いた量にしない。
+- 既存の道を直す（根 1）：清算の陸の容量の取り分を、前の取引の見込みではなく、線路の need と同じ産出の比（Transport.RailNeedShare・RailNeedByOutput＝1 で既に点火済み）へ寄せる。新しい状態は作らない（GdpOutputMemo から導ける）。
+- 別の案（AI の案・確証なし）：内陸の州の陸の道（同じ国の州どうし・陸の成約）だけは cap の min(・, 船×share) を外し、線路の容量（RailTrack＋PreRail×share）で縛る。線路を敷けば陸の取引が開く＝線路と取引の向きが読める。
+- その後で RailProcureNational を 0 にし、旧の枝を消す（運賃をお金だけで払う近道＝思想⑪・売り手の州の二重の記帳＝思想⑨）。
+- §0-2 に置く問い 2（推奨つき）：〈線路の払い手を州の投資家の POP だけにするか〉。推奨＝先に読む線で、貯蓄 0 以下の投資家の州が既存の貸し（Bank）と国際金融（CapitalMarket）から借りられない理由を読む（新しい払い手の規則は作らない）。
+- 根 3 は §0-2 の問いへ（下）。根 2 は根 3 の後に読み直す（使い道 1 が投資家の予算を先に取るので、根 3 を直すと変わる〈推〉）。
+- §0-2 に置く問い（推奨つき）：〈EconomyStep の鉄道インフラ（建設の線路 ConsRail・機関車 ConsLoco・保守 InfraMaintRate の線路と機関車）を消し、線路と機関車の需要を Transport の敷きと保守（TransportDecay）の 1 本にするか〉。推奨＝消す（線路の在庫が無いのに線路を消費する形＝二重計上・作者 2026-10-16〈工業化度…二重計上〉の型）。答えを待たずに推奨で進めるなら、挙動の線として事前登録から（線路の財の需要が 1 桁下がる＝値段と生産が動く＝世界を変える線）。
+
+■ 次の波の事前登録の素案
+素案 A（恒等・計器）：持ち主 Instruments/InstrumentsTransport.cs・InstrumentsTradeskip.cs・InstrumentsTransport の試験。
+- trrail_s に 2 列：natTakeUnitsPerYear（ProcureNational が売り手の Procure に渡した take の和）・natFreightGoldPerYear（払った運賃）。
+- 新しい表 tsrail_s（州×{線路,機関車}×年）：rows・rowIdle・rowNoNeed・rowBudget0・xSoldOut・xCapSeller・xCapBuyer・xWedge・xPass・capLeftAtRowStart（その財の番の頭の capLeft）・import・lastDemandAtClear。tsreg_s の主食の名簿は変えない。
+- 新しい表 railuse_s（州×{線路,機関車}×年）：使い道 1 の量（建設・保守）・使い道 2 の量（州の在庫・国の中）・EconomyStep の後の在庫・Transport の前の投資家の貯蓄。
+- 門：旗なし・ident で〈判定: 恒等〉（10 種・5 種・計器つき 10 種の全行）。番人：列の数（InstrumentColumnTests）・計器が自分で読む（エンジンの局所を受け取らない＝教訓 ①）。
+素案 B（挙動・根 1）：持ち主 BilateralMarket.cs（:373〜:409 の share と cap）・Transport.cs（:84〜:98）・Coefficients.p04_trade.cs（新しい旗 1 行）・新しい試験 InlandCapShareTests.cs。
+- 形：旗 InlandCapByOutput＝1 で、清算の容量の取り分を RailNeedShare（産出の比）へ。RailProcureNational は同じ腕で 0（腕 B は 2 つの変更の組＝事前登録に書く）。
+- 門（両側）：止める線（破綻・発散・空洞化 1/10・計算量 ≦248.5 秒・史実の桁の 10 倍）。単体の機構の試験＝盤面：同じ国に 2 州・内陸の州は LastTradePotential 0・産出の取り分 0.3・線路の want あり・港の州に線路の在庫。旗 0 で 6 か月の清算の後の内陸の線路の在庫 0（赤）・旗 1 で正。上側：入った量は want を超えない（G2 の型）・cap の和は旧の和と同じ（取り分の和が 1）。
+- 突然変異の赤の表：M1 取り分を旧へ戻す→機構の試験が赤。M2 取り分の和を正規化しない→cap の和の番人が赤。M3 旗を読まない→旗 1 の試験が赤。M4 RailProcureNational を 1 に残す→二重の記帳の番人（売り手の lastDemand に take が乗らない）が赤。
+- 旗 0 で落ちる確かめ：紙の台本で旗 0 の盤面の内陸の在庫が 0 のままになることを先に書く。
+- 要る計器：素案 A の tsrail_s と railuse_s（入る前に恒等の線で入れる）。
+素案 C（恒等・旧の枝の焼き込み）：素案 B を採った後、RailProcureNational の 0 の経路だけを残し ProcureNational・LandMul・計器の NatPre・NatPost と trrail の nat* 列と RailProcureNational の欄を消す。持ち主 Transport.cs（:205〜:286）・Coefficients.p04_trade.cs:81・InstrumentsTransport.cs・試験の旗の行。門＝ident（旗の既定 0 の木と全行一致）。
+
+■ 作者の問いへの材料（決めない）
+- 作者「これは輸送コストを払っている？」：ProcureNational は運賃をお金だけで払う（荷価×FreightRatePer10Mm×陸の等価距離）。清算の容量を使わず、運ぶ時間も無い。
+- 作者「これは、需要を立てる→その州に輸送される という既存の仕組みでは解決できないか」：需要は既に州の lastDemand に立ち、清算はそれを買い手の行の門で読む。型 C で届かないのは容量の取り分の輪（根 1）〈推〉と、投資家の貯蓄 0 以下（呼びの 68%）。型 K は運びではなく投資家の貯蓄（根 2・呼びの 99%）。その前に、線路と機関車の 9 割を EconomyStep の鉄道インフラが先に消している（根 3）。
+
+■ 記録
+- 作ったフォルダ：D:/PoB_work/r1437_work（中に src_r1437z0・out_r1437z0_10〔生 3.8GB〕・out・scripts）。合流が measurements/m1437_*/ と scripts/instruments/r1437/ へ写すまで消さない。生 out_r1437z0_10/ins は合流の判断まで残す。
+- 腕 1 本（r1437z0・旗 0・計器つき 10 種・表 9 枚＝trrail・sellr・trroute・trnation・region・railspend・stproc・tradeskip・port〔tradeskip と port は指示の 7 枚に足した＝国の層の止まり方と港の州の貯蓄のため〕）。起こす前の D: の空き 101.1GB・重い仕事の印 heavy_c154rl.run（終わって消した）・腕の空き 4。
+- 待ち：waitmark 11 回（腕 7・台本の取り直し 4）・作りかけの出力の覗き 2 回（腕の ms ログの tail）。
+- コミット 0・push 0・worktree 0・.cs の変更 0。
+
+■ 〈次の波〉の行の素案（短く・合流が 00一覧へ）
+- 恒等 tsrail・railuse・natTake の計器（InstrumentsTransport.cs・InstrumentsTradeskip.cs）・材料 m1437・門＝ident 恒等・答え待ちなし。
+- 読む 投資家の貯蓄 0 以下の州が借りられない理由（Bank・CapitalMarket を読む・コードなし）・材料 m1437 の q7・答え待ちなし。
+- 挙動 内陸の陸の容量の取り分（BilateralMarket.cs:373〜:409・Transport.cs:84〜:98）＋RailProcureNational 0・計器の線の後・門＝止める線＋InlandCapShareTests・答え待ちなし。
+- §0-2 EconomyStep の鉄道インフラ（EconomyStep.cs:1010〜:1012・:1057〜:1058・:1081〜:1082・:2030〜:2039・:2077）を消すか＝推奨〈消す〉・答え待ち（推奨で進めるなら挙動の線）。

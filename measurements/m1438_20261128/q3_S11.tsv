@@ -1,0 +1,20 @@
+# D:/PoB_work/keep_1432/a11 seeds 11-20
+entry_ally	2736
+entry_civil	52
+entry_declare	915
+entry_main	1639
+entry_mediation	308
+entry_secession	2
+entry_subjugate	381
+entry_suzerain	1807
+allyMargin_ge60	747.0
+allyMargin_lt-16	62.0
+allyMargin_lt0	39.0
+allyMargin_lt20	234.0
+allyMargin_lt5	61.0
+allyMargin_lt60	520.0
+allyMargin_n	1663.0
+allyMargin_noRow	1073.0
+allyMargin_sum	88606.9
+allyMargin_mean	53.28
+warentry_rows	0
