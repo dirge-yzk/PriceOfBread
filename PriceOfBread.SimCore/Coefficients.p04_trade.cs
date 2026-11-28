@@ -131,6 +131,7 @@ public sealed partial class Coefficients
     public double WarWearyThreshold = 0.5;        // 疲弊がこれ超なら新たな戦争に入らない（講和後も数年は減衰中の厭戦が再戦を抑える＝休戦の仕組みの代わり・Q9）
     public double WarExitFromCapacity = 0.0;      // 段 2 の器（既定 0＝今の厭戦の規則）。1＝戦争の出口・調停・動員の深さ・開戦の門を厭戦でなく体制の持ちこたえる力（強制力÷(強制力＋挑戦)）と国難＝内戦だけで読む
     public double WarPeaceExhaustion = 0.9;       // 双方がこれ超なら早期講和（疲れ果てて手打ち）
+    public double NoContactCollapseBlank = 1.0;   // (1429) 旗：崩壊の側がいて累計の押しが両側 0（一度も接触なし）の戦争はその月に白紙で講和（0＝旧の形・接触なしの崩壊の戦争は Score 0 のまま続く）
     public double PostWarTension = 38;            // 講和後の緊張の置き直し値
     public Share ReparationGdpFraction = new(0.2);    // 賠償金＝敗者GDP×戦勝点×これ
 

@@ -1,0 +1,4 @@
+D:/PoB_work/keep_1425/base_ins	contNoContactEnd=3	noContactGe60=28
+D:/PoB_work/keep_1425/n1	contNoContactEnd=7	noContactGe60=27
+D:/PoB_work/keep_1425/n2	contNoContactEnd=6	noContactGe60=21
+D:/PoB_work/c153nx_work/out_c153nxB_10/ins	contNoContactEnd=5	noContactGe60=8

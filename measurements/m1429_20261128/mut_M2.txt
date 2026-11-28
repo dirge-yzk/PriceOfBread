@@ -1,0 +1,12 @@
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+M2 rc=1
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  成功 PriceOfBread.Tests.NoContactWarExitTests.T1_接触なしで崩壊の側がいれば1か月で白紙の講和 
+  成功 PriceOfBread.Tests.NoContactWarExitTests.T3_接触ありの崩壊は今の取り分の式のまま続く 
+  成功 PriceOfBread.Tests.NoContactWarExitTests.T1z_旗0では同じ盤面の戦争が続き戦勝点は0 
+  成功 PriceOfBread.Tests.NoContactWarExitTests.T4_計器wexitの末尾の7列は厭戦と累計の押しと書き換えの後の戦勝点 
+  失敗 PriceOfBread.Tests.NoContactWarExitTests.T2_接触なしでも崩壊の側がいなければ続く 
+テストの合計数: 5
+     成功: 4
+     失敗: 1
+合計時間: 8.4579 秒
