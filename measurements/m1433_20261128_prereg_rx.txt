@@ -1,0 +1,35 @@
+(1433) c154rx 事前登録（恒等の線・予言 0）  2026-11-28  基準 m1432・木 04a162e34 から
+形：入口ではなく尾（消す）。挙動を変えない。名乗りは〈測った種で一致〉。
+
+[1] 恒等の線
+- (1428) で ReligionTensionPerMonth・ReligionAffinityRelief は既定 0。AffinityTensions の宗教の枝は AddTensionKeyed(k, 0 相当, Religion) を呼ぶだけ。
+- AddTensionKeyed を読んで確かめた事：d が 0（-0.0 を含む）でも now=Clamp(old+0,0,Max)=old（old は常に [0,Max]）・Why は now≠old の時だけ書く＝内訳は動かない。
+  鍵の挿入（GetValueRefOrAddDefault）は Law の呼びが同じ組の宗教の枝より前に無条件で走る＝宗教の枝を消しても表の鍵の順は同じ（TensionTableOrderTests の主張）。
+- 浮動小数の順序が変わる箇所：なし（足す 0 を消すだけ・掛け算の順は触らない）。紙の台本の食い違い数＝0 の見込み（0 でなければこの線を外す）。
+
+[2] 消す物と残す物
+消す：
+  Diplomacy.cs 宗教の枝（AffinityTensions 内）・fam 配列と代入（宗教の枝だけが読む）・enum TensionReason.Religion・TensionReasonJa の札〈宗教の隔たり〉
+  Coefficients.p05_port_insurance.cs ReligionTensionPerMonth・ReligionAffinityRelief（:53 の注の名を読む文だけ直す）
+  試験の代入 MilitaryTests.cs:901・:1059・ProtectorTests.cs:48・RouteTensionTests.cs:33、DormantIdentityTests.cs:272 の ZeroDefaultLedger の 2 名
+  NationalismUnificationTests.cs:436 の TensionReason.Religion → 別の理由（量だけを主張する＝Assert は変えない）
+  ReligionTensionRemovalTests.cs → Religion の札を読まない形（宗教の組でも Ethnic・Law・Protector 以外の宗教由来の分が立たない）へ。T3（保護）・T4（GovCost）は残す
+残す：ReligionHeresyBonus・ReligionFamily・FamilyCoord・ReligionDistance・GovCost・Grievance と保護の項・Power.Religion・MajorityCultureReligion
+読み手の grep（SimCore・Runner・App・Display・Tests・scripts・measurements の台本・POB_COEF の名・SaveGame）：
+  ReligionTensionPerMonth／ReligionAffinityRelief＝Coefficients 欄・Diplomacy 宗教の枝・上の試験 5 行・scripts/instruments/c153rg/mut.sh（突然変異の台本・閉じた線で書き換えない）・docs/history。App・Runner・Display＝0。SaveGame は欄名を係数から反射で書く＝係数の削除で型の分岐は要らない。
+  TensionReason.Religion＝Diplomacy 2 行・NationalismUnificationTests:436・ReligionTensionRemovalTests。App・Runner は TensionReasonJa(reason) を汎く呼ぶだけ。〈宗教の隔たり〉の文字列比べ＝App・Runner・Display に 0（GameViewModel.Diplomacy.cs:143 はコメントだけ）＝5 の束への報告なし。
+  列の位置で tensionwhy_s を読む台本：現行の読み手（rg_gate.py・tw_read.py）は見出しの名で引く。位置読みなし＝enum を削る。
+v の読み手（緊張の総量だけを読み、宗教の欄を名で読まない）：AllyJoinThreshold（Diplomacy.cs:1432・:1587・:1598）・ArmyShape.cs Hostility（:38・:87）・SelfPlay.cs:424 MaxTension・World.cs:1723 MaxTension・Diplomacy.cs:443 MaxTension。
+他の線との重なり：c154sd・c154ha・c154tl は Diplomacy.cs・p05・ReligionTensionRemovalTests に触れない。DormantIdentityTests.cs は 1 行（:272）だけ・WriterRatchetTests は触れない見込み。
+
+[3] 足す試験と突然変異
+- ReligionTensionRemovalTests（書き直し）：宗教の違う組（異ファミリー・同ファミリー異宗派・同宗教）を盤面に置き、1 か月の外交の歩の後に TensionBreakdown が Ethnic・Law・Protector・Initial 以外の宗教由来の札を持たない・GovCost の宗教の項（T4）・保護（T3）。
+- μ1：違う宗教の組に 0.03×dist を Ethnic の札で積み戻す → 書き直した試験が赤
+- μ2：GovCost の ReligionDistance を 0 にする → T4 が赤
+- μ3：保護の項を消す → T3 が赤
+走査の番人（㉘）：DormantIdentity・WriterRatchet・UnitType・IndustrializationReader・ValueCountRatchet・DerivedValueRatchet・Instruments。書き換える件数の予言（㉑）＝DormantIdentityTests の名簿 2 名減・ValueCountRatchet は 0 行の見込み（欄が減るなら数の行だけ）。new MoneyStock( の件数は 64 のまま・route_anchors の鍵の行は触らない。
+
+[4] 成績表の予言
+b5・b10_ins・b10s11_ins は m1432 と名乗り行を除き全行一致。tensionwhy_s は Religion の列が消えるだけ（基準の列は全行 0＝宣言 --removed-cols tensionwhy_s:Religion）。.cost は 0〜負。.Value の数は増えない。
+[5] 〈判定: 恒等〉なら採る。一致しなければその変更を外して報告に回す。
+D:：起こす直前に 35GB＋30GB を測る（始まりの空き 109GB）。

@@ -45,7 +45,7 @@ public class ProtectorTests(ITestOutputHelper output)
         // 他の全緊張チャネルを黙らせ、緊張の増分＝同宗教保護だけにする（会計の単離）
         c.ThreatTensionPerMonth = 0; c.IdeologyTensionPerMonth = 0; c.IdeologyAffinityRelief = 0;
         c.EthnicTensionPerMonth = 0; c.EthnicAffinityRelief = 0;
-        c.LawTensionPerMonth = 0; c.ReligionTensionPerMonth = 0; c.ReligionAffinityRelief = 0;
+        c.LawTensionPerMonth = 0;
         c.OpiumBanTensionPerMonth = 0; c.TensionDecay = 0;
         c.ProtectorTensionPerMonth = 0.02;   // 休眠側の設計値で点火
         var a = sim.Nations[0].World.SelfPower!; var b = sim.Nations[1].World.SelfPower!; var g3 = sim.Nations[2].World.SelfPower!;

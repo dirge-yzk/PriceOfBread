@@ -10,7 +10,7 @@ namespace PriceOfBread.Tests;
 /// 作者 2026-11-11「宗教の例外は、法制定においてのみです。これは移民による文化摩擦を表現するためのものです。それ以上に拡大するつもりは今のところありません。」
 /// 盤面は試験の中で置く（ProtectorTests の合成の世界と同じ作り＝州の宗教の札だけを書き換える）。期待値は係数から作らない（文字で書く）。
 /// T1 同じ宗教の組で緩和が 0・T2 違う系統の宗教の組で緊張が 0・T3 保護の利害の分は今の式のまま・T4 属国の統治の費用は異端の加点を読んだまま。
-/// 欄・枝・TensionReason.Religion の削除は段 2（採った次の恒等の線）。</summary>
+/// (1433) c154rx：欄・枝・TensionReason.Religion は消した（段 2）＝宗教の札は無い。宗教の組でも Initial と保護の札以外の分が立たないことを、札の一覧の側で読む。</summary>
 public class ReligionTensionRemovalTests
 {
     private static MultiNationSim Board(string relA, string relB, string relC)
@@ -36,6 +36,10 @@ public class ReligionTensionRemovalTests
         return 0;
     }
 
+    // Initial（置いた緊張）と Protector（保護の利害）以外の札が内訳に立っていない＝宗教の隔たりが別の札へ化けて積まれない。
+    private static System.Collections.Generic.List<TensionReason> Others(Diplomacy d, Power a, Power b)
+        => d.TensionBreakdown(a, b).Where(x => x.Reason != TensionReason.Initial && x.Reason != TensionReason.Protector).Select(x => x.Reason).ToList();
+
     [Fact]
     public void T1_同じ宗教の組で宗教の緩和は0()
     {
@@ -47,7 +51,7 @@ public class ReligionTensionRemovalTests
         Assert.Equal(5.0, t0, 12);
         sim.Diplomacy.Step(c, sim.Rng, 1);   // 月 1＝四半期の境でない。宗教の札の同期→緊張の道が同じ刻みで走る
         Assert.Equal("カトリック", a.Religion); Assert.Equal("カトリック", g.Religion);   // 前提：同じ宗教の組
-        Assert.Equal(0.0, ReasonOf(sim.Diplomacy, a, g, TensionReason.Religion));
+        Assert.Empty(Others(sim.Diplomacy, a, g));
         Assert.Equal(0.0, sim.Diplomacy.Tension(a, g) - t0, 12);    // 旧の 0.06 では −0.06
     }
 
@@ -60,8 +64,8 @@ public class ReligionTensionRemovalTests
         double tAG0 = sim.Diplomacy.Tension(a, g), tAB0 = sim.Diplomacy.Tension(a, b);
         sim.Diplomacy.Step(c, sim.Rng, 1);
         Assert.Equal("イスラム", g.Religion); Assert.Equal("プロテスタント", b.Religion);   // 前提：西方キリストとイスラム（座標の差 0.25）・同じ系統の異端（加点 0.22）
-        Assert.Equal(0.0, ReasonOf(sim.Diplomacy, a, g, TensionReason.Religion));
-        Assert.Equal(0.0, ReasonOf(sim.Diplomacy, a, b, TensionReason.Religion));
+        Assert.Empty(Others(sim.Diplomacy, a, g));
+        Assert.Empty(Others(sim.Diplomacy, a, b));
         Assert.Equal(0.0, sim.Diplomacy.Tension(a, g) - tAG0, 12);   // 旧の 0.03 では +0.0075
         Assert.Equal(0.0, sim.Diplomacy.Tension(a, b) - tAB0, 12);   // 旧の 0.03 では +0.0066
     }
@@ -82,7 +86,7 @@ public class ReligionTensionRemovalTests
         sim.Diplomacy.Step(c, sim.Rng, 1);
         Assert.Equal("正教", a.Religion); Assert.Equal("イスラム", b.Religion);   // 前提：東方キリストとイスラム（旧なら宗教の項も積まれる組）
         Assert.Equal(0.006, ReasonOf(sim.Diplomacy, a, b, TensionReason.Protector), 12);   // 0.02×0.3（保護の既定と人口の取り分を文字で）
-        Assert.Equal(0.0, ReasonOf(sim.Diplomacy, a, b, TensionReason.Religion));
+        Assert.Empty(Others(sim.Diplomacy, a, b));
         Assert.Equal(0.006, sim.Diplomacy.Tension(a, b) - tAB0, 12);   // 増分は保護の分だけ
         Assert.Equal(0.0, sim.Diplomacy.Tension(b, g) - tBG0, 12);     // 同じ宗教の組（B＝C＝イスラム）は増えも減りもしない
     }

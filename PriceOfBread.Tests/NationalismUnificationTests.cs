@@ -433,7 +433,7 @@ public class NationalismUnificationInstrumentTests
         {
             d._rank[great.Id] = PowerRank.Great; d._rank[minor1.Id] = PowerRank.Minor; d._rank[minor2.Id] = PowerRank.Minor;
             d.AddTension(great, minor1, 30.0, TensionReason.Ethnic);
-            d.AddTension(great, minor1, 12.5, TensionReason.Religion);
+            d.AddTension(great, minor1, 12.5, TensionReason.Law);
             d.AddTension(minor1, minor2, 50.0, TensionReason.Ethnic);   // 列強を含まない組＝書かない
             Instruments.Quarter(sim, Seed, 0);
         }

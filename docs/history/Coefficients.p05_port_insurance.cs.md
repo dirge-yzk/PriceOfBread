@@ -295,6 +295,7 @@
 // 宗教の隔たりによる緊張（1789-1880は宗教戦争後＝小重み）。ファミリー座標距離＋同族異端ボーナス。月
 ````
 - (1428) c153rg（2026-11-28）：既定 0.03→0・隣の ReligionAffinityRelief 0.06→0（作者 2026-11-11 の〈外交の宗教の緊張は消す〉・宗教の例外は法制定だけ）。AffinityTensions の宗教の枝と欄は段 2 で消す。ReligionHeresyBonus は GovCost が読むので残す。
+- (1433) c154rx（2026-11-28）：段 2＝ReligionTensionPerMonth・ReligionAffinityRelief の欄と AffinityTensions の宗教の枝・TensionReason.Religion を消した（恒等）。
 
 ## ReligionHeresyBonus
 - コード行 47・元の行 82・派生 いいえ
