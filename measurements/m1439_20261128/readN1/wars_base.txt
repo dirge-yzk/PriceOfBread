@@ -1,0 +1,13 @@
+seed 1 wars=839 blank=85 running=0 longest=67 longestRunning=0 meanMonths=13.38
+seed 2 wars=799 blank=96 running=3 longest=62 longestRunning=15 meanMonths=12.3
+seed 3 wars=987 blank=112 running=1 longest=63 longestRunning=12 meanMonths=12.37
+seed 4 wars=954 blank=80 running=9 longest=77 longestRunning=34 meanMonths=13.01
+seed 5 wars=990 blank=97 running=5 longest=68 longestRunning=9 meanMonths=12.6
+seed 6 wars=729 blank=68 running=6 longest=73 longestRunning=8 meanMonths=13.5
+seed 7 wars=600 blank=107 running=1 longest=114 longestRunning=14 meanMonths=14.82
+seed 8 wars=817 blank=105 running=10 longest=83 longestRunning=19 meanMonths=12.14
+seed 9 wars=585 blank=60 running=1 longest=79 longestRunning=44 meanMonths=13.54
+seed 10 wars=753 blank=100 running=1 longest=81 longestRunning=39 meanMonths=14.7
+TOTAL blank=910 running=37 wars=8053
+MAX longest=114 longestRunning=44 runningPerSeedMax=10 
+MEAN meanMonths=13.135

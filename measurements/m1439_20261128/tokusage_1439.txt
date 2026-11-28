@@ -1,0 +1,20 @@
+担当 29 人・手番 1423・読み 223.6M・書き 4.5M・出力 1.3M・助言役 2 回
+費用（Opus 5.5 の入力 1 トークン換算・模型の単価を掛けた）: 計 25.9M＝読み 11.4M（44%）・書き 6.1M（23%）・出力 7.6M（29%）・助言役 0.9M（3%）
+キャッシュ切れの丸ごとの書き直し: 0.3M（費用の 1%）
+文脈 20 万超の手番の読み: 124.0M（読みの 55%）／道具 1 つだけの手番: 1539/1423（108%）
+前の手番からの間隔	手番	書き	丸ごとの書き直し
+〜270秒	1388	3.3M	3
+270〜600秒	6	0.2M	1
+600秒〜	1	0.1M	1
+重い順（上位 10）
+担当	模型	手番	始まり	終わり	読み	書き	切れ	出力	助言役	費用	指示
+a4d102f533	opus-5-5	206	57K	371K	51.0M	0.4M	0.0M	175K	0回	3.9M	[Workflow harness — computed
+aa412a512b	opus-5-5	236	56K	298K	48.2M	0.3M	0.0M	132K	0回	3.4M	[Workflow harness — computed
+a0338faf23	opus-5-5	192	104K	336K	43.8M	0.5M	0.1M	111K	0回	3.3M	[Workflow harness — computed
+a7e193dca3	opus-5-5	130	55K	237K	21.2M	0.2M	0.0M	93K	0回	1.8M	[Workflow harness — computed
+a9e7ff91d6	fable-5-2	26	18K	203K	2.9M	0.2M	0.0M	81K	0回	1.6M	PriceOfBread（C# の経済史シミュ・リポジト
+ab3a2d4e1f	opus-5-5	40	17K	162K	4.2M	0.2M	0.0M	67K	2回	1.6M	PriceOfBread（C# の経済史シミュ・リポジト
+ad88dc66d0	fable-5-2	32	18K	169K	3.1M	0.2M	0.0M	54K	0回	1.3M	PriceOfBread（C# の経済史シミュ・リポジト
+a4fec84db4	fable-5-2	26	18K	153K	1.8M	0.2M	0.0M	43K	0回	1.0M	PriceOfBread（C# の経済史シミュ・リポジト
+a674a0c38d	fable-5-2	16	18K	162K	1.4M	0.2M	0.0M	42K	0回	1.0M	PriceOfBread（C# の経済史シミュ・リポジト
+a6f06acc06	fable-5-2	21	18K	103K	1.2M	0.1M	0.0M	30K	0回	0.7M	PriceOfBread（C# の経済史シミュ・リポジト

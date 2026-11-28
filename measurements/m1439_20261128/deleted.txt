@@ -1,3 +1,6 @@
 2026-11-28 19:06:34 D:/PoB_work/ident_c154tl（線 c154tl の ident の生・PRUNE=0・34.6GB・〈判定: 恒等〉・keepsum measurements/m1439_20261128/keepsum_ident_c154tl_ins.tsv の後）
 2026-11-28 19:49:42 D:/PoB_work/ident_m1439z（合流の腕 Z の ident の生・〈判定: 恒等〉・刈った後の 140 本を keepsum measurements/m1439_20261128/keepsum_ident_m1439z_ins.tsv の後）
 2026-11-28 19:49:42 D:/PoB_work/r1437_work/out_r1437z0_10（読む線 c154rl の旗 0 の腕の生 3.8GB・読む線の表 out/ と報告を measurements/m1437_20261128/ へ写した後・反証役 v も読み終えた）
+2026-11-28 21:21:42 D:/PoB_work/keep_1432/base_ins（旧の INSRAW・新しい ident.cfg 8a2c8655c を push した後・keepsum は measurements/m1432_20261128/keepsum_insraw1432.tsv）・D:/PoB_work/keep_1425_rej（c152sdB・sd の 3 回目を採った後・INSRAW でも KEEPNULL でもない・keepsum m1439_20261128/keepsum_keep_1425_rej.tsv）
+2026-11-28 21:28:27 採った線の腕の生 c154sd_work/out_c154sdB_10・out_c154sdZl_10・c154ha_work/out_c154haB_10（帰属を読み終えた後＝合わせた木の M・S11 で門が全て通った・keepsum m1439_20261128/keepsum_c154sdB_ins.tsv・_c154sdZl_ins.tsv・_c154haB_ins.tsv）・線 c154sd の ident の生 ident_c154sd（腕 a と t だけ・〈判定: 恒等〉・1.4GB）＝フォルダの残りは線の物＝触っていない
+2026-11-28 21:54:41 D:/PoB_work/wt_m1439z（腕 Z の使い捨ての worktree・枝 m1439z＝push していない）
