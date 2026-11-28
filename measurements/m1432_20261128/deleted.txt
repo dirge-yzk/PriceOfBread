@@ -12,3 +12,5 @@
 2026-11-28 13:11:48 D:/PoB_work/keep_1425/n1（旧 KEEPNULL の N1・成績表は measurements/b10_20261128_m1425_n1_ins）
 2026-11-28 13:11:49 D:/PoB_work/keep_1425/n2（旧 KEEPNULL の N2・成績表は measurements/b10_20261128_m1425_n2_ins）
 2026-11-28 13:11:49 D:/PoB_work/keep_1425（空のフォルダ）
+2026-11-28 13:14:14 D:/PoB_work/m1432_work（合流の作業フォルダ・中の r1430_untracked は main の scripts/instruments/r1430 と同じ中身〔cmp で一致〕＝c153ho の未追跡の台本の退避）
+2026-11-28 13:14:14 D:/PoB_work/wt_m1432（合流の worktree・枝 m1432 も消した＝main 7bcf13edd に入った）
