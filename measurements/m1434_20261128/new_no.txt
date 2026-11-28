@@ -1,0 +1,6 @@
+台帳のみ 種 1 返済のある国×四半期 12571 返済額の合計 2770193.472531
+台帳のみ 種 2 返済のある国×四半期 12903 返済額の合計 3553655.059418
+seed	g1Rows	g1Exact	g1Share	g2Rows	g2Exact	g2Share	g3Rows	g3NotAbove	g3Share	lineQuarters	aboveLineQuarters	over2xQuarters	over2xShare	ukType	ukFirstZeroYear	ukDefaults	ukDefaultYears
+G1 判定なし  G2 判定なし  G3 判定なし（fsx_s が無い種がある＝台帳の DebtRepay だけでは読めない）
+英の型 R 0 / 0  D 0  不履行の種 []
+線の上の国×四半期 計 0  2 倍超 計 0 / 0

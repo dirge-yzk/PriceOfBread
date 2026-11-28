@@ -1,0 +1,6 @@
+seed	g1Rows	g1Exact	g1Share	g2Rows	g2Exact	g2Share	g3Rows	g3NotAbove	g3Share	lineQuarters	aboveLineQuarters	over2xQuarters	over2xShare	ukType	ukFirstZeroYear	ukDefaults	ukDefaultYears
+1	8976	8976	1.000000	3596	3596	1.000000	12572	12572	1.000000	40751	33170	26114	0.640819	-	None	0	
+2	8804	8804	1.000000	4134	4134	1.000000	12938	12938	1.000000	40765	32293	25487	0.625218	-	None	0	
+G1 通る  G2 通る  G3 通る
+英の型 R 0 / 2  D 0  不履行の種 []
+線の上の国×四半期 計 65463  2 倍超 計 51601 / 81516
