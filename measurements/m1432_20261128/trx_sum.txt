@@ -1,0 +1,9 @@
+trx tests_H.trx：合計 135・合格 134・失敗 0・スキップ 1
+trx tests_R.trx：合計 2984・合格 2983・失敗 0・スキップ 1
+trx ui.trx：合計 232・合格 232・失敗 0・スキップ 0
+和：合計 3351・合格 3349・失敗 0・スキップ 2
+重複（同じ名が 2 度以上）0
+赤の名 なし
+スキップの名 PriceOfBread.Tests.InstrumentHookClosureTests.EveryTableAloneIsByteIdenticalToFullRun;PriceOfBread.Tests.TechInstitutionTests.公教育の自由国は世界の技術水準へ到達する
+--list-tests の数 3351・欠け（list−和）0・一致
+trx_sum rc=0

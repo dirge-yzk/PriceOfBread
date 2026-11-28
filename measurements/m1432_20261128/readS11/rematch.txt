@@ -1,0 +1,3 @@
+D:/PoB_work/m1432_work/out_m1432S11_10_s11/ins ALL 7819 727 1775 0.093 0.227
+D:/PoB_work/m1432_work/out_m1432S11_10_s11/ins blank 946 37 169 0.039 0.179
+D:/PoB_work/m1432_work/out_m1432S11_10_s11/ins won 6873 690 1606 0.100 0.234
