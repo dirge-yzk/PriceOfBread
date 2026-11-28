@@ -1152,7 +1152,7 @@ public sealed class Diplomacy
         int n = Powers.Count;
         var atWar = WarKeySet();
         bool protector = c.ProtectorTensionPerMonth > 1e-12;
-        var grp = new string[n]; var fam = new string[n];
+        var grp = new string[n];
         double[]? popTotal = protector ? new double[n] : null;
         Dictionary<string, double>?[]? popByRel = protector ? new Dictionary<string, double>?[n] : null;
         for (int i = 0; i < n; i++)
@@ -1160,7 +1160,6 @@ public sealed class Diplomacy
             var p = Powers[i];
             if (p.Nation is not { } nw) continue;
             if (p.Culture.Length > 0) grp[i] = CultureGroup(p.Culture);
-            if (p.Religion.Length > 0) fam[i] = ReligionFamily(p.Religion);
             if (!protector) continue;
             // ProtectorGrievance の走査を国ごとに 1 回＝活性州の人口の和と、州の宗教ごとの部分和（どちらも州の登録順に足す＝旧の和と同じ順・同じ値）
             double total = 0; Dictionary<string, double>? byRel = null;
@@ -1198,16 +1197,6 @@ public sealed class Diplomacy
                     else AddTensionKeyed(k, c.EthnicTensionPerMonth, TensionReason.Ethnic);                                                     // 異グループ＝反目
                 }
                 AddTensionKeyed(k, c.LawTensionPerMonth * Math.Abs(na.Freedom - nb.Freedom), TensionReason.Law);
-                if (a.Religion.Length != 0 && b.Religion.Length != 0)
-                {
-                    if (a.Religion == b.Religion) AddTensionKeyed(k, -c.ReligionAffinityRelief, TensionReason.Religion);        // 同一宗教＝親近
-                    else
-                    {
-                        string fa = fam[i], fb = fam[j];
-                        double dist = (fa == fb) ? c.ReligionHeresyBonus : Math.Abs(FamilyCoord(fa) - FamilyCoord(fb)); // 同族異端ボーナス or 異ファミリー座標距離
-                        AddTensionKeyed(k, c.ReligionTensionPerMonth * dist, TensionReason.Religion);
-                    }
-                }
                 if (protector)
                 {
                     double gab = Grievance(i, j), gba = Grievance(j, i);   // 緊張はペア対称ストア＝両方向の利害を同じ鍵へ積む
