@@ -1,0 +1,8 @@
+(1436) 旗 1 の木 2a3eb7b18 の絞った試験（narrow.sh・trx D:/PoB_work/c154ha_work/nar/trx/nar1.trx）
+合計 1 個のテスト ファイルが指定されたパターンと一致しました。
+  失敗 PriceOfBread.Tests.TerritoryTests.小さな州への流入は受け入れの上限を超えない_超えた分は出る州に残る [2 ms]
+  失敗 PriceOfBread.Tests.DestFoodSymmetryTests.T3_受け入れの上限の量は旗に依らない [78 ms]
+失敗!   -失敗:     2、合格:   904、スキップ:     1、合計:   907、期間: 39 m 28 s - PriceOfBread.Tests.dll (net10.0)
+savetest rc=0 savetest OK：12四半期後も全61カ国が継続系列と一致（最大相対差 0.0E+000）
+leakhunt rc=0 世界の台帳：説明できない増減＝人口 0四半期（累計 +0.0）・基礎貨幣 0四半期（累計 +0.0）
+当たったクラス: ReceiveCapRoomTests TerritoryTests DestFoodSymmetryTests HungerFlightTests ConservationTests AiFirstWaveTests CearnInstrumentTests EmptyUrbanValueTests FamineGateReturnsRuralTests FiscalTests HousingGateSharedTests IndustryThemeTests MigrationPairTests MilitaryTests NationModelTests RdhInstrumentTests RouteKmTests SerfInitialDataTests SoldierToVacantSeatTests StateDigestToolTests UrbanFlowRealTests IndustrializationReaderTests UnitTypeTests InstrumentsTests WriterRatchetTests DormantIdentityTests OnDoubleReadScanTests TechLevelRemovalTests Instrument

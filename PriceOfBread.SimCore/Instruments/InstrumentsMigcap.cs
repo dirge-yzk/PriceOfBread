@@ -42,6 +42,24 @@ public static partial class Instruments
         return slack > 0 ? System.Math.Pow(slack, c.ImmigrationAbsorbExponent) : 0.0;
     }
 
+    static double McAbsorbFh(Region r, Coefficients c)   // (1436) 旗 1 の写し：食×住居だけ
+    {
+        if (!(c.ImmigrationAbsorbExponent > 0)) return 1.0;
+        double slack = McUnit(r.FoodFill) * McUnit(r.HousingFill);
+        return slack > 0 ? System.Math.Pow(slack, c.ImmigrationAbsorbExponent) : 0.0;
+    }
+
+    static double McRoom(Region r)   // (1436) 旗 1 の写し：農村の空き（耕地 ≥1e8 は耕地のまま）＋職の空き（一般の労働の足りない量×人力の売り手の頭数÷人力の産出）
+    {
+        double rural = 0; foreach (var p in r.Pops) if (!p.IsUrban) rural += p.Size;
+        double room = r.ArableLand >= 1e8 ? r.ArableLand : (r.ArableLand > rural ? r.ArableLand - rural : 0.0);
+        if (Catalog.LaborId >= r.Markets.Length || !(r.Markets[Catalog.LaborId].LastShortage > 0)) return room;
+        double heads = 0, output = 0;
+        foreach (var s in r.Producers)
+            if (s.GoodId == Catalog.LaborId && !s.Bankrupt && s.Inputs.Count == 0 && s.RecipeName.Length == 0 && (uint)s.LaborPopIndex < (uint)r.Pops.Count) { heads += r.Pops[s.LaborPopIndex].Size; output += s.Output; }
+        return output > 0 ? room + heads * r.Markets[Catalog.LaborId].LastShortage / output : room;
+    }
+
     static double McEra(World w, Coefficients c) => c.EraFactor(w.WorldTechLevel, c.EraMigrationScale);   // 距離の尺度の時代の係数（エンジンの移民と同じ入力＝その国の世界の技術先端）
 
     static int McClasses(Region r) { int m = 0; foreach (var p in r.Pops) if (!p.IsSoldier) m |= 1 << p.ClassId; return m; }
@@ -111,7 +129,10 @@ public static partial class Instruments
             for (int d = start; d < end; d++)
             {
                 var r = all[d].R;
-                domCap[d] = Calendar.PerQuarterToPerMonth(c.ImmigrationReceiveCapPerQuarter).Value * r.SumPopulation() * McAbsorb(r, c);
+                double rate = Calendar.PerQuarterToPerMonth(c.ImmigrationReceiveCapPerQuarter).Value;
+                domCap[d] = c.ReceiveCapByRoom > 0   // (1436) 旗 ReceiveCapByRoom 1 の写し＝行き先の空き（計器が州の POP と売り手から自分で数える）×率×(食×住居)^指数
+                    ? rate * McRoom(r) * McAbsorbFh(r, c)
+                    : rate * r.SumPopulation() * McAbsorb(r, c);
             }
             start = end;
         }
