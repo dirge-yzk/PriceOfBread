@@ -640,7 +640,7 @@ def cmp_tests(W, cfg, delta):
         if len(h) > 0 and both == 0 and len(h) + len(r_) == len(t_):
             ok(f'分けた形：H {len(h)}＋R {len(r_)}＝{len(h) + len(r_)}（Tests の Category!=FullLength {len(t_)}・重なり 0）')
         else:
-            fail(f'分けた形：H {len(h)}＋R {len(r_)}≠{len(t_)} か H が空か重なり {both}')
+            fail(f'分けた形：H {len(h)}＋R {len(r_)}≠{len(t_)} か H が空か重なり {both}＝filters.sh の H と R の filter を確かめる（scripts/instruments/suite/filters.sh）')
 
 
 # ---------- 6 savetest と leakhunt ----------
@@ -762,6 +762,8 @@ def main():
         say('SOURCE-HASH（素の 5 種）' + first_line(pa + '.manifest', 'SOURCE-HASH'))
         cmp_report('素の 5 種', pa, base('B5'))
         cmp_cost('素の 5 種の .cost', pa + '.cost', base('B5') + '.cost', a['cost_allow'])
+    if STAGE == 2 and 'b' not in arms:   # (1434) 腕 b が無い＝計器の表を見ていない（--no-ins の走りが〈恒等〉と出さない）
+        miss('段 2 で腕 b〔計器つき 10 種〕の出力が無い＝計器の表を見ていない')
     if 'b' in arms:
         say('SOURCE-HASH（計器つき 10 種）' + first_line(pb + '.manifest', 'SOURCE-HASH'))
         cmp_report('計器つき 10 種', pb, base('B10INS'))

@@ -1,0 +1,29 @@
+(1434) c154tl 事前登録（恒等の線・道具の小物・予言 0）  出発 04a162e34・木 D:/PoB_work/wt_c154tl・書いた者 Claude Sonnet 5.5
+
+[1] 恒等の線・予言 0
+- 触るのは scripts/instruments/ident/ident_check.py（腕 b の未了と H＋R の fail の文だけ）・scripts/instruments/c151fl/fl_gate.py（treasledger の枝と出力の行だけ）。SimCore・Tests の .cs・App・Display・Runner は 0 行。
+- 予言：腕 a・b・t が揃う判定の出力は 1 字も変わらない（名乗り行の時刻と SOURCE-HASH を除く）。fl_gate は fsx_s がある種だけなら出力は 1 字も変わらない。
+
+[2] 変える文と、変えない文
+項 1 ident_check.py main() の `if 'b' in arms:` の前に、STAGE==2 かつ 'b' が arms に無い時だけ
+   miss('段 2 で腕 b〔計器つき 10 種〕の出力が無い＝計器の表を見ていない') を足す（判定は〈未了〉）。
+   変えない：判定の行・verdict の式・腕の完了の印の正規表現・他のメッセージ・段 1 の扱い。
+   呼び手の表（grep）：
+   - ident.sh:90 ARMS の組み立て＝b を外せるのは --no-ins（ident.sh:73・NOINS=1）だけ。arms.txt は ident.sh:92 だけが書く。arms.txt が無い時は a b t の既定（変えない）。
+   - --no-ins の呼び手：scripts/instruments/m1157/identz1157.sh（過去の波・腕 a・t・s だけ）・m1171/m1178 の NOINS1171・NOINSZ の口（過去の波）。今の合流の台本（c153・c152 の ident 呼び）に --no-ins は無い。
+   - 結論：意図して b を外す呼び方は --no-ins だけ。ident.sh は持ち主の外＝信号を足せない。段 2 の --no-ins は今後〈未了〉と出る（計器の表を見ていないので正しい）。壊す呼び手は現行の台本に無い。
+   - 段 1 で b が無い時は今回は変えない（段 1 の集合は入れない物）。次の波へ記録。
+項 2 ident_check.py cmp_tests の H＋R の fail の文の末尾に
+   「＝filters.sh の H と R の filter を確かめる（scripts/instruments/suite/filters.sh）」を足す。判定の条件（len(h)>0 and both==0 and len(h)+len(r_)==len(t_)）は変えない。
+項 3 fl_gate.py：fsx_s が無い種があった時は G1〜G3 を〈判定なし〉と出す（allok へ None を入れる）。台帳の行（台帳のみ 種…）は今のまま出す。
+   rc の読み手（grep）：read_fl.sh:26-27・m1418/read_m1418.sh:38-39 は rc を echo するだけ（fl_gate.py は常に rc=0・sys.exit を使わない＝変えない）。出力の行 `G1 通る/落ちる` を読む機械の読み手は無い（grep 済み）。fsx_s がある種だけの出力は不変。
+   「欠け」（fsx_s も treasledger も無い）の扱い＝今のまま〈落ちる〉。
+
+[3] 足す試験と突然変異（台本だけ・使い捨て・scripts/instruments/c154tl/）
+- 試験は台本（gate_tl.sh）：(a) 揃った W で〈判定: 恒等〉・(b) arms.txt から b を外した写しで check だけ→段 2 で〈判定: 未了〉・(c) fsx_s を除いた生で〈判定なし〉・fsx_s がある生は旧と同じ出力（旧の fl_gate は git show 04a162e34 で取る）。
+- μ1 miss を消す→(b) が〈恒等〉に戻る（赤）。μ2 fl_gate の〈判定なし〉を消す→〈通る〉（赤）。μ3 腕 b がある写しでも miss が出る→(a) が〈未了〉（赤）。
+- ソースを走査する番人（㉘）：C# を触らない＝番人の書き換え件数の予言は 0。㉘ の束は台本を触らないので回さず、写した台本を走査する束（Instruments/Scripts を読む試験）を grep して当たったクラスだけ回す。
+
+[4] 腕：素の 5 種・計器つき 10 種が m1432 と名乗り行を除いて全行一致（SimCore 0 行＝ビットは動かない）。
+[5]〈判定: 恒等〉なら採る（測った種で一致）。浮動小数の順序が変わる箇所：なし。
+D: 重い仕事の量：ident 1 回＝腕 a・b・t（約 35GB＋約 15GB）。

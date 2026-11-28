@@ -18,6 +18,7 @@ def tab(p, filt=None):
         if filt is None or filt(ix, r): yield ix, r
 rows = []
 allok = {'G1': True, 'G2': True, 'G3': True}
+ledger_only = False
 for s in SEEDS:
     p = f'{D}/fsx_s{s}.tsv'
     if not os.path.exists(p):
@@ -28,6 +29,7 @@ for s in SEEDS:
         for ix, r in tab(tp, lambda ix, r: r[ix['item']] == 'DebtRepay'):
             v = float(r[ix['value']])
             if v != 0: qs.add((r[ix['quarter']], r[ix['nation']])); tot += -v
+        ledger_only = True   # (1434) fsx_s が無い種がある＝G1〜G3 は読めていない（〈通る〉と出さない）
         print('台帳のみ 種', s, '返済のある国×四半期', len(qs), '返済額の合計', f'{tot:.6f}')
         continue
     n1 = k1 = n2 = k2 = n3 = k3 = 0; over2 = lineq = above = 0
@@ -61,6 +63,7 @@ lines = [H] + ['\t'.join(str(x) for x in r) for r in rows]
 if OUT:
     with open(OUT, 'w', encoding='utf-8', newline='\n') as f: f.write('\n'.join(lines) + '\n')
 for l in lines: print(l)
-print('G1', '通る' if allok['G1'] else '落ちる', ' G2', '通る' if allok['G2'] else '落ちる', ' G3', '通る' if allok['G3'] else '落ちる')
+if ledger_only: print('G1 判定なし  G2 判定なし  G3 判定なし（fsx_s が無い種がある＝台帳の DebtRepay だけでは読めない）')
+else: print('G1', '通る' if allok['G1'] else '落ちる', ' G2', '通る' if allok['G2'] else '落ちる', ' G3', '通る' if allok['G3'] else '落ちる')
 print('英の型 R', sum(r[14] == 'R' for r in rows), '/', len(rows), ' D', sum(r[14] == 'D' for r in rows), ' 不履行の種', [r[0] for r in rows if r[16] > 0])
 print('線の上の国×四半期 計', sum(r[11] for r in rows), ' 2 倍超 計', sum(r[12] for r in rows), '/', sum(r[10] for r in rows))
